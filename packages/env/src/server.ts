@@ -15,6 +15,8 @@ export const env = createEnv({
     BETTER_AUTH_URL: z.url(),
     POLAR_ACCESS_TOKEN: z.string().min(1),
     POLAR_SUCCESS_URL: z.url(),
+    NHTSA_VPIC_BASE_URL: z.url().default("https://vpic.nhtsa.dot.gov/api"),
+    NHTSA_VPIC_TIMEOUT_MS: z.coerce.number().int().positive().default(5000),
     CORS_ORIGIN: z.url(),
     LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]).default("info"),
     FLAG_FREE_TIER_ENABLED: booleanFlag(true),

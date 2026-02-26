@@ -151,7 +151,10 @@ fastify.get("/", async () => {
   return "OK";
 });
 
-fastify.listen({ port: 3000 }, (err) => {
+const serverHost = "0.0.0.0";
+const serverPort = 3000;
+
+fastify.listen({ host: serverHost, port: serverPort }, (err) => {
   if (err) {
     fastify.log.error(err);
     process.exit(1);
@@ -159,9 +162,10 @@ fastify.listen({ port: 3000 }, (err) => {
   fastify.log.info(
     {
       event: "server.started",
-      port: 3000,
+      host: serverHost,
+      port: serverPort,
       featureFlags,
     },
-    "Server running on port 3000",
+    "Server running",
   );
 });

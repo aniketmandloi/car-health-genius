@@ -1,6 +1,8 @@
 import { relations } from "drizzle-orm";
 import { boolean, index, jsonb, pgTable, serial, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 
+import { partnerMembership } from "./partnerMembership";
+
 export const partner = pgTable(
   "partner",
   {
@@ -28,4 +30,6 @@ export const partner = pgTable(
   ],
 );
 
-export const partnerRelations = relations(partner, () => ({}));
+export const partnerRelations = relations(partner, ({ many }) => ({
+  memberships: many(partnerMembership),
+}));

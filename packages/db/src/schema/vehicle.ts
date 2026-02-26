@@ -21,6 +21,8 @@ export const vehicle = pgTable(
     modelYear: integer("model_year").notNull(),
     engine: text("engine"),
     mileage: integer("mileage"),
+    countryCode: varchar("country_code", { length: 2 }).notNull().default("US"),
+    stateCode: varchar("state_code", { length: 2 }),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()
@@ -29,6 +31,7 @@ export const vehicle = pgTable(
   },
   (table) => [
     index("vehicle_user_id_idx").on(table.userId),
+    index("vehicle_country_code_idx").on(table.countryCode),
     uniqueIndex("vehicle_user_vin_uq").on(table.userId, table.vin),
   ],
 );

@@ -11,6 +11,7 @@ export const env = createEnv({
   clientPrefix: "EXPO_PUBLIC_",
   client: {
     EXPO_PUBLIC_SERVER_URL: z.url(),
+    EXPO_PUBLIC_ADAPTER_MODE: z.enum(["simulated", "ble"]).default("simulated"),
     EXPO_PUBLIC_FLAG_FREE_TIER_ENABLED: booleanFlag(true),
     EXPO_PUBLIC_FLAG_PRO_PAYWALL_ENABLED: booleanFlag(true),
     EXPO_PUBLIC_FLAG_AI_EXPLANATIONS_ENABLED: booleanFlag(false),

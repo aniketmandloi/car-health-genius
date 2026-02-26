@@ -45,7 +45,13 @@ test('appRouter registers sprint-1 routers', () => {
 test('router procedures enforce auth + output contracts', () => {
   for (const filePath of requiredRouterFiles) {
     const content = read(filePath);
-    assert.match(content, /protectedProcedure/, `missing protectedProcedure in ${filePath}`);
+    if (filePath.endsWith('admin.ts')) {
+      assert.match(content, /(adminProcedure|protectedProcedure)/, `missing adminProcedure in ${filePath}`);
+    } else if (filePath.endsWith('partnerPortal.ts')) {
+      assert.match(content, /(partnerProcedure|protectedProcedure)/, `missing partnerProcedure in ${filePath}`);
+    } else {
+      assert.match(content, /protectedProcedure/, `missing protectedProcedure in ${filePath}`);
+    }
     assert.match(content, /\.output\(/, `missing output validator in ${filePath}`);
     assert.doesNotMatch(content, /not_implemented/, `placeholder response remains in ${filePath}`);
     if (filePath.endsWith('admin.ts') || filePath.endsWith('partnerPortal.ts')) {

@@ -9,6 +9,8 @@
 | `POLAR_ACCESS_TOKEN` | secret | payment provider API credential |
 | `BETTER_AUTH_URL` | internal non-secret | service base URL |
 | `POLAR_SUCCESS_URL` | internal non-secret | post-checkout redirect |
+| `NHTSA_VPIC_BASE_URL` | internal non-secret | VIN provider base URL |
+| `NHTSA_VPIC_TIMEOUT_MS` | internal non-secret | VIN provider timeout in milliseconds |
 | `CORS_ORIGIN` | internal non-secret | allowed web origin |
 | `LOG_LEVEL` | internal non-secret | runtime logging verbosity |
 | `FLAG_*` server vars | internal non-secret | backend feature controls |
@@ -24,6 +26,8 @@ Required variables:
 - `BETTER_AUTH_URL`
 - `POLAR_ACCESS_TOKEN`
 - `POLAR_SUCCESS_URL`
+- `NHTSA_VPIC_BASE_URL`
+- `NHTSA_VPIC_TIMEOUT_MS`
 - `CORS_ORIGIN`
 - `LOG_LEVEL`
 - `FLAG_FREE_TIER_ENABLED`
@@ -49,6 +53,7 @@ Required variables:
 Required variables:
 
 - `EXPO_PUBLIC_SERVER_URL`
+- `EXPO_PUBLIC_ADAPTER_MODE`
 - `EXPO_PUBLIC_FLAG_FREE_TIER_ENABLED`
 - `EXPO_PUBLIC_FLAG_PRO_PAYWALL_ENABLED`
 - `EXPO_PUBLIC_FLAG_AI_EXPLANATIONS_ENABLED`
