@@ -9,6 +9,9 @@
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
+    "lint": "turbo lint",
+    "test": "turbo test && node --test tests/**/*.test.mjs",
+    "test:ci": "turbo test && node --test tests/**/*.test.mjs",
     "check-types": "turbo check-types",
     "dev:native": "turbo -F native dev",
     "dev:web": "turbo -F web dev",

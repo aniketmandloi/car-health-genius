@@ -9,7 +9,11 @@
       "default": "./src/*.ts"
     }
   },
-  "scripts": {},
+  "scripts": {
+    "check-types": "tsc -p tsconfig.json --noEmit",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "test": "node --test --test-reporter=spec"
+  },
   "dependencies": {
     "@better-auth/expo": "catalog:",
     "@car-health-genius/db": "workspace:*",

@@ -6,7 +6,11 @@
   "exports": {
     "./server": "./src/server.ts",
     "./web": "./src/web.ts",
-    "./native": "./src/native.ts"
+    "./native": "./src/native.ts",
+    "./feature-flags": "./src/feature-flags.ts",
+    "./server-flags": "./src/server-flags.ts",
+    "./web-flags": "./src/web-flags.ts",
+    "./native-flags": "./src/native-flags.ts"
   },
   "dependencies": {
     "@t3-oss/env-core": "^0.13.1",
@@ -18,5 +22,10 @@
     "@car-health-genius/config": "workspace:*",
     "@types/node": "^22.13.14",
     "typescript": "catalog:"
+  },
+  "scripts": {
+    "check-types": "tsc -p tsconfig.json --noEmit",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "test": "node --test --test-reporter=spec"
   }
 }

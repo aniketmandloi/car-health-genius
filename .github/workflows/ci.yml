@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  quality-gates:
+    name: Quality Gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+      NODE_ENV: test
+      LOG_LEVEL: info
+      CORS_ORIGIN: http://localhost:3001
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/car_health_genius
+      BETTER_AUTH_SECRET: ci-placeholder-secret-minimum-32-chars
+      BETTER_AUTH_URL: http://localhost:3000
+      POLAR_ACCESS_TOKEN: ci-placeholder-polar-token
+      POLAR_SUCCESS_URL: http://localhost:3001/success
+      NEXT_PUBLIC_SERVER_URL: http://localhost:3000
+      EXPO_PUBLIC_SERVER_URL: http://localhost:3000
+      FLAG_FREE_TIER_ENABLED: "true"
+      FLAG_PRO_PAYWALL_ENABLED: "true"
+      FLAG_AI_EXPLANATIONS_ENABLED: "false"
+      FLAG_PARTNER_PORTAL_ENABLED: "false"
+      FLAG_ADMIN_KILL_SWITCH_ENABLED: "true"
+      NEXT_PUBLIC_FLAG_FREE_TIER_ENABLED: "true"
+      NEXT_PUBLIC_FLAG_PRO_PAYWALL_ENABLED: "true"
+      NEXT_PUBLIC_FLAG_AI_EXPLANATIONS_ENABLED: "false"
+      NEXT_PUBLIC_FLAG_PARTNER_PORTAL_ENABLED: "false"
+      NEXT_PUBLIC_FLAG_ADMIN_KILL_SWITCH_ENABLED: "true"
+      EXPO_PUBLIC_FLAG_FREE_TIER_ENABLED: "true"
+      EXPO_PUBLIC_FLAG_PRO_PAYWALL_ENABLED: "true"
+      EXPO_PUBLIC_FLAG_AI_EXPLANATIONS_ENABLED: "false"
+      EXPO_PUBLIC_FLAG_PARTNER_PORTAL_ENABLED: "false"
+      EXPO_PUBLIC_FLAG_ADMIN_KILL_SWITCH_ENABLED: "true"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Check types
+        run: pnpm run check-types
+
+      - name: Run tests
+        run: pnpm run test:ci
+
+      - name: Build
+        run: pnpm run build
