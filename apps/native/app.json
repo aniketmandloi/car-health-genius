@@ -1,0 +1,17 @@
+{
+  "expo": {
+    "scheme": "car-health-genius",
+    "userInterfaceStyle": "automatic",
+    "orientation": "default",
+    "web": {
+      "bundler": "metro"
+    },
+    "name": "car-health-genius",
+    "slug": "car-health-genius",
+    "plugins": ["expo-font"],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}

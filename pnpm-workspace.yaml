@@ -1,0 +1,16 @@
+packages:
+  - apps/*
+  - packages/*
+catalog:
+  dotenv: ^17.2.2
+  zod: ^4.1.13
+  typescript: ^5
+  "@trpc/server": ^11.7.2
+  better-auth: ^1.4.18
+  "@trpc/tanstack-react-query": ^11.7.2
+  "@trpc/client": ^11.7.2
+  "@tanstack/react-query": ^5.90.12
+  "@tanstack/react-form": ^1.28.0
+  "@polar-sh/better-auth": ^1.6.4
+  "@better-auth/expo": ^1.4.18
+  drizzle-orm: ^0.45.1

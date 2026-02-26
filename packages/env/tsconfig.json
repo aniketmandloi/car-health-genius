@@ -1,0 +1,3 @@
+{
+  "extends": "@car-health-genius/config/tsconfig.base.json"
+}
