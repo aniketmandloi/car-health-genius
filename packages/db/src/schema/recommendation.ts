@@ -1,6 +1,8 @@
+import { relations } from "drizzle-orm";
 import { boolean, index, integer, jsonb, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
 
 import { diagnosticEvent } from "./diagnosticEvent";
+import { feedback } from "./feedback";
 
 export const recommendation = pgTable(
   "recommendation",
@@ -23,3 +25,11 @@ export const recommendation = pgTable(
   },
   (table) => [index("recommendation_diagnostic_event_id_idx").on(table.diagnosticEventId)],
 );
+
+export const recommendationRelations = relations(recommendation, ({ many, one }) => ({
+  diagnosticEvent: one(diagnosticEvent, {
+    fields: [recommendation.diagnosticEventId],
+    references: [diagnosticEvent.id],
+  }),
+  feedbackItems: many(feedback),
+}));
