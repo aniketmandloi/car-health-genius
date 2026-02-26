@@ -7,7 +7,9 @@
     "check-types": "tsc -b",
     "compile": "bun build --compile --minify --sourcemap --bytecode ./src/index.ts --outfile server",
     "dev": "tsx watch src/index.ts",
-    "start": "node dist/index.mjs"
+    "start": "node dist/index.mjs",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "test": "node --test --test-reporter=spec"
   },
   "dependencies": {
     "@car-health-genius/api": "workspace:*",

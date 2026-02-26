@@ -1,0 +1,37 @@
+erDiagram
+  user ||--o{ vehicle : owns
+  vehicle ||--o{ diagnostic_event : has
+  diagnostic_event ||--o{ recommendation : yields
+
+  vehicle {
+    int id PK
+    text user_id FK
+    varchar vin
+    text make
+    text model
+    int model_year
+    text engine
+    int mileage
+  }
+
+  diagnostic_event {
+    int id PK
+    int vehicle_id FK
+    text source
+    varchar dtc_code
+    text severity
+    jsonb freeze_frame
+    jsonb sensor_snapshot
+    timestamp occurred_at
+  }
+
+  recommendation {
+    int id PK
+    int diagnostic_event_id FK
+    text recommendation_type
+    text urgency
+    int confidence
+    text title
+    jsonb details
+    bool is_active
+  }

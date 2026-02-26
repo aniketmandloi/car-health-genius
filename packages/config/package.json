@@ -1,5 +1,10 @@
 {
   "name": "@car-health-genius/config",
   "version": "0.0.0",
-  "private": true
+  "private": true,
+  "scripts": {
+    "check-types": "node -e \"process.exit(0)\"",
+    "lint": "node -e \"process.exit(0)\"",
+    "test": "node --test --test-reporter=spec"
+  }
 }

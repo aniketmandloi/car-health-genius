@@ -1,0 +1,71 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+
+function readFile(path) {
+  return fs.readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
+}
+
+function assertKeysPresent(content, keys, filePath) {
+  for (const key of keys) {
+    assert.match(content, new RegExp(`^${key}=`, 'm'), `missing ${key} in ${filePath}`);
+  }
+}
+
+test('server env example includes required keys', () => {
+  const filePath = 'apps/server/.env.example';
+  const content = readFile(filePath);
+  assertKeysPresent(
+    content,
+    [
+      'NODE_ENV',
+      'LOG_LEVEL',
+      'CORS_ORIGIN',
+      'DATABASE_URL',
+      'BETTER_AUTH_SECRET',
+      'BETTER_AUTH_URL',
+      'POLAR_ACCESS_TOKEN',
+      'POLAR_SUCCESS_URL',
+      'FLAG_FREE_TIER_ENABLED',
+      'FLAG_PRO_PAYWALL_ENABLED',
+      'FLAG_AI_EXPLANATIONS_ENABLED',
+      'FLAG_PARTNER_PORTAL_ENABLED',
+      'FLAG_ADMIN_KILL_SWITCH_ENABLED',
+    ],
+    filePath,
+  );
+});
+
+test('web env example includes required keys', () => {
+  const filePath = 'apps/web/.env.example';
+  const content = readFile(filePath);
+  assertKeysPresent(
+    content,
+    [
+      'NEXT_PUBLIC_SERVER_URL',
+      'NEXT_PUBLIC_FLAG_FREE_TIER_ENABLED',
+      'NEXT_PUBLIC_FLAG_PRO_PAYWALL_ENABLED',
+      'NEXT_PUBLIC_FLAG_AI_EXPLANATIONS_ENABLED',
+      'NEXT_PUBLIC_FLAG_PARTNER_PORTAL_ENABLED',
+      'NEXT_PUBLIC_FLAG_ADMIN_KILL_SWITCH_ENABLED',
+    ],
+    filePath,
+  );
+});
+
+test('native env example includes required keys', () => {
+  const filePath = 'apps/native/.env.example';
+  const content = readFile(filePath);
+  assertKeysPresent(
+    content,
+    [
+      'EXPO_PUBLIC_SERVER_URL',
+      'EXPO_PUBLIC_FLAG_FREE_TIER_ENABLED',
+      'EXPO_PUBLIC_FLAG_PRO_PAYWALL_ENABLED',
+      'EXPO_PUBLIC_FLAG_AI_EXPLANATIONS_ENABLED',
+      'EXPO_PUBLIC_FLAG_PARTNER_PORTAL_ENABLED',
+      'EXPO_PUBLIC_FLAG_ADMIN_KILL_SWITCH_ENABLED',
+    ],
+    filePath,
+  );
+});

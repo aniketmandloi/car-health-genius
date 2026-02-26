@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { getNativeFeatureFlags } from "@car-health-genius/env/native-flags";
 import { useQuery } from "@tanstack/react-query";
 import { Card, Chip, useThemeColor } from "heroui-native";
 import { Text, View, Pressable } from "react-native";
@@ -10,6 +11,7 @@ import { authClient } from "@/lib/auth-client";
 import { queryClient, trpc } from "@/utils/trpc";
 
 export default function Home() {
+  const featureFlags = getNativeFeatureFlags();
   const healthCheck = useQuery(trpc.healthCheck.queryOptions());
   const privateData = useQuery(trpc.privateData.queryOptions());
   const isConnected = healthCheck?.data === "OK";
@@ -77,6 +79,11 @@ export default function Home() {
             )}
           </View>
         </Card>
+
+        <Card.Description className="mt-3">
+          Flags: free-tier {featureFlags.freeTierEnabled ? "on" : "off"}, pro-paywall{" "}
+          {featureFlags.proPaywallEnabled ? "on" : "off"}
+        </Card.Description>
       </Card>
 
       <Card variant="secondary" className="mt-6 p-4">

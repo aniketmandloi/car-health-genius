@@ -7,13 +7,19 @@
     },
     "./*": {
       "default": "./src/*.ts"
+    },
+    "./repositories/*": {
+      "default": "./src/repositories/*.ts"
     }
   },
   "scripts": {
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
     "db:studio": "drizzle-kit studio",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "drizzle-kit migrate",
+    "check-types": "tsc -p tsconfig.json --noEmit",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "test": "node --test --test-reporter=spec"
   },
   "dependencies": {
     "@car-health-genius/env": "workspace:*",
