@@ -26,6 +26,8 @@ test('server env example includes required keys', () => {
       'BETTER_AUTH_URL',
       'POLAR_ACCESS_TOKEN',
       'POLAR_SUCCESS_URL',
+      'NHTSA_VPIC_BASE_URL',
+      'NHTSA_VPIC_TIMEOUT_MS',
       'FLAG_FREE_TIER_ENABLED',
       'FLAG_PRO_PAYWALL_ENABLED',
       'FLAG_AI_EXPLANATIONS_ENABLED',
@@ -60,6 +62,7 @@ test('native env example includes required keys', () => {
     content,
     [
       'EXPO_PUBLIC_SERVER_URL',
+      'EXPO_PUBLIC_ADAPTER_MODE',
       'EXPO_PUBLIC_FLAG_FREE_TIER_ENABLED',
       'EXPO_PUBLIC_FLAG_PRO_PAYWALL_ENABLED',
       'EXPO_PUBLIC_FLAG_AI_EXPLANATIONS_ENABLED',

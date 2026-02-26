@@ -243,3 +243,64 @@ Indexes:
 - `audit_log_actor_user_id_idx` on `actor_user_id`
 - `audit_log_target_idx` on (`target_type`, `target_id`)
 - `audit_log_created_at_idx` on `created_at`
+
+## Sprint 2 Additions
+
+### `user` (auth extension)
+
+- `role` (text, required, default `user`)
+- `banned` (boolean, required, default `false`)
+- `ban_reason` (text, nullable)
+- `ban_expires` (timestamp, nullable)
+
+### `session` (auth extension)
+
+- `impersonated_by` (text, nullable)
+
+### `vehicle` (new fields)
+
+- `country_code` (varchar(2), required, default `US`)
+- `state_code` (varchar(2), nullable)
+
+Additional index:
+
+- `vehicle_country_code_idx` on `country_code`
+
+### `adapter`
+
+- `id` (serial, PK)
+- `vendor` (text, required)
+- `model` (text, required)
+- `slug` (text, required, unique)
+- `connection_type` (text, required, default `bluetooth`)
+- `ios_supported` (boolean, required, default `false`)
+- `android_supported` (boolean, required, default `false`)
+- `status` (text, required, default `active`)
+- `firmware_notes` (text, nullable)
+- `metadata` (jsonb, nullable)
+- `last_validated_at` (timestamp, nullable)
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+Indexes:
+
+- `adapter_slug_uq` unique on `slug`
+- `adapter_status_idx` on `status`
+- `adapter_vendor_idx` on `vendor`
+
+### `partner_membership`
+
+- `id` (serial, PK)
+- `user_id` (text, FK -> `user.id`)
+- `partner_id` (integer, FK -> `partner.id`)
+- `membership_role` (text, required, default `agent`)
+- `status` (text, required, default `active`)
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+Indexes:
+
+- `partner_membership_user_partner_uq` unique on (`user_id`, `partner_id`)
+- `partner_membership_user_id_idx` on `user_id`
+- `partner_membership_partner_id_idx` on `partner_id`
+- `partner_membership_status_idx` on `status`

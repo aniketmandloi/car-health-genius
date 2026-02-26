@@ -5,7 +5,7 @@ import { TRPCError } from "@trpc/server";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 
-import { protectedProcedure, router } from "../index";
+import { partnerProcedure, router } from "../index";
 
 const leadStatusSchema = z.enum(["requested", "accepted", "alternate", "rejected", "confirmed"]);
 
@@ -58,7 +58,7 @@ function mapBookingRow(row: typeof booking.$inferSelect) {
 }
 
 export const partnerPortalRouter = router({
-  listOpenLeads: protectedProcedure
+  listOpenLeads: partnerProcedure
     .input(
       z
         .object({
@@ -67,19 +67,19 @@ export const partnerPortalRouter = router({
         .optional(),
     )
     .output(z.array(bookingOutputSchema))
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
       const limit = input?.limit ?? 50;
       const rows = await db
         .select()
         .from(booking)
-        .where(inArray(booking.status, ["requested", "alternate"]))
+        .where(and(inArray(booking.status, ["requested", "alternate"]), eq(booking.partnerId, ctx.partnerMembership.partnerId)))
         .orderBy(desc(booking.requestedAt))
         .limit(limit);
 
       return rows.map(mapBookingRow);
     }),
 
-  respondToLead: protectedProcedure
+  respondToLead: partnerProcedure
     .input(
       z.object({
         bookingId: z.number().int().positive(),
@@ -89,12 +89,16 @@ export const partnerPortalRouter = router({
     )
     .output(bookingOutputSchema)
     .mutation(async ({ ctx, input }) => {
-      const [existing] = await db.select({ id: booking.id }).from(booking).where(eq(booking.id, input.bookingId)).limit(1);
+      const [existing] = await db
+        .select({ id: booking.id })
+        .from(booking)
+        .where(and(eq(booking.id, input.bookingId), eq(booking.partnerId, ctx.partnerMembership.partnerId)))
+        .limit(1);
 
       if (!existing) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "Booking not found",
+          message: "Lead not found",
         });
       }
 
@@ -105,7 +109,7 @@ export const partnerPortalRouter = router({
           partnerResponseNote: input.message,
           resolvedAt: input.status === "confirmed" || input.status === "rejected" ? new Date() : null,
         })
-        .where(and(eq(booking.id, input.bookingId)))
+        .where(and(eq(booking.id, input.bookingId), eq(booking.partnerId, ctx.partnerMembership.partnerId)))
         .returning();
 
       if (!updated) {
@@ -117,7 +121,7 @@ export const partnerPortalRouter = router({
 
       await appendAuditLog({
         actorUserId: ctx.session.user.id,
-        actorRole: "partner_pending_rbac",
+        actorRole: ctx.userRole,
         action: "partner.lead.respond",
         targetType: "booking",
         targetId: String(input.bookingId),
