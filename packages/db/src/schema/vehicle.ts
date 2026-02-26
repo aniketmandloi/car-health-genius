@@ -1,6 +1,12 @@
+import { relations } from "drizzle-orm";
 import { index, integer, pgTable, serial, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/pg-core";
 
 import { user } from "./auth";
+import { booking } from "./booking";
+import { diagnosticEvent } from "./diagnosticEvent";
+import { estimate } from "./estimate";
+import { maintenance } from "./maintenance";
+import { repairOutcome } from "./repairOutcome";
 
 export const vehicle = pgTable(
   "vehicle",
@@ -26,3 +32,15 @@ export const vehicle = pgTable(
     uniqueIndex("vehicle_user_vin_uq").on(table.userId, table.vin),
   ],
 );
+
+export const vehicleRelations = relations(vehicle, ({ many, one }) => ({
+  user: one(user, {
+    fields: [vehicle.userId],
+    references: [user.id],
+  }),
+  diagnosticEvents: many(diagnosticEvent),
+  estimates: many(estimate),
+  bookings: many(booking),
+  maintenanceItems: many(maintenance),
+  repairOutcomes: many(repairOutcome),
+}));

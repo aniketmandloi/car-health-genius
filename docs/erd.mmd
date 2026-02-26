@@ -1,7 +1,31 @@
 erDiagram
   user ||--o{ vehicle : owns
+  user ||--o{ estimate : receives
+  user ||--o{ booking : requests
+  user ||--o{ maintenance : tracks
+  user ||--o{ subscription : pays
+  user ||--o{ entitlement : gets
+  user ||--o{ feedback : submits
+  user ||--o{ repair_outcome : reports
+  user ||--o{ audit_log : performs
+
   vehicle ||--o{ diagnostic_event : has
+  vehicle ||--o{ estimate : priced_for
+  vehicle ||--o{ booking : referenced_by
+  vehicle ||--o{ maintenance : scheduled_for
+  vehicle ||--o{ repair_outcome : resolved_for
+
   diagnostic_event ||--o{ recommendation : yields
+  diagnostic_event ||--o{ estimate : informs
+  diagnostic_event ||--o{ booking : triggers
+  diagnostic_event ||--o{ feedback : related_to
+  diagnostic_event ||--o{ repair_outcome : closes
+
+  recommendation ||--o{ feedback : rated_by
+
+  partner ||--o{ booking : assigned_to
+
+  estimate ||--o{ repair_outcome : compared_to
 
   vehicle {
     int id PK
@@ -34,4 +58,95 @@ erDiagram
     text title
     jsonb details
     bool is_active
+  }
+
+  estimate {
+    int id PK
+    text user_id FK
+    int vehicle_id FK
+    int diagnostic_event_id FK
+    int labor_low_cents
+    int labor_high_cents
+    int parts_low_cents
+    int parts_high_cents
+    varchar currency
+    text region
+  }
+
+  partner {
+    int id PK
+    text display_name
+    text slug
+    text status
+    text launch_metro
+  }
+
+  booking {
+    int id PK
+    text user_id FK
+    int vehicle_id FK
+    int diagnostic_event_id FK
+    int partner_id FK
+    text issue_summary
+    timestamp preferred_window_start
+    timestamp preferred_window_end
+    text status
+  }
+
+  maintenance {
+    int id PK
+    text user_id FK
+    int vehicle_id FK
+    text service_type
+    int due_mileage
+    timestamp due_date
+    text status
+  }
+
+  subscription {
+    int id PK
+    text user_id FK
+    text provider
+    text provider_subscription_id
+    text plan
+    text status
+  }
+
+  entitlement {
+    int id PK
+    text user_id FK
+    text feature_key
+    text source
+    bool is_enabled
+    timestamp expires_at
+  }
+
+  feedback {
+    int id PK
+    text user_id FK
+    int recommendation_id FK
+    int diagnostic_event_id FK
+    int rating
+    text outcome
+  }
+
+  repair_outcome {
+    int id PK
+    text user_id FK
+    int vehicle_id FK
+    int diagnostic_event_id FK
+    int estimate_id FK
+    int invoice_amount_cents
+    text outcome_status
+    timestamp performed_at
+  }
+
+  audit_log {
+    int id PK
+    text actor_user_id FK
+    text actor_role
+    text action
+    text target_type
+    text target_id
+    timestamp created_at
   }
