@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { getNativeFeatureFlags } from "@car-health-genius/env/native-flags";
 import { useQuery } from "@tanstack/react-query";
-import { Card, Chip, useThemeColor } from "heroui-native";
+import { Button, Card, Chip, useThemeColor } from "heroui-native";
+import { useState } from "react";
 import { Text, View, Pressable } from "react-native";
 
 import { Container } from "@/components/container";
@@ -13,10 +14,14 @@ import { queryClient, trpc } from "@/utils/trpc";
 export default function Home() {
   const featureFlags = getNativeFeatureFlags();
   const healthCheck = useQuery(trpc.healthCheck.queryOptions());
-  const privateData = useQuery(trpc.privateData.queryOptions());
   const isConnected = healthCheck?.data === "OK";
   const isLoading = healthCheck?.isLoading;
   const { data: session } = authClient.useSession();
+  const [authMode, setAuthMode] = useState<"signin" | "signup">("signin");
+  const privateData = useQuery({
+    ...trpc.privateData.queryOptions(),
+    enabled: !!session?.user,
+  });
 
   const mutedColor = useThemeColor("muted");
   const successColor = useThemeColor("success");
@@ -86,16 +91,32 @@ export default function Home() {
         </Card.Description>
       </Card>
 
-      <Card variant="secondary" className="mt-6 p-4">
-        <Card.Title className="mb-3">Private Data</Card.Title>
-        {privateData && <Card.Description>{privateData.data?.message}</Card.Description>}
-      </Card>
-
-      {!session?.user && (
-        <>
-          <SignIn />
-          <SignUp />
-        </>
+      {session?.user ? (
+        <Card variant="secondary" className="mt-6 p-4">
+          <Card.Title className="mb-3">Private Data</Card.Title>
+          <Card.Description>{privateData.data?.message ?? "No private payload"}</Card.Description>
+        </Card>
+      ) : (
+        <Card variant="secondary" className="mt-6 p-4">
+          <Card.Title className="mb-3">Get Started</Card.Title>
+          <View className="flex-row gap-2 mb-3">
+            <Button
+              variant={authMode === "signin" ? "primary" : "secondary"}
+              className="flex-1"
+              onPress={() => setAuthMode("signin")}
+            >
+              Sign In
+            </Button>
+            <Button
+              variant={authMode === "signup" ? "primary" : "secondary"}
+              className="flex-1"
+              onPress={() => setAuthMode("signup")}
+            >
+              Create Account
+            </Button>
+          </View>
+          {authMode === "signin" ? <SignIn /> : <SignUp />}
+        </Card>
       )}
     </Container>
   );

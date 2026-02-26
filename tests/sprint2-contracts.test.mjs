@@ -81,3 +81,9 @@ test("native scan tab uses adapter abstraction and VIN onboarding", () => {
   assert.match(content, /trpc\.vehicles\.createFromVin/);
   assert.match(content, /UNSUPPORTED_GEOGRAPHY/);
 });
+
+test("native home screen uses auth mode toggle instead of rendering both auth forms at once", () => {
+  const content = read("apps/native/app/(drawer)/index.tsx");
+  assert.match(content, /authMode/);
+  assert.match(content, /authMode === "signin" \? <SignIn \/> : <SignUp \/>/);
+});
