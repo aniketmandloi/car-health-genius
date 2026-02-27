@@ -17,4 +17,6 @@ export * from "./auditLog";
 export * from "./obdSession";
 export * from "./timelineEvent";
 export * from "./recallSnapshot";
+export * from "./dtcKnowledge";
+export * from "./billingWebhookEvent";
 export {};

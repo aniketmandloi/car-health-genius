@@ -7,7 +7,11 @@
 | `DATABASE_URL` | secret | DB credential, server-only |
 | `BETTER_AUTH_SECRET` | secret | auth signing secret, server-only |
 | `POLAR_ACCESS_TOKEN` | secret | payment provider API credential |
+| `POLAR_WEBHOOK_SECRET` | secret | webhook signature verification secret |
 | `BETTER_AUTH_URL` | internal non-secret | service base URL |
+| `POLAR_ENV` | internal non-secret | Polar environment (`sandbox` or `production`) |
+| `POLAR_PRODUCT_ID_PRO_MONTHLY` | internal non-secret | Polar product ID for monthly Pro plan |
+| `POLAR_PRODUCT_ID_PRO_ANNUAL` | internal non-secret | Polar product ID for annual Pro plan |
 | `POLAR_SUCCESS_URL` | internal non-secret | post-checkout redirect |
 | `NHTSA_VPIC_BASE_URL` | internal non-secret | VIN provider base URL |
 | `NHTSA_VPIC_TIMEOUT_MS` | internal non-secret | VIN provider timeout in milliseconds |
@@ -29,6 +33,10 @@ Required variables:
 - `BETTER_AUTH_SECRET`
 - `BETTER_AUTH_URL`
 - `POLAR_ACCESS_TOKEN`
+- `POLAR_ENV`
+- `POLAR_WEBHOOK_SECRET`
+- `POLAR_PRODUCT_ID_PRO_MONTHLY`
+- `POLAR_PRODUCT_ID_PRO_ANNUAL`
 - `POLAR_SUCCESS_URL`
 - `NHTSA_VPIC_BASE_URL`
 - `NHTSA_VPIC_TIMEOUT_MS`
