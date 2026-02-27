@@ -1,11 +1,12 @@
 import { db } from "@car-health-genius/db";
 import { subscription } from "@car-health-genius/db/schema/subscription";
+import { env } from "@car-health-genius/env/server";
 import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { protectedProcedure, router } from "../index";
 import { MONETIZATION_EVENTS, trackAnalyticsEvent } from "../services/analytics.service";
-import { resolveEntitlements } from "../services/entitlement.service";
+import { PRO_FEATURE_KEYS, resolveEntitlements } from "../services/entitlement.service";
 import { resolveSupportPriority } from "../services/supportPriority.service";
 
 const subscriptionOutputSchema = z.object({
@@ -27,6 +28,7 @@ const checkoutIntentOutputSchema = z.object({
   status: z.literal("pending"),
   plan: z.enum(["monthly", "annual"]),
   checkoutSlug: z.enum(["pro-monthly", "pro-annual"]),
+  productId: z.string(),
   successUrl: z.string().url(),
   checkoutIntentId: z.string(),
 });
@@ -80,7 +82,33 @@ function checkoutSlugForPlan(plan: "monthly" | "annual") {
   return plan === "annual" ? "pro-annual" : "pro-monthly";
 }
 
+function productIdForPlan(plan: "monthly" | "annual") {
+  return plan === "annual" ? env.POLAR_PRODUCT_ID_PRO_ANNUAL : env.POLAR_PRODUCT_ID_PRO_MONTHLY;
+}
+
 export const billingRouter = router({
+  hasFeature: protectedProcedure
+    .input(
+      z.object({
+        featureKey: z.string().trim().min(1),
+      }),
+    )
+    .output(
+      z.object({
+        featureKey: z.string(),
+        enabled: z.boolean(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const snapshot = await resolveEntitlements(ctx.session.user.id);
+      return {
+        featureKey: input.featureKey,
+        enabled: snapshot.features.includes(input.featureKey as (typeof snapshot.features)[number]),
+      };
+    }),
+
+  listKnownProFeatures: protectedProcedure.output(z.array(z.string())).query(() => [...PRO_FEATURE_KEYS]),
+
   getSubscription: protectedProcedure
     .output(z.object({ subscription: subscriptionOutputSchema.nullable() }))
     .query(async ({ ctx }) => {
@@ -182,6 +210,7 @@ export const billingRouter = router({
     .output(checkoutIntentOutputSchema)
     .mutation(async ({ ctx, input }) => {
       const checkoutSlug = checkoutSlugForPlan(input.plan);
+      const productId = productIdForPlan(input.plan);
       const tracked = await trackAnalyticsEvent({
         eventName: MONETIZATION_EVENTS.UPGRADE_START,
         userId: ctx.session.user.id,
@@ -190,6 +219,7 @@ export const billingRouter = router({
         properties: {
           plan: input.plan,
           checkoutSlug,
+          productId,
         },
       });
 
@@ -197,7 +227,8 @@ export const billingRouter = router({
         status: "pending",
         plan: input.plan,
         checkoutSlug,
-        successUrl: input.successUrl ?? "https://carhealthgenius.example/success",
+        productId,
+        successUrl: input.successUrl ?? env.POLAR_SUCCESS_URL,
         checkoutIntentId: tracked.eventKey,
       };
     }),

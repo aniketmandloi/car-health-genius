@@ -8,7 +8,9 @@ export type SupportPrioritySnapshot = {
 
 export async function resolveSupportPriority(userId: string): Promise<SupportPrioritySnapshot> {
   const entitlementSnapshot = await resolveEntitlements(userId);
-  const hasPrioritySupport = entitlementSnapshot.features.includes("pro.priority_support");
+  const hasPrioritySupport =
+    entitlementSnapshot.features.includes("pro.priority_support") ||
+    entitlementSnapshot.features.includes("support.priority");
 
   if (!hasPrioritySupport) {
     return {

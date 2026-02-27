@@ -259,6 +259,54 @@ Indexes:
 
 ### `vehicle` (new fields)
 
+## Sprint 4 Additions
+
+## `dtc_knowledge`
+
+- `id` (serial, PK)
+- `dtc_code` (varchar(16), unique)
+- `category` (text, required)
+- `default_severity_class` (text, required)
+- `driveability` (text, required)
+- `summary_template` (text, required)
+- `rationale_template` (text, nullable)
+- `safety_critical` (boolean, default `false`)
+- `diy_allowed` (boolean, default `false`)
+- `source` (text, required)
+- `source_version` (text, required)
+- `effective_from` (timestamp, required)
+- `effective_to` (timestamp, nullable)
+- `metadata` (jsonb, nullable)
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+Indexes:
+
+- `dtc_knowledge_dtc_code_uq` unique on `dtc_code`
+- `dtc_knowledge_default_severity_idx` on `default_severity_class`
+- `dtc_knowledge_safety_critical_idx` on `safety_critical`
+
+## `billing_webhook_event`
+
+- `id` (serial, PK)
+- `provider` (text, required, default `polar`)
+- `event_type` (text, required)
+- `provider_event_key` (text, unique)
+- `status` (text, required)
+- `payload` (jsonb, required)
+- `received_at` (timestamp, required)
+- `processed_at` (timestamp, nullable)
+- `error_message` (text, nullable)
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+Indexes:
+
+- `billing_webhook_event_provider_event_key_uq` unique on `provider_event_key`
+- `billing_webhook_event_provider_event_type_idx` on (`provider`, `event_type`)
+- `billing_webhook_event_status_idx` on `status`
+- `billing_webhook_event_received_at_idx` on `received_at`
+
 - `country_code` (varchar(2), required, default `US`)
 - `state_code` (varchar(2), nullable)
 

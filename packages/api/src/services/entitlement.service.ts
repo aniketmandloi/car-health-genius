@@ -6,6 +6,7 @@ import { and, desc, eq, gt, isNull, or } from "drizzle-orm";
 
 export const PRO_FEATURE_KEYS = [
   "pro.advanced_sensors",
+  "pro.advanced_diagnostics",
   "pro.likely_causes",
   "pro.diy_guides",
   "pro.cost_estimates",
@@ -14,6 +15,7 @@ export const PRO_FEATURE_KEYS = [
   "pro.health_score",
   "pro.pdf_export",
   "pro.priority_support",
+  "support.priority",
 ] as const;
 
 export type ProFeatureKey = (typeof PRO_FEATURE_KEYS)[number];

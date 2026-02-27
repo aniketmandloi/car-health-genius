@@ -22,4 +22,6 @@ export * from "./promptTemplate";
 export * from "./modelTrace";
 export * from "./reviewQueueItem";
 export * from "./analyticsEvent";
+export * from "./dtcKnowledge";
+export * from "./billingWebhookEvent";
 export {};

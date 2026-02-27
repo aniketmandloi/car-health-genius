@@ -3,11 +3,13 @@ import { db } from "@car-health-genius/db";
 import { adapter } from "@car-health-genius/db/schema/adapter";
 import { analyticsEvent } from "@car-health-genius/db/schema/analyticsEvent";
 import { auditLog } from "@car-health-genius/db/schema/auditLog";
+import { billingWebhookEvent } from "@car-health-genius/db/schema/billingWebhookEvent";
+import { dtcKnowledge } from "@car-health-genius/db/schema/dtcKnowledge";
 import { modelTrace } from "@car-health-genius/db/schema/modelTrace";
 import { recommendation } from "@car-health-genius/db/schema/recommendation";
 import { reviewQueueItem } from "@car-health-genius/db/schema/reviewQueueItem";
 import { TRPCError } from "@trpc/server";
-import { and, desc, gte, inArray, lte, eq } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, lte } from "drizzle-orm";
 import { z } from "zod";
 
 import { adminProcedure, router } from "../index";
@@ -56,6 +58,39 @@ const adapterOutputSchema = z.object({
   firmwareNotes: z.string().nullable(),
   metadata: jsonRecordSchema.nullable(),
   lastValidatedAt: z.string().nullable(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+const dtcKnowledgeOutputSchema = z.object({
+  id: z.number().int().positive(),
+  dtcCode: z.string(),
+  category: z.string(),
+  defaultSeverityClass: z.enum(["safe", "service_soon", "service_now"]),
+  driveability: z.enum(["drivable", "limited", "do_not_drive"]),
+  summaryTemplate: z.string(),
+  rationaleTemplate: z.string().nullable(),
+  safetyCritical: z.boolean(),
+  diyAllowed: z.boolean(),
+  source: z.string(),
+  sourceVersion: z.string(),
+  effectiveFrom: z.string(),
+  effectiveTo: z.string().nullable(),
+  metadata: jsonRecordSchema.nullable(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+const billingWebhookEventOutputSchema = z.object({
+  id: z.number().int().positive(),
+  provider: z.string(),
+  eventType: z.string(),
+  providerEventKey: z.string(),
+  status: z.string(),
+  payload: jsonRecordSchema,
+  receivedAt: z.string(),
+  processedAt: z.string().nullable(),
+  errorMessage: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -162,6 +197,31 @@ const adapterUpdateInputSchema = z
     },
   );
 
+const dtcSeverityClassSchema = z.enum(["safe", "service_soon", "service_now"]);
+const driveabilitySchema = z.enum(["drivable", "limited", "do_not_drive"]);
+
+const dtcKnowledgeUpsertInputSchema = z.object({
+  dtcCode: z
+    .string()
+    .trim()
+    .min(3)
+    .max(16)
+    .regex(/^[A-Za-z0-9-]+$/)
+    .transform((value) => value.toUpperCase()),
+  category: z.string().trim().min(1).default("powertrain"),
+  defaultSeverityClass: dtcSeverityClassSchema,
+  driveability: driveabilitySchema,
+  summaryTemplate: z.string().trim().min(1),
+  rationaleTemplate: z.string().trim().min(1).optional(),
+  safetyCritical: z.boolean().default(false),
+  diyAllowed: z.boolean().default(false),
+  source: z.string().trim().min(1).default("admin"),
+  sourceVersion: z.string().trim().min(1).default("v1"),
+  effectiveFrom: z.coerce.date().optional(),
+  effectiveTo: z.coerce.date().nullable().optional(),
+  metadata: jsonRecordSchema.optional(),
+});
+
 function toIso(value: Date | string): string {
   return value instanceof Date ? value.toISOString() : value;
 }
@@ -222,6 +282,27 @@ function mapAdapterRow(row: typeof adapter.$inferSelect) {
   };
 }
 
+function mapDtcKnowledgeRow(row: typeof dtcKnowledge.$inferSelect) {
+  return {
+    id: row.id,
+    dtcCode: row.dtcCode,
+    category: row.category,
+    defaultSeverityClass: dtcSeverityClassSchema.parse(row.defaultSeverityClass),
+    driveability: driveabilitySchema.parse(row.driveability),
+    summaryTemplate: row.summaryTemplate,
+    rationaleTemplate: row.rationaleTemplate,
+    safetyCritical: row.safetyCritical,
+    diyAllowed: row.diyAllowed,
+    source: row.source,
+    sourceVersion: row.sourceVersion,
+    effectiveFrom: toIso(row.effectiveFrom),
+    effectiveTo: toIsoNullable(row.effectiveTo),
+    metadata: (row.metadata as Record<string, unknown> | null) ?? null,
+    createdAt: toIso(row.createdAt),
+    updatedAt: toIso(row.updatedAt),
+  };
+}
+
 function mapReviewQueueItemRow(row: typeof reviewQueueItem.$inferSelect) {
   return {
     id: row.id,
@@ -263,6 +344,22 @@ function mapModelTraceRow(row: typeof modelTrace.$inferSelect) {
     fallbackApplied: row.fallbackApplied,
     metadata: (row.metadata as Record<string, unknown> | null) ?? null,
     createdAt: toIso(row.createdAt),
+  };
+}
+
+function mapBillingWebhookEventRow(row: typeof billingWebhookEvent.$inferSelect) {
+  return {
+    id: row.id,
+    provider: row.provider,
+    eventType: row.eventType,
+    providerEventKey: row.providerEventKey,
+    status: row.status,
+    payload: (row.payload as Record<string, unknown>) ?? {},
+    receivedAt: toIso(row.receivedAt),
+    processedAt: toIsoNullable(row.processedAt),
+    errorMessage: row.errorMessage,
+    createdAt: toIso(row.createdAt),
+    updatedAt: toIso(row.updatedAt),
   };
 }
 
@@ -736,5 +833,115 @@ export const adminRouter = router({
       });
 
       return mapAdapterRow(updated);
+    }),
+
+  listDtcKnowledge: adminProcedure
+    .input(
+      z
+        .object({
+          limit: z.number().int().positive().max(500).optional(),
+        })
+        .optional(),
+    )
+    .output(z.array(dtcKnowledgeOutputSchema))
+    .query(async ({ input }) => {
+      const limit = input?.limit ?? 200;
+      const rows = await db.select().from(dtcKnowledge).orderBy(asc(dtcKnowledge.dtcCode)).limit(limit);
+      return rows.map(mapDtcKnowledgeRow);
+    }),
+
+  upsertDtcKnowledge: adminProcedure
+    .input(dtcKnowledgeUpsertInputSchema)
+    .output(dtcKnowledgeOutputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const [upserted] = await db
+        .insert(dtcKnowledge)
+        .values({
+          dtcCode: input.dtcCode,
+          category: input.category,
+          defaultSeverityClass: input.defaultSeverityClass,
+          driveability: input.driveability,
+          summaryTemplate: input.summaryTemplate,
+          rationaleTemplate: input.rationaleTemplate,
+          safetyCritical: input.safetyCritical,
+          diyAllowed: input.diyAllowed,
+          source: input.source,
+          sourceVersion: input.sourceVersion,
+          effectiveFrom: input.effectiveFrom ?? new Date(),
+          effectiveTo: input.effectiveTo ?? null,
+          metadata: input.metadata,
+        })
+        .onConflictDoUpdate({
+          target: dtcKnowledge.dtcCode,
+          set: {
+            category: input.category,
+            defaultSeverityClass: input.defaultSeverityClass,
+            driveability: input.driveability,
+            summaryTemplate: input.summaryTemplate,
+            rationaleTemplate: input.rationaleTemplate,
+            safetyCritical: input.safetyCritical,
+            diyAllowed: input.diyAllowed,
+            source: input.source,
+            sourceVersion: input.sourceVersion,
+            effectiveFrom: input.effectiveFrom ?? new Date(),
+            effectiveTo: input.effectiveTo ?? null,
+            metadata: input.metadata,
+          },
+        })
+        .returning();
+
+      if (!upserted) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to upsert DTC knowledge entry",
+        });
+      }
+
+      await appendAuditLog({
+        actorUserId: ctx.session.user.id,
+        actorRole: ctx.userRole,
+        action: "dtc_knowledge.upsert",
+        targetType: "dtc_knowledge",
+        targetId: upserted.dtcCode,
+        changeSet: {
+          category: upserted.category,
+          defaultSeverityClass: upserted.defaultSeverityClass,
+          driveability: upserted.driveability,
+          safetyCritical: upserted.safetyCritical,
+          diyAllowed: upserted.diyAllowed,
+          source: upserted.source,
+          sourceVersion: upserted.sourceVersion,
+        },
+        requestId: ctx.requestId,
+        correlationId: ctx.correlationId,
+      });
+
+      return mapDtcKnowledgeRow(upserted);
+    }),
+
+  listBillingWebhookEvents: adminProcedure
+    .input(
+      z
+        .object({
+          limit: z.number().int().positive().max(200).optional(),
+          status: z.enum(["processed", "failed", "received"]).optional(),
+        })
+        .optional(),
+    )
+    .output(z.array(billingWebhookEventOutputSchema))
+    .query(async ({ input }) => {
+      const limit = input?.limit ?? 100;
+
+      const rows =
+        input?.status !== undefined
+          ? await db
+              .select()
+              .from(billingWebhookEvent)
+              .where(eq(billingWebhookEvent.status, input.status))
+              .orderBy(desc(billingWebhookEvent.receivedAt))
+              .limit(limit)
+          : await db.select().from(billingWebhookEvent).orderBy(desc(billingWebhookEvent.receivedAt)).limit(limit);
+
+      return rows.map(mapBillingWebhookEventRow);
     }),
 });

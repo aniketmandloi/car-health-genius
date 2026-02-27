@@ -11,6 +11,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin } from "better-auth/plugins";
 
 import { polarClient } from "./lib/payments";
+import { handlePolarWebhookPayload } from "./lib/webhooks";
 
 const PRO_FEATURE_KEYS = [
   "pro.advanced_sensors",
@@ -204,6 +205,9 @@ export const auth = betterAuth({
         portal(),
         webhooks({
           secret: env.POLAR_WEBHOOK_SECRET,
+          onPayload: async (payload) => {
+            await handlePolarWebhookPayload(payload);
+          },
           onSubscriptionCreated: syncSubscriptionProjection,
           onSubscriptionUpdated: syncSubscriptionProjection,
           onSubscriptionActive: syncSubscriptionProjection,
