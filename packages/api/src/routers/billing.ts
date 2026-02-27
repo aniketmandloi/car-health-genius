@@ -4,6 +4,9 @@ import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { protectedProcedure, router } from "../index";
+import { MONETIZATION_EVENTS, trackAnalyticsEvent } from "../services/analytics.service";
+import { resolveEntitlements } from "../services/entitlement.service";
+import { resolveSupportPriority } from "../services/supportPriority.service";
 
 const subscriptionOutputSchema = z.object({
   id: z.number().int().positive(),
@@ -23,8 +26,25 @@ const subscriptionOutputSchema = z.object({
 const checkoutIntentOutputSchema = z.object({
   status: z.literal("pending"),
   plan: z.enum(["monthly", "annual"]),
+  checkoutSlug: z.enum(["pro-monthly", "pro-annual"]),
   successUrl: z.string().url(),
   checkoutIntentId: z.string(),
+});
+
+const entitlementOutputSchema = z.object({
+  featureKey: z.string(),
+  source: z.enum(["entitlement", "subscription"]),
+});
+
+const supportPriorityOutputSchema = z.object({
+  priorityTier: z.enum(["priority", "standard"]),
+  priorityReason: z.string(),
+  slaTargetMinutes: z.number().int().positive(),
+});
+
+const analyticsTrackOutputSchema = z.object({
+  recorded: z.boolean(),
+  eventKey: z.string(),
 });
 
 function toIso(value: Date | string): string {
@@ -56,6 +76,10 @@ function mapSubscriptionRow(row: typeof subscription.$inferSelect) {
   };
 }
 
+function checkoutSlugForPlan(plan: "monthly" | "annual") {
+  return plan === "annual" ? "pro-annual" : "pro-monthly";
+}
+
 export const billingRouter = router({
   getSubscription: protectedProcedure
     .output(z.object({ subscription: subscriptionOutputSchema.nullable() }))
@@ -72,6 +96,82 @@ export const billingRouter = router({
       };
     }),
 
+  getEntitlements: protectedProcedure
+    .output(
+      z.object({
+        plan: z.string(),
+        subscriptionStatus: z.string(),
+        features: z.array(entitlementOutputSchema),
+      }),
+    )
+    .query(async ({ ctx }) => {
+      const snapshot = await resolveEntitlements(ctx.session.user.id);
+      return {
+        plan: snapshot.plan,
+        subscriptionStatus: snapshot.subscriptionStatus,
+        features: snapshot.features.map((featureKey) => ({
+          featureKey,
+          source: snapshot.sources[featureKey],
+        })),
+      };
+    }),
+
+  getSupportPriority: protectedProcedure.output(supportPriorityOutputSchema).query(async ({ ctx }) => {
+    return resolveSupportPriority(ctx.session.user.id);
+  }),
+
+  trackPaywallView: protectedProcedure
+    .input(
+      z.object({
+        channel: z.enum(["web", "native"]),
+        source: z.string().trim().min(1),
+        eventKey: z.string().trim().min(8).max(120).optional(),
+      }),
+    )
+    .output(analyticsTrackOutputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const tracked = await trackAnalyticsEvent({
+        eventName: MONETIZATION_EVENTS.PAYWALL_VIEW,
+        userId: ctx.session.user.id,
+        channel: input.channel,
+        source: input.source,
+        eventKey: input.eventKey,
+      });
+
+      return {
+        recorded: tracked.inserted,
+        eventKey: tracked.eventKey,
+      };
+    }),
+
+  trackUpgradeSuccess: protectedProcedure
+    .input(
+      z.object({
+        channel: z.enum(["web", "native"]),
+        source: z.string().trim().min(1),
+        plan: z.enum(["monthly", "annual"]),
+        eventKey: z.string().trim().min(8).max(120).optional(),
+      }),
+    )
+    .output(analyticsTrackOutputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const tracked = await trackAnalyticsEvent({
+        eventName: MONETIZATION_EVENTS.UPGRADE_SUCCESS,
+        userId: ctx.session.user.id,
+        channel: input.channel,
+        source: input.source,
+        eventKey: input.eventKey,
+        properties: {
+          plan: input.plan,
+        },
+      });
+
+      return {
+        recorded: tracked.inserted,
+        eventKey: tracked.eventKey,
+      };
+    }),
+
   createCheckoutSession: protectedProcedure
     .input(
       z.object({
@@ -80,12 +180,25 @@ export const billingRouter = router({
       }),
     )
     .output(checkoutIntentOutputSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
+      const checkoutSlug = checkoutSlugForPlan(input.plan);
+      const tracked = await trackAnalyticsEvent({
+        eventName: MONETIZATION_EVENTS.UPGRADE_START,
+        userId: ctx.session.user.id,
+        channel: "server",
+        source: "billing.createCheckoutSession",
+        properties: {
+          plan: input.plan,
+          checkoutSlug,
+        },
+      });
+
       return {
         status: "pending",
         plan: input.plan,
+        checkoutSlug,
         successUrl: input.successUrl ?? "https://carhealthgenius.example/success",
-        checkoutIntentId: crypto.randomUUID(),
+        checkoutIntentId: tracked.eventKey,
       };
     }),
 });

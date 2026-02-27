@@ -28,6 +28,9 @@ The server logger redacts/removes sensitive fields:
 2. HTTP p95 latency by route.
 3. tRPC error rate by procedure (`event=trpc.request.error`).
 4. 5xx rate over time.
+5. AI policy blocked/fallback counts (`ai_policy_blocked_total`, `ai_policy_fallback_total`).
+6. Review queue backlog and resolution time (`review_queue_backlog`, `review_queue_resolution_minutes`).
+7. Monetization funnel (`paywall_view -> upgrade_start -> upgrade_success -> subscription_churn`).
 
 ## Initial Alert Thresholds
 

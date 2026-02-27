@@ -1,10 +1,13 @@
 import { appendAuditLog } from "@car-health-genius/db/repositories/auditLog";
 import { db } from "@car-health-genius/db";
 import { adapter } from "@car-health-genius/db/schema/adapter";
+import { analyticsEvent } from "@car-health-genius/db/schema/analyticsEvent";
 import { auditLog } from "@car-health-genius/db/schema/auditLog";
+import { modelTrace } from "@car-health-genius/db/schema/modelTrace";
 import { recommendation } from "@car-health-genius/db/schema/recommendation";
+import { reviewQueueItem } from "@car-health-genius/db/schema/reviewQueueItem";
 import { TRPCError } from "@trpc/server";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, gte, inArray, lte, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { adminProcedure, router } from "../index";
@@ -38,6 +41,8 @@ const recommendationOutputSchema = z.object({
 });
 
 const adapterStatusSchema = z.enum(["active", "archived", "deprecated"]);
+const reviewQueueStatusSchema = z.enum(["pending", "in_review", "approved", "rejected", "needs_revision"]);
+const reviewResolutionSchema = z.enum(["approved", "rejected", "needs_revision"]);
 
 const adapterOutputSchema = z.object({
   id: z.number().int().positive(),
@@ -53,6 +58,54 @@ const adapterOutputSchema = z.object({
   lastValidatedAt: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
+});
+
+const reviewQueueItemOutputSchema = z.object({
+  id: z.number().int().positive(),
+  status: reviewQueueStatusSchema,
+  triggerReason: z.string(),
+  triggerMetadata: jsonRecordSchema.nullable(),
+  diagnosticEventId: z.number().int().positive(),
+  recommendationId: z.number().int().positive().nullable(),
+  modelTraceId: z.number().int().positive().nullable(),
+  confidence: z.number().int(),
+  urgency: z.string(),
+  policyBlocked: z.boolean(),
+  claimedByUserId: z.string().nullable(),
+  claimedAt: z.string().nullable(),
+  resolvedByUserId: z.string().nullable(),
+  resolvedAt: z.string().nullable(),
+  resolution: z.string().nullable(),
+  resolutionNotes: z.string().nullable(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+const modelTraceOutputSchema = z.object({
+  id: z.number().int().positive(),
+  requestId: z.string().nullable(),
+  correlationId: z.string().nullable(),
+  userId: z.string().nullable(),
+  diagnosticEventId: z.number().int().positive().nullable(),
+  recommendationId: z.number().int().positive().nullable(),
+  modelRegistryId: z.number().int().positive().nullable(),
+  promptTemplateId: z.number().int().positive().nullable(),
+  generatorType: z.string(),
+  inputHash: z.string(),
+  outputSummary: z.string().nullable(),
+  policyBlocked: z.boolean(),
+  policyReasons: jsonRecordSchema.nullable(),
+  fallbackApplied: z.boolean(),
+  metadata: jsonRecordSchema.nullable(),
+  createdAt: z.string(),
+});
+
+const monetizationDailyRowSchema = z.object({
+  day: z.string(),
+  paywallView: z.number().int().nonnegative(),
+  upgradeStart: z.number().int().nonnegative(),
+  upgradeSuccess: z.number().int().nonnegative(),
+  subscriptionChurn: z.number().int().nonnegative(),
 });
 
 const adapterCreateInputSchema = z.object({
@@ -169,6 +222,54 @@ function mapAdapterRow(row: typeof adapter.$inferSelect) {
   };
 }
 
+function mapReviewQueueItemRow(row: typeof reviewQueueItem.$inferSelect) {
+  return {
+    id: row.id,
+    status: reviewQueueStatusSchema.parse(row.status),
+    triggerReason: row.triggerReason,
+    triggerMetadata: (row.triggerMetadata as Record<string, unknown> | null) ?? null,
+    diagnosticEventId: row.diagnosticEventId,
+    recommendationId: row.recommendationId,
+    modelTraceId: row.modelTraceId,
+    confidence: row.confidence,
+    urgency: row.urgency,
+    policyBlocked: row.policyBlocked,
+    claimedByUserId: row.claimedByUserId,
+    claimedAt: toIsoNullable(row.claimedAt),
+    resolvedByUserId: row.resolvedByUserId,
+    resolvedAt: toIsoNullable(row.resolvedAt),
+    resolution: row.resolution,
+    resolutionNotes: row.resolutionNotes,
+    createdAt: toIso(row.createdAt),
+    updatedAt: toIso(row.updatedAt),
+  };
+}
+
+function mapModelTraceRow(row: typeof modelTrace.$inferSelect) {
+  return {
+    id: row.id,
+    requestId: row.requestId,
+    correlationId: row.correlationId,
+    userId: row.userId,
+    diagnosticEventId: row.diagnosticEventId,
+    recommendationId: row.recommendationId,
+    modelRegistryId: row.modelRegistryId,
+    promptTemplateId: row.promptTemplateId,
+    generatorType: row.generatorType,
+    inputHash: row.inputHash,
+    outputSummary: row.outputSummary,
+    policyBlocked: row.policyBlocked,
+    policyReasons: (row.policyReasons as Record<string, unknown> | null) ?? null,
+    fallbackApplied: row.fallbackApplied,
+    metadata: (row.metadata as Record<string, unknown> | null) ?? null,
+    createdAt: toIso(row.createdAt),
+  };
+}
+
+function dayKey(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
 export const adminRouter = router({
   listAuditLogs: adminProcedure
     .input(
@@ -184,6 +285,116 @@ export const adminRouter = router({
       const rows = await db.select().from(auditLog).orderBy(desc(auditLog.createdAt)).limit(limit);
 
       return rows.map(mapAuditLogRow);
+    }),
+
+  listModelTraces: adminProcedure
+    .input(
+      z
+        .object({
+          limit: z.number().int().positive().max(200).optional(),
+          userId: z.string().trim().min(1).optional(),
+        })
+        .optional(),
+    )
+    .output(z.array(modelTraceOutputSchema))
+    .query(async ({ input }) => {
+      const limit = input?.limit ?? 100;
+      const rows = input?.userId
+        ? await db
+            .select()
+            .from(modelTrace)
+            .where(eq(modelTrace.userId, input.userId))
+            .orderBy(desc(modelTrace.createdAt))
+            .limit(limit)
+        : await db.select().from(modelTrace).orderBy(desc(modelTrace.createdAt)).limit(limit);
+
+      return rows.map(mapModelTraceRow);
+    }),
+
+  monetizationDailyFunnel: adminProcedure
+    .input(
+      z
+        .object({
+          days: z.number().int().positive().max(90).optional(),
+        })
+        .optional(),
+    )
+    .output(z.array(monetizationDailyRowSchema))
+    .query(async ({ input }) => {
+      const days = input?.days ?? 14;
+      const end = new Date();
+      const start = new Date(end.getTime() - (days - 1) * 24 * 60 * 60 * 1000);
+
+      const eventNames = ["paywall_view", "upgrade_start", "upgrade_success", "subscription_churn"] as const;
+      const rows = await db
+        .select({
+          eventName: analyticsEvent.eventName,
+          occurredAt: analyticsEvent.occurredAt,
+        })
+        .from(analyticsEvent)
+        .where(
+          and(
+            inArray(analyticsEvent.eventName, [...eventNames]),
+            gte(analyticsEvent.occurredAt, start),
+            lte(analyticsEvent.occurredAt, end),
+          ),
+        )
+        .orderBy(desc(analyticsEvent.occurredAt));
+
+      const byDay = new Map<
+        string,
+        {
+          paywallView: number;
+          upgradeStart: number;
+          upgradeSuccess: number;
+          subscriptionChurn: number;
+        }
+      >();
+
+      for (let offset = 0; offset < days; offset += 1) {
+        const date = new Date(start.getTime() + offset * 24 * 60 * 60 * 1000);
+        byDay.set(dayKey(date), {
+          paywallView: 0,
+          upgradeStart: 0,
+          upgradeSuccess: 0,
+          subscriptionChurn: 0,
+        });
+      }
+
+      for (const row of rows) {
+        const occurredAt = row.occurredAt instanceof Date ? row.occurredAt : new Date(row.occurredAt);
+        const key = dayKey(occurredAt);
+        const bucket = byDay.get(key);
+        if (!bucket) {
+          continue;
+        }
+
+        if (row.eventName === "paywall_view") {
+          bucket.paywallView += 1;
+          continue;
+        }
+
+        if (row.eventName === "upgrade_start") {
+          bucket.upgradeStart += 1;
+          continue;
+        }
+
+        if (row.eventName === "upgrade_success") {
+          bucket.upgradeSuccess += 1;
+          continue;
+        }
+
+        if (row.eventName === "subscription_churn") {
+          bucket.subscriptionChurn += 1;
+        }
+      }
+
+      return Array.from(byDay.entries())
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([day, bucket]) => ({
+          day,
+          ...bucket,
+        }));
     }),
 
   setRecommendationFlag: adminProcedure
@@ -226,6 +437,160 @@ export const adminRouter = router({
       });
 
       return mapRecommendationRow(updated);
+    }),
+
+  listReviewQueue: adminProcedure
+    .input(
+      z
+        .object({
+          status: reviewQueueStatusSchema.optional(),
+          limit: z.number().int().positive().max(200).optional(),
+        })
+        .optional(),
+    )
+    .output(z.array(reviewQueueItemOutputSchema))
+    .query(async ({ input }) => {
+      const limit = input?.limit ?? 100;
+      const rows = input?.status
+        ? await db
+            .select()
+            .from(reviewQueueItem)
+            .where(eq(reviewQueueItem.status, input.status))
+            .orderBy(desc(reviewQueueItem.createdAt))
+            .limit(limit)
+        : await db.select().from(reviewQueueItem).orderBy(desc(reviewQueueItem.createdAt)).limit(limit);
+
+      return rows.map(mapReviewQueueItemRow);
+    }),
+
+  claimReviewItem: adminProcedure
+    .input(
+      z.object({
+        itemId: z.number().int().positive(),
+        note: z.string().trim().max(500).optional(),
+      }),
+    )
+    .output(reviewQueueItemOutputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const [existing] = await db
+        .select()
+        .from(reviewQueueItem)
+        .where(eq(reviewQueueItem.id, input.itemId))
+        .limit(1);
+
+      if (!existing) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Review queue item not found",
+        });
+      }
+
+      if (existing.status !== "pending") {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "Review queue item is not pending",
+        });
+      }
+
+      const [updated] = await db
+        .update(reviewQueueItem)
+        .set({
+          status: "in_review",
+          claimedByUserId: ctx.session.user.id,
+          claimedAt: new Date(),
+          resolutionNotes: input.note,
+        })
+        .where(eq(reviewQueueItem.id, input.itemId))
+        .returning();
+
+      if (!updated) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to claim review queue item",
+        });
+      }
+
+      await appendAuditLog({
+        actorUserId: ctx.session.user.id,
+        actorRole: ctx.userRole,
+        action: "review_queue.claim",
+        targetType: "review_queue_item",
+        targetId: String(input.itemId),
+        changeSet: {
+          status: "in_review",
+          note: input.note,
+        },
+        requestId: ctx.requestId,
+        correlationId: ctx.correlationId,
+      });
+
+      return mapReviewQueueItemRow(updated);
+    }),
+
+  resolveReviewItem: adminProcedure
+    .input(
+      z.object({
+        itemId: z.number().int().positive(),
+        resolution: reviewResolutionSchema,
+        notes: z.string().trim().min(1).max(1000),
+      }),
+    )
+    .output(reviewQueueItemOutputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const [existing] = await db
+        .select()
+        .from(reviewQueueItem)
+        .where(eq(reviewQueueItem.id, input.itemId))
+        .limit(1);
+
+      if (!existing) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Review queue item not found",
+        });
+      }
+
+      if (existing.status === "approved" || existing.status === "rejected" || existing.status === "needs_revision") {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "Review queue item is already resolved",
+        });
+      }
+
+      const [updated] = await db
+        .update(reviewQueueItem)
+        .set({
+          status: input.resolution,
+          resolvedByUserId: ctx.session.user.id,
+          resolvedAt: new Date(),
+          resolution: input.resolution,
+          resolutionNotes: input.notes,
+        })
+        .where(eq(reviewQueueItem.id, input.itemId))
+        .returning();
+
+      if (!updated) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to resolve review queue item",
+        });
+      }
+
+      await appendAuditLog({
+        actorUserId: ctx.session.user.id,
+        actorRole: ctx.userRole,
+        action: "review_queue.resolve",
+        targetType: "review_queue_item",
+        targetId: String(input.itemId),
+        changeSet: {
+          resolution: input.resolution,
+          notes: input.notes,
+        },
+        requestId: ctx.requestId,
+        correlationId: ctx.correlationId,
+      });
+
+      return mapReviewQueueItemRow(updated);
     }),
 
   listAdapters: adminProcedure.output(z.array(adapterOutputSchema)).query(async () => {

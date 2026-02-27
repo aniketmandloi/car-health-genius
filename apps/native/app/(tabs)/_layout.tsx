@@ -42,6 +42,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="pricing"
+        options={{
+          title: "Pricing",
+          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
+            <Ionicons name="card" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="todos"
         options={{
           title: "Todos",
