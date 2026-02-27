@@ -2,7 +2,7 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/utils/trpc";
@@ -11,7 +11,7 @@ function readPlan(value: string | null): "monthly" | "annual" {
   return value === "annual" ? "annual" : "monthly";
 }
 
-export default function SuccessPage() {
+function SuccessContent() {
   const searchParams = useSearchParams();
   const { data: session } = authClient.useSession();
   const checkoutId = searchParams.get("checkout_id");
@@ -59,5 +59,13 @@ export default function SuccessPage() {
         </a>
       </div>
     </div>
+  );
+}
+
+export default function SuccessPage() {
+  return (
+    <Suspense fallback={<div className="mx-auto max-w-xl px-4 py-10 text-sm text-muted-foreground">Loading...</div>}>
+      <SuccessContent />
+    </Suspense>
   );
 }
