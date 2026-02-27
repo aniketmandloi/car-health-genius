@@ -2,6 +2,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import { useThemeColor } from "heroui-native";
 
+import { ThemeToggle } from "@/components/theme-toggle";
+
 export default function TabLayout() {
   const themeColorForeground = useThemeColor("foreground");
   const themeColorBackground = useThemeColor("background");
@@ -9,7 +11,7 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShown: false,
+        headerShown: true,
         headerStyle: {
           backgroundColor: themeColorBackground,
         },
@@ -18,8 +20,14 @@ export default function TabLayout() {
           color: themeColorForeground,
           fontWeight: "600",
         },
+        headerRight: () => <ThemeToggle />,
         tabBarStyle: {
           backgroundColor: themeColorBackground,
+          borderTopWidth: 0,
+          borderTopColor: "transparent",
+          elevation: 0,
+          shadowColor: "transparent",
+          shadowOpacity: 0,
         },
       }}
     >
