@@ -8,6 +8,7 @@ import { kickoffRouter } from "./kickoff";
 import { maintenanceRouter } from "./maintenance";
 import { partnerPortalRouter } from "./partnerPortal";
 import { recommendationsRouter } from "./recommendations";
+import { supportRouter } from "./support";
 import { todoRouter } from "./todo";
 import { vehiclesRouter } from "./vehicles";
 
@@ -30,6 +31,7 @@ export const appRouter = router({
   booking: bookingRouter,
   maintenance: maintenanceRouter,
   billing: billingRouter,
+  support: supportRouter,
   admin: adminRouter,
   partnerPortal: partnerPortalRouter,
 });

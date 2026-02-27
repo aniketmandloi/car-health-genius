@@ -7,6 +7,7 @@ export function getWebFeatureFlags(overrides: Partial<FeatureFlags> = {}): Featu
     freeTierEnabled: env.NEXT_PUBLIC_FLAG_FREE_TIER_ENABLED,
     proPaywallEnabled: env.NEXT_PUBLIC_FLAG_PRO_PAYWALL_ENABLED,
     aiExplanationsEnabled: env.NEXT_PUBLIC_FLAG_AI_EXPLANATIONS_ENABLED,
+    likelyCausesEnabled: env.NEXT_PUBLIC_FLAG_LIKELY_CAUSES_ENABLED,
     partnerPortalEnabled: env.NEXT_PUBLIC_FLAG_PARTNER_PORTAL_ENABLED,
     adminKillSwitchEnabled: env.NEXT_PUBLIC_FLAG_ADMIN_KILL_SWITCH_ENABLED,
     ...overrides,

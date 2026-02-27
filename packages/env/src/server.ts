@@ -30,6 +30,7 @@ export const env = createEnv({
     FLAG_FREE_TIER_ENABLED: booleanFlag(true),
     FLAG_PRO_PAYWALL_ENABLED: booleanFlag(true),
     FLAG_AI_EXPLANATIONS_ENABLED: booleanFlag(false),
+    FLAG_LIKELY_CAUSES_ENABLED: booleanFlag(false),
     FLAG_PARTNER_PORTAL_ENABLED: booleanFlag(false),
     FLAG_ADMIN_KILL_SWITCH_ENABLED: booleanFlag(true),
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),

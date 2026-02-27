@@ -3,13 +3,18 @@ import { diagnosticEvent } from "@car-health-genius/db/schema/diagnosticEvent";
 import { recommendation } from "@car-health-genius/db/schema/recommendation";
 import { vehicle } from "@car-health-genius/db/schema/vehicle";
 import { env } from "@car-health-genius/env/server";
+import { getServerFeatureFlags } from "@car-health-genius/env/server-flags";
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { protectedProcedure, router } from "../index";
 import { requireEntitlement } from "../services/entitlement.service";
+import { rankLikelyCauses } from "../services/likelyCauses.service";
+import { recordModelTrace } from "../services/modelTrace.service";
+import { applyRecommendationPolicy } from "../services/policy.service";
 import { generateRecommendationForDiagnosticEvent } from "../services/recommendation.service";
+import { enqueueReviewQueueItem } from "../services/reviewQueue.service";
 
 const jsonRecordSchema = z.record(z.string(), z.unknown());
 const triageClassSchema = z.enum(["safe", "service_soon", "service_now"]);
@@ -27,6 +32,18 @@ const recommendationOutputSchema = z.object({
   isActive: z.boolean(),
   createdAt: z.string(),
   updatedAt: z.string(),
+});
+
+const likelyCauseOutputSchema = z.object({
+  rank: z.number().int().positive(),
+  title: z.string(),
+  confidence: z.number().int().min(0).max(100),
+  evidence: z.array(z.string()),
+});
+
+const likelyCausesResponseSchema = z.object({
+  diagnosticEventId: z.number().int().positive(),
+  causes: z.array(likelyCauseOutputSchema),
 });
 
 function toIso(value: Date | string): string {
@@ -123,14 +140,29 @@ export const recommendationsRouter = router({
         urgency: z.string().trim().min(1),
         confidence: z.number().int().min(0).max(100),
         title: z.string().trim().min(1),
-        rationale: z.string().trim().min(1),
-        triageClass: triageClassSchema.optional(),
         details: jsonRecordSchema.optional(),
       }),
     )
     .output(recommendationOutputSchema)
     .mutation(async ({ ctx, input }) => {
       await getOwnedDiagnosticEvent(ctx.session.user.id, input.diagnosticEventId);
+
+      const policyResult = applyRecommendationPolicy({
+        title: input.title,
+        details: input.details,
+        urgency: input.urgency,
+        confidence: input.confidence,
+      });
+
+      const detailsPayload: Record<string, unknown> = {
+        ...(policyResult.sanitizedDetails ?? {}),
+        policy: {
+          blocked: policyResult.blocked,
+          blockedReasons: policyResult.blockedReasons,
+          fallbackApplied: policyResult.fallbackApplied,
+          directiveInjected: policyResult.directiveInjected,
+        },
+      };
 
       const [created] = await db
         .insert(recommendation)
@@ -139,12 +171,8 @@ export const recommendationsRouter = router({
           recommendationType: input.recommendationType,
           urgency: input.urgency,
           confidence: input.confidence,
-          title: input.title,
-          details: {
-            ...(input.details ?? {}),
-            rationale: input.rationale,
-            triageClass: input.triageClass ?? null,
-          },
+          title: policyResult.sanitizedTitle,
+          details: detailsPayload,
         })
         .returning();
 
@@ -153,6 +181,81 @@ export const recommendationsRouter = router({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to create recommendation",
         });
+      }
+
+      let modelTraceId: number | undefined;
+      try {
+        const trace = await recordModelTrace({
+          requestId: ctx.requestId,
+          correlationId: ctx.correlationId,
+          userId: ctx.session.user.id,
+          diagnosticEventId: input.diagnosticEventId,
+          recommendationId: created.id,
+          generatorType: "rules",
+          model: {
+            provider: "internal",
+            modelId: "recommendation-rules",
+            modelVersion: "1.0.0",
+          },
+          prompt: {
+            templateKey: "recommendation.default",
+            templateVersion: "1.0.0",
+            templateBody: "rules-based template",
+          },
+          inputPayload: {
+            title: input.title,
+            urgency: input.urgency,
+            confidence: input.confidence,
+            details: input.details ?? {},
+          },
+          outputSummary: `recommendation:${created.id}`,
+          policyResult: {
+            blocked: policyResult.blocked,
+            blockedReasons: policyResult.blockedReasons,
+            fallbackApplied: policyResult.fallbackApplied,
+          },
+          metadata: {
+            directiveInjected: policyResult.directiveInjected,
+          },
+        });
+
+        modelTraceId = trace.id;
+      } catch (error) {
+        console.error(
+          JSON.stringify({
+            level: "error",
+            event: "ai.trace.write_failed",
+            requestId: ctx.requestId,
+            correlationId: ctx.correlationId,
+            recommendationId: created.id,
+            error: error instanceof Error ? error.message : "unknown",
+          }),
+        );
+      }
+
+      try {
+        await enqueueReviewQueueItem({
+          diagnosticEventId: input.diagnosticEventId,
+          recommendationId: created.id,
+          modelTraceId,
+          confidence: input.confidence,
+          urgency: input.urgency,
+          policyBlocked: policyResult.blocked,
+          metadata: {
+            blockedReasons: policyResult.blockedReasons,
+          },
+        });
+      } catch (error) {
+        console.error(
+          JSON.stringify({
+            level: "error",
+            event: "ai.review_queue.enqueue_failed",
+            requestId: ctx.requestId,
+            correlationId: ctx.correlationId,
+            recommendationId: created.id,
+            error: error instanceof Error ? error.message : "unknown",
+          }),
+        );
       }
 
       return mapRecommendationRow(created);
@@ -255,5 +358,39 @@ export const recommendationsRouter = router({
       );
 
       return mapRecommendationRow(created);
+    }),
+
+  likelyCauses: protectedProcedure
+    .input(
+      z.object({
+        diagnosticEventId: z.number().int().positive(),
+      }),
+    )
+    .output(likelyCausesResponseSchema)
+    .query(async ({ ctx, input }) => {
+      const featureFlags = getServerFeatureFlags();
+      if (!featureFlags.likelyCausesEnabled) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "Likely causes is not enabled",
+          cause: {
+            businessCode: "FEATURE_DISABLED",
+          },
+        });
+      }
+
+      await requireEntitlement(ctx.session.user.id, "pro.likely_causes");
+      const ownedDiagnosticEvent = await getOwnedDiagnosticEvent(ctx.session.user.id, input.diagnosticEventId);
+
+      const causes = rankLikelyCauses({
+        dtcCode: ownedDiagnosticEvent.dtcCode,
+        freezeFrame: (ownedDiagnosticEvent.freezeFrame as Record<string, unknown> | null) ?? null,
+        sensorSnapshot: (ownedDiagnosticEvent.sensorSnapshot as Record<string, unknown> | null) ?? null,
+      });
+
+      return {
+        diagnosticEventId: input.diagnosticEventId,
+        causes,
+      };
     }),
 });

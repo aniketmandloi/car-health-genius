@@ -352,3 +352,112 @@ Indexes:
 - `partner_membership_user_id_idx` on `user_id`
 - `partner_membership_partner_id_idx` on `partner_id`
 - `partner_membership_status_idx` on `status`
+
+## Sprint 5 Additions
+
+### `model_registry`
+
+- `id` (serial, PK)
+- `provider` (text, required)
+- `model_id` (text, required)
+- `model_version` (text, required)
+- `status` (text, required, default `active`)
+- `metadata` (jsonb, nullable)
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+Indexes:
+
+- `model_registry_provider_model_version_uq` unique on (`provider`, `model_id`, `model_version`)
+- `model_registry_status_idx` on `status`
+
+### `prompt_template`
+
+- `id` (serial, PK)
+- `template_key` (text, required)
+- `template_version` (text, required)
+- `template_hash` (text, required)
+- `template_body` (text, nullable)
+- `status` (text, required, default `active`)
+- `metadata` (jsonb, nullable)
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+Indexes:
+
+- `prompt_template_key_version_uq` unique on (`template_key`, `template_version`)
+- `prompt_template_status_idx` on `status`
+
+### `model_trace`
+
+- `id` (serial, PK)
+- `request_id` (text, nullable)
+- `correlation_id` (text, nullable)
+- `user_id` (text, FK -> `user.id`, nullable)
+- `diagnostic_event_id` (integer, FK -> `diagnostic_event.id`, nullable)
+- `recommendation_id` (integer, FK -> `recommendation.id`, nullable)
+- `model_registry_id` (integer, FK -> `model_registry.id`, nullable)
+- `prompt_template_id` (integer, FK -> `prompt_template.id`, nullable)
+- `generator_type` (text, required, default `rules`)
+- `input_hash` (varchar(128), required)
+- `output_summary` (text, nullable)
+- `policy_blocked` (boolean, required, default `false`)
+- `policy_reasons` (jsonb, nullable)
+- `fallback_applied` (boolean, required, default `false`)
+- `metadata` (jsonb, nullable)
+- `created_at` (timestamp)
+
+Indexes:
+
+- `model_trace_created_at_idx` on `created_at`
+- `model_trace_user_id_idx` on `user_id`
+- `model_trace_request_id_idx` on `request_id`
+- `model_trace_diagnostic_event_id_idx` on `diagnostic_event_id`
+- `model_trace_recommendation_id_idx` on `recommendation_id`
+
+### `review_queue_item`
+
+- `id` (serial, PK)
+- `status` (text, required, default `pending`)
+- `trigger_reason` (text, required)
+- `trigger_metadata` (jsonb, nullable)
+- `diagnostic_event_id` (integer, FK -> `diagnostic_event.id`)
+- `recommendation_id` (integer, FK -> `recommendation.id`, nullable)
+- `model_trace_id` (integer, FK -> `model_trace.id`, nullable)
+- `confidence` (integer, required, default `0`)
+- `urgency` (text, required, default `unknown`)
+- `policy_blocked` (boolean, required, default `false`)
+- `claimed_by_user_id` (text, FK -> `user.id`, nullable)
+- `claimed_at` (timestamp, nullable)
+- `resolved_by_user_id` (text, FK -> `user.id`, nullable)
+- `resolved_at` (timestamp, nullable)
+- `resolution` (text, nullable)
+- `resolution_notes` (text, nullable)
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+Indexes:
+
+- `review_queue_item_status_idx` on `status`
+- `review_queue_item_created_at_idx` on `created_at`
+- `review_queue_item_claimed_by_user_id_idx` on `claimed_by_user_id`
+- `review_queue_item_diagnostic_event_id_idx` on `diagnostic_event_id`
+
+### `analytics_event`
+
+- `id` (serial, PK)
+- `event_name` (text, required)
+- `event_key` (text, required, unique)
+- `user_id` (text, FK -> `user.id`, nullable)
+- `channel` (text, required, default `server`)
+- `source` (text, nullable)
+- `properties` (jsonb, nullable)
+- `occurred_at` (timestamp)
+- `created_at` (timestamp)
+
+Indexes:
+
+- `analytics_event_event_key_uq` unique on `event_key`
+- `analytics_event_event_name_idx` on `event_name`
+- `analytics_event_occurred_at_idx` on `occurred_at`
+- `analytics_event_user_id_idx` on `user_id`

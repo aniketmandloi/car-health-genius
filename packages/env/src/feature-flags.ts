@@ -2,6 +2,7 @@ export const FEATURE_FLAG_KEYS = [
   'freeTierEnabled',
   'proPaywallEnabled',
   'aiExplanationsEnabled',
+  'likelyCausesEnabled',
   'partnerPortalEnabled',
   'adminKillSwitchEnabled',
 ] as const;
@@ -14,6 +15,7 @@ export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
   freeTierEnabled: true,
   proPaywallEnabled: true,
   aiExplanationsEnabled: false,
+  likelyCausesEnabled: false,
   partnerPortalEnabled: false,
   adminKillSwitchEnabled: true,
 };

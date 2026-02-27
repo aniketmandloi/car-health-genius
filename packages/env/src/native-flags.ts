@@ -7,6 +7,7 @@ export function getNativeFeatureFlags(overrides: Partial<FeatureFlags> = {}): Fe
     freeTierEnabled: env.EXPO_PUBLIC_FLAG_FREE_TIER_ENABLED,
     proPaywallEnabled: env.EXPO_PUBLIC_FLAG_PRO_PAYWALL_ENABLED,
     aiExplanationsEnabled: env.EXPO_PUBLIC_FLAG_AI_EXPLANATIONS_ENABLED,
+    likelyCausesEnabled: env.EXPO_PUBLIC_FLAG_LIKELY_CAUSES_ENABLED,
     partnerPortalEnabled: env.EXPO_PUBLIC_FLAG_PARTNER_PORTAL_ENABLED,
     adminKillSwitchEnabled: env.EXPO_PUBLIC_FLAG_ADMIN_KILL_SWITCH_ENABLED,
     ...overrides,

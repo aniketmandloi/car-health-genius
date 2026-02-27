@@ -7,11 +7,11 @@
 | `DATABASE_URL` | secret | DB credential, server-only |
 | `BETTER_AUTH_SECRET` | secret | auth signing secret, server-only |
 | `POLAR_ACCESS_TOKEN` | secret | payment provider API credential |
-| `POLAR_WEBHOOK_SECRET` | secret | webhook signature verification secret |
+| `POLAR_WEBHOOK_SECRET` | secret | webhook signature validation secret |
 | `BETTER_AUTH_URL` | internal non-secret | service base URL |
-| `POLAR_ENV` | internal non-secret | Polar environment (`sandbox` or `production`) |
-| `POLAR_PRODUCT_ID_PRO_MONTHLY` | internal non-secret | Polar product ID for monthly Pro plan |
-| `POLAR_PRODUCT_ID_PRO_ANNUAL` | internal non-secret | Polar product ID for annual Pro plan |
+| `POLAR_ENV` | internal non-secret | Polar API environment (`sandbox` or `production`) |
+| `POLAR_PRODUCT_ID_PRO_MONTHLY` | internal non-secret | Polar Pro monthly product ID |
+| `POLAR_PRODUCT_ID_PRO_ANNUAL` | internal non-secret | Polar Pro annual product ID |
 | `POLAR_SUCCESS_URL` | internal non-secret | post-checkout redirect |
 | `NHTSA_VPIC_BASE_URL` | internal non-secret | VIN provider base URL |
 | `NHTSA_VPIC_TIMEOUT_MS` | internal non-secret | VIN provider timeout in milliseconds |
@@ -49,6 +49,7 @@ Required variables:
 - `FLAG_FREE_TIER_ENABLED`
 - `FLAG_PRO_PAYWALL_ENABLED`
 - `FLAG_AI_EXPLANATIONS_ENABLED`
+- `FLAG_LIKELY_CAUSES_ENABLED`
 - `FLAG_PARTNER_PORTAL_ENABLED`
 - `FLAG_ADMIN_KILL_SWITCH_ENABLED`
 - `NODE_ENV`
@@ -61,6 +62,7 @@ Required variables:
 - `NEXT_PUBLIC_FLAG_FREE_TIER_ENABLED`
 - `NEXT_PUBLIC_FLAG_PRO_PAYWALL_ENABLED`
 - `NEXT_PUBLIC_FLAG_AI_EXPLANATIONS_ENABLED`
+- `NEXT_PUBLIC_FLAG_LIKELY_CAUSES_ENABLED`
 - `NEXT_PUBLIC_FLAG_PARTNER_PORTAL_ENABLED`
 - `NEXT_PUBLIC_FLAG_ADMIN_KILL_SWITCH_ENABLED`
 
@@ -73,6 +75,7 @@ Required variables:
 - `EXPO_PUBLIC_FLAG_FREE_TIER_ENABLED`
 - `EXPO_PUBLIC_FLAG_PRO_PAYWALL_ENABLED`
 - `EXPO_PUBLIC_FLAG_AI_EXPLANATIONS_ENABLED`
+- `EXPO_PUBLIC_FLAG_LIKELY_CAUSES_ENABLED`
 - `EXPO_PUBLIC_FLAG_PARTNER_PORTAL_ENABLED`
 - `EXPO_PUBLIC_FLAG_ADMIN_KILL_SWITCH_ENABLED`
 

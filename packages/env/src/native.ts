@@ -15,6 +15,7 @@ export const env = createEnv({
     EXPO_PUBLIC_FLAG_FREE_TIER_ENABLED: booleanFlag(true),
     EXPO_PUBLIC_FLAG_PRO_PAYWALL_ENABLED: booleanFlag(true),
     EXPO_PUBLIC_FLAG_AI_EXPLANATIONS_ENABLED: booleanFlag(false),
+    EXPO_PUBLIC_FLAG_LIKELY_CAUSES_ENABLED: booleanFlag(false),
     EXPO_PUBLIC_FLAG_PARTNER_PORTAL_ENABLED: booleanFlag(false),
     EXPO_PUBLIC_FLAG_ADMIN_KILL_SWITCH_ENABLED: booleanFlag(true),
   },

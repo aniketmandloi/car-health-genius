@@ -5,6 +5,7 @@ import { TRPCError } from "@trpc/server";
 import { and, desc, eq, gt, isNull, or } from "drizzle-orm";
 
 export const PRO_FEATURE_KEYS = [
+  "pro.advanced_sensors",
   "pro.advanced_diagnostics",
   "pro.likely_causes",
   "pro.diy_guides",
@@ -13,70 +14,41 @@ export const PRO_FEATURE_KEYS = [
   "pro.maintenance_prediction",
   "pro.health_score",
   "pro.pdf_export",
+  "pro.priority_support",
   "support.priority",
 ] as const;
 
-type CachedValue = {
-  expiresAtMs: number;
-  value: ResolvedEntitlements;
-};
+export type ProFeatureKey = (typeof PRO_FEATURE_KEYS)[number];
 
-const entitlementCache = new Map<string, CachedValue>();
-const cacheTtlMs = 15_000;
+const ACTIVE_SUBSCRIPTION_STATUSES = new Set(["active", "trialing", "past_due"]);
 
-function logMetric(metric: string, value: number, metadata: Record<string, unknown>) {
-  console.info(
-    JSON.stringify({
-      level: "info",
-      event: "metric",
-      metric,
-      value,
-      ...metadata,
-    }),
-  );
-}
-
-export type ResolvedEntitlements = {
+export type EntitlementSnapshot = {
   userId: string;
+  features: ProFeatureKey[];
+  sources: Record<ProFeatureKey, "entitlement" | "subscription">;
   plan: string;
-  source: "none" | "entitlement" | "subscription" | "entitlement+subscription";
-  features: Record<string, boolean>;
-  resolvedAt: string;
+  subscriptionStatus: string;
 };
 
-function isSubscriptionEntitledStatus(status: string): boolean {
-  return status === "active" || status === "trialing" || status === "past_due";
-}
+function normalizePlanToFeatures(plan: string, status: string): ProFeatureKey[] {
+  const normalizedPlan = plan.trim().toLowerCase();
+  const normalizedStatus = status.trim().toLowerCase();
 
-function hasUnexpiredPeriodEnd(value: Date | string | null): boolean {
-  if (value === null) {
-    return true;
+  if (!ACTIVE_SUBSCRIPTION_STATUSES.has(normalizedStatus)) {
+    return [];
   }
 
-  const periodEnd = value instanceof Date ? value : new Date(value);
-  return periodEnd.getTime() > Date.now();
-}
-
-export function invalidateEntitlementCache(userId: string) {
-  entitlementCache.delete(userId);
-}
-
-export async function resolveEntitlements(
-  userId: string,
-  options: {
-    skipCache?: boolean;
-  } = {},
-): Promise<ResolvedEntitlements> {
-  const startedAt = Date.now();
-  const now = Date.now();
-  const cached = entitlementCache.get(userId);
-  if (!options.skipCache && cached && cached.expiresAtMs > now) {
-    logMetric("entitlement_resolve_cache_hit_total", 1, { userId });
-    return cached.value;
+  if (!normalizedPlan.includes("pro")) {
+    return [];
   }
 
-  const nowDate = new Date();
-  const [explicitRows, latestSubscription] = await Promise.all([
+  return [...PRO_FEATURE_KEYS];
+}
+
+export async function resolveEntitlements(userId: string): Promise<EntitlementSnapshot> {
+  const now = new Date();
+
+  const [entitlementRows, latestSubscription] = await Promise.all([
     db
       .select({
         featureKey: entitlement.featureKey,
@@ -86,104 +58,66 @@ export async function resolveEntitlements(
         and(
           eq(entitlement.userId, userId),
           eq(entitlement.isEnabled, true),
-          or(gt(entitlement.expiresAt, nowDate), isNull(entitlement.expiresAt)),
+          or(isNull(entitlement.expiresAt), gt(entitlement.expiresAt, now)),
         ),
       ),
     db
-      .select()
+      .select({
+        plan: subscription.plan,
+        status: subscription.status,
+      })
       .from(subscription)
       .where(eq(subscription.userId, userId))
       .orderBy(desc(subscription.updatedAt))
       .limit(1)
-      .then((rows) => rows[0] ?? null),
+      .then((rows) => rows[0] ?? { plan: "free", status: "inactive" }),
   ]);
 
-  const features: Record<string, boolean> = {};
-  for (const key of PRO_FEATURE_KEYS) {
-    features[key] = false;
+  const byFeature = new Map<ProFeatureKey, "entitlement" | "subscription">();
+
+  for (const row of entitlementRows) {
+    if (!PRO_FEATURE_KEYS.includes(row.featureKey as ProFeatureKey)) {
+      continue;
+    }
+
+    byFeature.set(row.featureKey as ProFeatureKey, "entitlement");
   }
 
-  for (const row of explicitRows) {
-    features[row.featureKey] = true;
-  }
-
-  const subscriptionGrantsPro =
-    latestSubscription !== null &&
-    isSubscriptionEntitledStatus(latestSubscription.status) &&
-    hasUnexpiredPeriodEnd(latestSubscription.currentPeriodEnd);
-
-  if (subscriptionGrantsPro) {
-    for (const key of PRO_FEATURE_KEYS) {
-      features[key] = true;
+  for (const featureKey of normalizePlanToFeatures(latestSubscription.plan, latestSubscription.status)) {
+    if (!byFeature.has(featureKey)) {
+      byFeature.set(featureKey, "subscription");
     }
   }
 
-  const source: ResolvedEntitlements["source"] =
-    explicitRows.length > 0 && subscriptionGrantsPro
-      ? "entitlement+subscription"
-      : explicitRows.length > 0
-        ? "entitlement"
-        : subscriptionGrantsPro
-          ? "subscription"
-          : "none";
+  const features = Array.from(byFeature.keys());
+  const sources = Object.fromEntries(byFeature.entries()) as Record<ProFeatureKey, "entitlement" | "subscription">;
 
-  const resolved: ResolvedEntitlements = {
+  return {
     userId,
-    plan: subscriptionGrantsPro ? latestSubscription?.plan ?? "pro" : "free",
-    source,
     features,
-    resolvedAt: new Date().toISOString(),
+    sources,
+    plan: latestSubscription.plan,
+    subscriptionStatus: latestSubscription.status,
   };
-
-  entitlementCache.set(userId, {
-    expiresAtMs: now + cacheTtlMs,
-    value: resolved,
-  });
-
-  logMetric("entitlement_resolve_latency_ms", Date.now() - startedAt, {
-    userId,
-    source,
-    plan: resolved.plan,
-    featureCount: Object.keys(resolved.features).length,
-  });
-
-  return resolved;
 }
 
-export async function hasEntitlement(
-  userId: string,
-  featureKey: string,
-  options: {
-    skipCache?: boolean;
-  } = {},
-): Promise<boolean> {
-  const resolved = await resolveEntitlements(userId, options);
-  return resolved.features[featureKey] === true;
+export function hasEntitlement(snapshot: EntitlementSnapshot, featureKey: ProFeatureKey): boolean {
+  return snapshot.features.includes(featureKey);
 }
 
-export async function requireEntitlement(
-  userId: string,
-  featureKey: string,
-  options: {
-    skipCache?: boolean;
-  } = {},
-): Promise<void> {
-  const permitted = await hasEntitlement(userId, featureKey, options);
-  if (permitted) {
-    return;
+export async function requireEntitlement(userId: string, featureKey: ProFeatureKey): Promise<EntitlementSnapshot> {
+  const snapshot = await resolveEntitlements(userId);
+
+  if (!hasEntitlement(snapshot, featureKey)) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Upgrade to Pro to access this feature",
+      cause: {
+        businessCode: "PRO_UPGRADE_REQUIRED",
+        featureKey,
+      },
+    });
   }
 
-  logMetric("entitlement_denied_total", 1, {
-    userId,
-    featureKey,
-  });
-
-  throw new TRPCError({
-    code: "FORBIDDEN",
-    message: "This feature requires Pro access",
-    cause: {
-      businessCode: "PRO_UPGRADE_REQUIRED",
-      featureKey,
-    },
-  });
+  return snapshot;
 }
