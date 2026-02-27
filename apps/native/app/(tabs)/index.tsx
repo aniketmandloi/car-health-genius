@@ -3,7 +3,7 @@ import { getNativeFeatureFlags } from "@car-health-genius/env/native-flags";
 import { useQuery } from "@tanstack/react-query";
 import { Button, Card, Chip, useThemeColor } from "heroui-native";
 import { useState } from "react";
-import { Text, View, Pressable } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import { Container } from "@/components/container";
 import { SignIn } from "@/components/sign-in";
@@ -26,7 +26,6 @@ export default function Home() {
   const mutedColor = useThemeColor("muted");
   const successColor = useThemeColor("success");
   const dangerColor = useThemeColor("danger");
-  const foregroundColor = useThemeColor("foreground");
 
   return (
     <Container className="p-6">
@@ -62,9 +61,7 @@ export default function Home() {
 
         <Card className="p-4">
           <View className="flex-row items-center">
-            <View
-              className={`w-3 h-3 rounded-full mr-3 ${isConnected ? "bg-success" : "bg-muted"}`}
-            />
+            <View className={`w-3 h-3 rounded-full mr-3 ${isConnected ? "bg-success" : "bg-muted"}`} />
             <View className="flex-1">
               <Text className="text-foreground font-medium mb-1">TRPC Backend</Text>
               <Card.Description>
@@ -76,12 +73,8 @@ export default function Home() {
               </Card.Description>
             </View>
             {isLoading && <Ionicons name="hourglass-outline" size={20} color={mutedColor} />}
-            {!isLoading && isConnected && (
-              <Ionicons name="checkmark-circle" size={20} color={successColor} />
-            )}
-            {!isLoading && !isConnected && (
-              <Ionicons name="close-circle" size={20} color={dangerColor} />
-            )}
+            {!isLoading && isConnected && <Ionicons name="checkmark-circle" size={20} color={successColor} />}
+            {!isLoading && !isConnected && <Ionicons name="close-circle" size={20} color={dangerColor} />}
           </View>
         </Card>
 

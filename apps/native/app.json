@@ -8,7 +8,17 @@
     },
     "name": "car-health-genius",
     "slug": "car-health-genius",
-    "plugins": ["expo-font"],
+    "plugins": [
+      "expo-font",
+      [
+        "react-native-ble-plx",
+        {
+          "isBackgroundEnabled": false,
+          "neverForLocation": false,
+          "bluetoothAlwaysPermission": "Allow Car Health Genius to connect to OBD-II adapters."
+        }
+      ]
+    ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true

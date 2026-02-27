@@ -76,14 +76,14 @@ test("web sprint-2 pages exist and are linked in header", () => {
 });
 
 test("native scan tab uses adapter abstraction and VIN onboarding", () => {
-  const content = read("apps/native/app/(drawer)/(tabs)/two.tsx");
+  const content = read("apps/native/app/(tabs)/scan.tsx");
   assert.match(content, /createAdapterDriver/);
   assert.match(content, /trpc\.vehicles\.createFromVin/);
   assert.match(content, /UNSUPPORTED_GEOGRAPHY/);
 });
 
 test("native home screen uses auth mode toggle instead of rendering both auth forms at once", () => {
-  const content = read("apps/native/app/(drawer)/index.tsx");
+  const content = read("apps/native/app/(tabs)/index.tsx");
   assert.match(content, /authMode/);
   assert.match(content, /authMode === "signin" \? <SignIn \/> : <SignUp \/>/);
 });
