@@ -14,4 +14,7 @@ export * from "./entitlement";
 export * from "./feedback";
 export * from "./repairOutcome";
 export * from "./auditLog";
+export * from "./obdSession";
+export * from "./timelineEvent";
+export * from "./recallSnapshot";
 export {};

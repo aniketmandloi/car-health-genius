@@ -4,14 +4,14 @@ import {
   Button,
   Checkbox,
   Chip,
+  Input,
   Spinner,
   Surface,
-  Input,
   TextField,
   useThemeColor,
 } from "heroui-native";
 import { useState } from "react";
-import { View, Text, ScrollView, Alert } from "react-native";
+import { Alert, ScrollView, Text, View } from "react-native";
 
 import { Container } from "@/components/container";
 import { trpc } from "@/utils/trpc";
@@ -114,9 +114,7 @@ export default function TodosScreen() {
                 <Ionicons
                   name="add"
                   size={20}
-                  color={
-                    createMutation.isPending || !newTodoText.trim() ? mutedColor : foregroundColor
-                  }
+                  color={createMutation.isPending || !newTodoText.trim() ? mutedColor : foregroundColor}
                 />
               )}
             </Button>
@@ -148,18 +146,11 @@ export default function TodosScreen() {
                     onSelectedChange={() => handleToggleTodo(todo.id, todo.completed)}
                   />
                   <View className="flex-1">
-                    <Text
-                      className={`text-sm ${todo.completed ? "text-muted line-through" : "text-foreground"}`}
-                    >
+                    <Text className={`text-sm ${todo.completed ? "text-muted line-through" : "text-foreground"}`}>
                       {todo.text}
                     </Text>
                   </View>
-                  <Button
-                    isIconOnly
-                    variant="ghost"
-                    onPress={() => handleDeleteTodo(todo.id)}
-                    size="sm"
-                  >
+                  <Button isIconOnly variant="ghost" onPress={() => handleDeleteTodo(todo.id)} size="sm">
                     <Ionicons name="trash-outline" size={16} color={dangerColor} />
                   </Button>
                 </View>

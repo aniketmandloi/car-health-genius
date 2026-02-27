@@ -11,6 +11,10 @@
 | `POLAR_SUCCESS_URL` | internal non-secret | post-checkout redirect |
 | `NHTSA_VPIC_BASE_URL` | internal non-secret | VIN provider base URL |
 | `NHTSA_VPIC_TIMEOUT_MS` | internal non-secret | VIN provider timeout in milliseconds |
+| `NHTSA_RECALL_BASE_URL` | internal non-secret | Recall provider base URL |
+| `NHTSA_RECALL_TIMEOUT_MS` | internal non-secret | Recall provider timeout in milliseconds |
+| `NHTSA_RECALL_CACHE_TTL_MINUTES` | internal non-secret | Recall cache freshness window in minutes |
+| `NHTSA_RECALL_RATE_LIMIT_PER_MINUTE` | internal non-secret | Server-side recall request guardrail per minute |
 | `CORS_ORIGIN` | internal non-secret | allowed web origin |
 | `LOG_LEVEL` | internal non-secret | runtime logging verbosity |
 | `FLAG_*` server vars | internal non-secret | backend feature controls |
@@ -28,6 +32,10 @@ Required variables:
 - `POLAR_SUCCESS_URL`
 - `NHTSA_VPIC_BASE_URL`
 - `NHTSA_VPIC_TIMEOUT_MS`
+- `NHTSA_RECALL_BASE_URL`
+- `NHTSA_RECALL_TIMEOUT_MS`
+- `NHTSA_RECALL_CACHE_TTL_MINUTES`
+- `NHTSA_RECALL_RATE_LIMIT_PER_MINUTE`
 - `CORS_ORIGIN`
 - `LOG_LEVEL`
 - `FLAG_FREE_TIER_ENABLED`

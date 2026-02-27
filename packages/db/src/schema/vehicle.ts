@@ -6,7 +6,9 @@ import { booking } from "./booking";
 import { diagnosticEvent } from "./diagnosticEvent";
 import { estimate } from "./estimate";
 import { maintenance } from "./maintenance";
+import { obdSession } from "./obdSession";
 import { repairOutcome } from "./repairOutcome";
+import { timelineEvent } from "./timelineEvent";
 
 export const vehicle = pgTable(
   "vehicle",
@@ -46,4 +48,6 @@ export const vehicleRelations = relations(vehicle, ({ many, one }) => ({
   bookings: many(booking),
   maintenanceItems: many(maintenance),
   repairOutcomes: many(repairOutcome),
+  obdSessions: many(obdSession),
+  timelineEvents: many(timelineEvent),
 }));

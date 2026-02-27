@@ -5,7 +5,10 @@ import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { protectedProcedure, router } from "../index";
+import { RecallServiceError, getRecallsByVehicle } from "../services/recall.service";
 import { decodeVin } from "../services/vin.service";
+
+const jsonRecordSchema = z.record(z.string(), z.unknown());
 
 const vinSchema = z
   .string()
@@ -123,6 +126,16 @@ const createFromVinOutputSchema = z.discriminatedUnion("created", [
     requiresManualInput: z.literal(true),
   }),
 ]);
+
+const recallLookupOutputSchema = z.object({
+  source: z.literal("nhtsa_recalls"),
+  retrievedAt: z.string(),
+  cacheExpiresAt: z.string(),
+  cached: z.boolean(),
+  stale: z.boolean(),
+  vehicleId: z.number().int().positive(),
+  records: z.array(jsonRecordSchema),
+});
 
 function logVinDecodeResult(result: z.infer<typeof vinDecodeResultSchema>, requestId: string, correlationId: string) {
   console.info(
@@ -261,6 +274,90 @@ export const vehiclesRouter = router({
       }
 
       return mapVehicleRow(foundVehicle);
+    }),
+
+  getRecalls: protectedProcedure
+    .input(
+      z.object({
+        vehicleId: z.number().int().positive(),
+      }),
+    )
+    .output(recallLookupOutputSchema)
+    .query(async ({ ctx, input }) => {
+      const [ownedVehicle] = await db
+        .select({
+          id: vehicle.id,
+          make: vehicle.make,
+          model: vehicle.model,
+          modelYear: vehicle.modelYear,
+        })
+        .from(vehicle)
+        .where(and(eq(vehicle.id, input.vehicleId), eq(vehicle.userId, ctx.session.user.id)))
+        .limit(1);
+
+      if (!ownedVehicle) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Vehicle not found",
+        });
+      }
+
+      try {
+        const recalls = await getRecallsByVehicle({
+          make: ownedVehicle.make,
+          model: ownedVehicle.model,
+          modelYear: ownedVehicle.modelYear,
+        });
+
+        console.info(
+          JSON.stringify({
+            level: "info",
+            event: "recall.lookup",
+            metric: "recall_fetch_total",
+            requestId: ctx.requestId,
+            correlationId: ctx.correlationId,
+            vehicleId: ownedVehicle.id,
+            cached: recalls.cached,
+            stale: recalls.stale,
+            recordCount: recalls.records.length,
+          }),
+        );
+
+        return {
+          ...recalls,
+          vehicleId: ownedVehicle.id,
+        };
+      } catch (error) {
+        if (error instanceof RecallServiceError && error.code === "RECALL_RATE_LIMITED") {
+          throw new TRPCError({
+            code: "TOO_MANY_REQUESTS",
+            message: "Recall lookup is temporarily rate limited. Please retry shortly.",
+            cause: {
+              businessCode: "RECALL_RATE_LIMITED",
+            },
+          });
+        }
+
+        console.error(
+          JSON.stringify({
+            level: "error",
+            event: "recall.lookup.error",
+            metric: "recall_fetch_failure_total",
+            requestId: ctx.requestId,
+            correlationId: ctx.correlationId,
+            vehicleId: ownedVehicle.id,
+            error: error instanceof Error ? error.message : "Unknown error",
+          }),
+        );
+
+        throw new TRPCError({
+          code: "SERVICE_UNAVAILABLE",
+          message: "Recall provider is currently unavailable",
+          cause: {
+            businessCode: "RECALLS_UNAVAILABLE",
+          },
+        });
+      }
     }),
 
   decodeVin: protectedProcedure

@@ -33,11 +33,20 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="two"
+        name="scan"
         options={{
           title: "Scan",
           tabBarIcon: ({ color, size }: { color: string; size: number }) => (
             <Ionicons name="compass" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="todos"
+        options={{
+          title: "Todos",
+          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
+            <Ionicons name="checkbox-outline" size={size} color={color} />
           ),
         }}
       />
