@@ -4,9 +4,14 @@ Date: February 28, 2026
 
 ## CI Security Controls
 
-1. Dependency review (`actions/dependency-review-action`) on PRs.
+1. Dependency review (`actions/dependency-review-action`) on PRs when `DEPENDENCY_REVIEW_ENABLED=true`.
 2. CodeQL static analysis (`github/codeql-action`) on PR, main, and weekly schedule.
 3. Dependency audit (`pnpm audit --prod --audit-level=critical`) in security workflow.
+
+## Repository Prerequisite
+
+1. If dependency graph is not enabled for the repo, keep `DEPENDENCY_REVIEW_ENABLED` unset/`false` to avoid CI failure.
+2. After enabling dependency graph in repository security settings, set `DEPENDENCY_REVIEW_ENABLED=true` to enforce dependency review checks.
 
 ## Blocking Policy
 
