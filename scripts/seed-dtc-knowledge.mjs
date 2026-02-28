@@ -1,5 +1,8 @@
 import dotenv from "dotenv";
-import { neon } from "@neondatabase/serverless";
+import { createRequire } from "node:module";
+
+const requireFromDb = createRequire(new URL("../packages/db/package.json", import.meta.url));
+const { neon } = requireFromDb("@neondatabase/serverless");
 
 dotenv.config({
   path: "apps/server/.env",
@@ -43,5 +46,28 @@ ON CONFLICT ("dtc_code") DO UPDATE SET
   "source_version" = EXCLUDED."source_version";
 `;
 
-await sql(query);
-console.log("DTC knowledge seed completed.");
+function printDnsHintIfNeeded(error) {
+  const source = error && typeof error === "object" ? (error.sourceError ?? error.cause) : undefined;
+  const dnsCause =
+    source && typeof source === "object" && "cause" in source && source.cause && typeof source.cause === "object"
+      ? source.cause
+      : source;
+  const dnsCode = dnsCause && typeof dnsCause === "object" && "code" in dnsCause ? dnsCause.code : undefined;
+  const dnsHost = dnsCause && typeof dnsCause === "object" && "hostname" in dnsCause ? dnsCause.hostname : undefined;
+
+  if (dnsCode === "ENOTFOUND") {
+    console.error(
+      `DNS lookup failed for database host${typeof dnsHost === "string" ? ` (${dnsHost})` : ""}. ` +
+        "Check DATABASE_URL in apps/server/.env and verify your network/DNS can resolve that host.",
+    );
+  }
+}
+
+try {
+  await sql.query(query);
+  console.log("DTC knowledge seed completed.");
+} catch (error) {
+  printDnsHintIfNeeded(error);
+  console.error("Failed to seed DTC knowledge:", error);
+  process.exit(1);
+}

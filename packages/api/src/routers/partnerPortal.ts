@@ -1,11 +1,12 @@
-import { appendAuditLog } from "@car-health-genius/db/repositories/auditLog";
 import { db } from "@car-health-genius/db";
+import { auditLog } from "@car-health-genius/db/schema/auditLog";
 import { booking } from "@car-health-genius/db/schema/booking";
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 
 import { partnerProcedure, router } from "../index";
+import { assertBookingTransition, type BookingStatus } from "../services/bookingStateMachine.service";
 
 const leadStatusSchema = z.enum(["requested", "accepted", "alternate", "rejected", "confirmed"]);
 
@@ -57,6 +58,19 @@ function mapBookingRow(row: typeof booking.$inferSelect) {
   };
 }
 
+function readBusinessCodeFromError(error: unknown): string | undefined {
+  if (!(error instanceof TRPCError)) {
+    return undefined;
+  }
+
+  if (!error.cause || typeof error.cause !== "object") {
+    return undefined;
+  }
+
+  const businessCode = (error.cause as { businessCode?: unknown }).businessCode;
+  return typeof businessCode === "string" ? businessCode : undefined;
+}
+
 export const partnerPortalRouter = router({
   listOpenLeads: partnerProcedure
     .input(
@@ -83,14 +97,18 @@ export const partnerPortalRouter = router({
     .input(
       z.object({
         bookingId: z.number().int().positive(),
-        status: z.enum(["accepted", "alternate", "rejected", "confirmed"]),
+        status: z.enum(["accepted", "alternate", "rejected"]),
         message: z.string().trim().min(1).optional(),
       }),
     )
     .output(bookingOutputSchema)
     .mutation(async ({ ctx, input }) => {
       const [existing] = await db
-        .select({ id: booking.id })
+        .select({
+          id: booking.id,
+          status: booking.status,
+          partnerId: booking.partnerId,
+        })
         .from(booking)
         .where(and(eq(booking.id, input.bookingId), eq(booking.partnerId, ctx.partnerMembership.partnerId)))
         .limit(1);
@@ -102,15 +120,72 @@ export const partnerPortalRouter = router({
         });
       }
 
-      const [updated] = await db
-        .update(booking)
-        .set({
-          status: input.status,
-          partnerResponseNote: input.message,
-          resolvedAt: input.status === "confirmed" || input.status === "rejected" ? new Date() : null,
-        })
-        .where(and(eq(booking.id, input.bookingId), eq(booking.partnerId, ctx.partnerMembership.partnerId)))
-        .returning();
+      let transition;
+      try {
+        transition = assertBookingTransition({
+          fromStatus: leadStatusSchema.parse(existing.status) as BookingStatus,
+          toStatus: input.status,
+          actor: "partner",
+        });
+      } catch (error) {
+        const businessCode = readBusinessCodeFromError(error);
+        if (businessCode === "INVALID_BOOKING_STATE_TRANSITION" || businessCode === "BOOKING_NOOP_TRANSITION") {
+          console.info(
+            JSON.stringify({
+              level: "warn",
+              event: "booking.transition.invalid",
+              metric: "booking_invalid_transition_total",
+              value: 1,
+              requestId: ctx.requestId,
+              correlationId: ctx.correlationId,
+              userId: ctx.session.user.id,
+              bookingId: input.bookingId,
+              fromStatus: existing.status,
+              toStatus: input.status,
+              actor: "partner",
+              businessCode,
+            }),
+          );
+        }
+        throw error;
+      }
+
+      const [updated] = await db.transaction(async (tx) => {
+        const [next] = await tx
+          .update(booking)
+          .set({
+            status: input.status,
+            partnerResponseNote: input.message,
+            resolvedAt: transition.isTerminal ? new Date() : null,
+          })
+          .where(and(eq(booking.id, input.bookingId), eq(booking.partnerId, ctx.partnerMembership.partnerId)))
+          .returning();
+
+        if (!next) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to update lead",
+          });
+        }
+
+        await tx.insert(auditLog).values({
+          actorUserId: ctx.session.user.id,
+          actorRole: ctx.userRole,
+          action: "partner.lead.respond",
+          targetType: "booking",
+          targetId: String(input.bookingId),
+          changeSet: {
+            fromStatus: existing.status,
+            status: input.status,
+            message: input.message,
+            actor: "partner",
+          },
+          requestId: ctx.requestId,
+          correlationId: ctx.correlationId,
+        });
+
+        return [next];
+      });
 
       if (!updated) {
         throw new TRPCError({
@@ -119,19 +194,21 @@ export const partnerPortalRouter = router({
         });
       }
 
-      await appendAuditLog({
-        actorUserId: ctx.session.user.id,
-        actorRole: ctx.userRole,
-        action: "partner.lead.respond",
-        targetType: "booking",
-        targetId: String(input.bookingId),
-        changeSet: {
-          status: input.status,
-          message: input.message,
-        },
-        requestId: ctx.requestId,
-        correlationId: ctx.correlationId,
-      });
+      console.info(
+        JSON.stringify({
+          level: "info",
+          event: "booking.transition",
+          metric: "booking_transition_total",
+          value: 1,
+          requestId: ctx.requestId,
+          correlationId: ctx.correlationId,
+          userId: ctx.session.user.id,
+          bookingId: input.bookingId,
+          fromStatus: existing.status,
+          toStatus: input.status,
+          actor: "partner",
+        }),
+      );
 
       return mapBookingRow(updated);
     }),

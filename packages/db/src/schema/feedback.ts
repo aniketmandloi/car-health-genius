@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { index, integer, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { index, integer, pgTable, serial, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 
 import { user } from "./auth";
 import { diagnosticEvent } from "./diagnosticEvent";
@@ -27,6 +27,7 @@ export const feedback = pgTable(
     index("feedback_user_id_idx").on(table.userId),
     index("feedback_recommendation_id_idx").on(table.recommendationId),
     index("feedback_diagnostic_event_id_idx").on(table.diagnosticEventId),
+    uniqueIndex("feedback_user_recommendation_uq").on(table.userId, table.recommendationId),
   ],
 );
 

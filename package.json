@@ -20,8 +20,11 @@
     "db:studio": "turbo -F @car-health-genius/db db:studio",
     "db:generate": "turbo -F @car-health-genius/db db:generate",
     "db:migrate": "turbo -F @car-health-genius/db db:migrate",
+    "db:baseline": "node scripts/db-baseline.mjs",
     "db:check-migrations": "node scripts/check-migration-drift.mjs",
-    "seed:dtc-knowledge": "node scripts/seed-dtc-knowledge.mjs"
+    "seed:dtc-knowledge": "node scripts/seed-dtc-knowledge.mjs",
+    "seed:diy-guides": "node scripts/seed-diy-guides.mjs",
+    "seed:partners-sprint6": "node scripts/seed-partners-sprint6.mjs"
   },
   "dependencies": {
     "@car-health-genius/env": "workspace:*",

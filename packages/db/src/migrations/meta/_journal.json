@@ -43,6 +43,13 @@
       "when": 1772190000000,
       "tag": "0005_reflective_colleen_wing",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1772272731321,
+      "tag": "0006_wide_magneto",
+      "breakpoints": true
     }
   ]
 }
