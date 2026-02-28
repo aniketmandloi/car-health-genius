@@ -12,6 +12,7 @@ export * from "./maintenance";
 export * from "./subscription";
 export * from "./entitlement";
 export * from "./feedback";
+export * from "./diyGuide";
 export * from "./repairOutcome";
 export * from "./auditLog";
 export * from "./obdSession";

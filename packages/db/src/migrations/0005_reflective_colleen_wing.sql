@@ -1,4 +1,4 @@
-CREATE TABLE "billing_webhook_event" (
+CREATE TABLE IF NOT EXISTS "billing_webhook_event" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"provider" text DEFAULT 'polar' NOT NULL,
 	"event_type" text NOT NULL,
@@ -12,7 +12,7 @@ CREATE TABLE "billing_webhook_event" (
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "dtc_knowledge" (
+CREATE TABLE IF NOT EXISTS "dtc_knowledge" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"dtc_code" varchar(16) NOT NULL,
 	"category" text DEFAULT 'powertrain' NOT NULL,
@@ -31,13 +31,13 @@ CREATE TABLE "dtc_knowledge" (
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX "billing_webhook_event_provider_event_key_uq" ON "billing_webhook_event" USING btree ("provider_event_key");--> statement-breakpoint
-CREATE INDEX "billing_webhook_event_provider_event_type_idx" ON "billing_webhook_event" USING btree ("provider","event_type");--> statement-breakpoint
-CREATE INDEX "billing_webhook_event_status_idx" ON "billing_webhook_event" USING btree ("status");--> statement-breakpoint
-CREATE INDEX "billing_webhook_event_received_at_idx" ON "billing_webhook_event" USING btree ("received_at");--> statement-breakpoint
-CREATE UNIQUE INDEX "dtc_knowledge_dtc_code_uq" ON "dtc_knowledge" USING btree ("dtc_code");--> statement-breakpoint
-CREATE INDEX "dtc_knowledge_default_severity_idx" ON "dtc_knowledge" USING btree ("default_severity_class");--> statement-breakpoint
-CREATE INDEX "dtc_knowledge_safety_critical_idx" ON "dtc_knowledge" USING btree ("safety_critical");--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "billing_webhook_event_provider_event_key_uq" ON "billing_webhook_event" USING btree ("provider_event_key");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "billing_webhook_event_provider_event_type_idx" ON "billing_webhook_event" USING btree ("provider","event_type");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "billing_webhook_event_status_idx" ON "billing_webhook_event" USING btree ("status");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "billing_webhook_event_received_at_idx" ON "billing_webhook_event" USING btree ("received_at");--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "dtc_knowledge_dtc_code_uq" ON "dtc_knowledge" USING btree ("dtc_code");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "dtc_knowledge_default_severity_idx" ON "dtc_knowledge" USING btree ("default_severity_class");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "dtc_knowledge_safety_critical_idx" ON "dtc_knowledge" USING btree ("safety_critical");--> statement-breakpoint
 INSERT INTO "dtc_knowledge" ("dtc_code", "category", "default_severity_class", "driveability", "summary_template", "rationale_template", "safety_critical", "diy_allowed", "source", "source_version")
 VALUES
 	('P0117', 'powertrain', 'service_now', 'do_not_drive', 'Engine coolant temperature sensor indicates dangerously low signal.', 'Cooling system sensor anomalies can indicate overheating risk or wiring fault and should be inspected immediately.', true, false, 'internal_seed', 'v1'),

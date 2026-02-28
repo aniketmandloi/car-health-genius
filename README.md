@@ -31,10 +31,23 @@ This project uses PostgreSQL with Drizzle ORM.
 1. Make sure you have a PostgreSQL database set up.
 2. Update your `apps/server/.env` file with your PostgreSQL connection details.
 
-3. Apply the schema to your database:
+3. Apply migrations to your database:
 
 ```bash
-pnpm run db:push
+pnpm run db:migrate
+```
+
+If you previously used `db:push` on this database, the schema may exist without
+Drizzle migration history in `drizzle.__drizzle_migrations`. In that case,
+baseline the migration ledger first (see `docs` or project runbook), then run
+`pnpm run db:migrate`.
+
+Sprint 6 seed data (recommended after migrations):
+
+```bash
+pnpm run seed:dtc-knowledge
+pnpm run seed:diy-guides
+pnpm run seed:partners-sprint6
 ```
 
 Then, run the development server:
@@ -69,7 +82,10 @@ car-health-genius/
 - `pnpm run dev:server`: Start only the server
 - `pnpm run check-types`: Check TypeScript types across all apps
 - `pnpm run dev:native`: Start the React Native/Expo development server
-- `pnpm run db:push`: Push schema changes to database
+- `pnpm run db:push`: Push schema directly (dev-only; can desync migration history)
 - `pnpm run db:generate`: Generate database client/types
 - `pnpm run db:migrate`: Run database migrations
+- `pnpm run db:baseline`: Repair migration ledger baseline for pre-existing schema
 - `pnpm run db:studio`: Open database studio UI
+- `pnpm run seed:diy-guides`: Seed approved DIY guide rows
+- `pnpm run seed:partners-sprint6`: Seed launch-metro vetted partner rows

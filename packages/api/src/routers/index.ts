@@ -4,6 +4,7 @@ import { billingRouter } from "./billing";
 import { bookingRouter } from "./booking";
 import { diagnosticsRouter } from "./diagnostics";
 import { estimatesRouter } from "./estimates";
+import { feedbackRouter } from "./feedback";
 import { kickoffRouter } from "./kickoff";
 import { maintenanceRouter } from "./maintenance";
 import { partnerPortalRouter } from "./partnerPortal";
@@ -26,6 +27,7 @@ export const appRouter = router({
   kickoff: kickoffRouter,
   vehicles: vehiclesRouter,
   diagnostics: diagnosticsRouter,
+  feedback: feedbackRouter,
   recommendations: recommendationsRouter,
   estimates: estimatesRouter,
   booking: bookingRouter,

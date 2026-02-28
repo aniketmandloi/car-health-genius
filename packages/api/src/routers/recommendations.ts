@@ -9,6 +9,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { protectedProcedure, router } from "../index";
+import { findApprovedDiyGuideByDtcCode } from "../services/diyGuide.service";
 import { requireEntitlement } from "../services/entitlement.service";
 import { rankLikelyCauses } from "../services/likelyCauses.service";
 import { recordModelTrace } from "../services/modelTrace.service";
@@ -44,6 +45,25 @@ const likelyCauseOutputSchema = z.object({
 const likelyCausesResponseSchema = z.object({
   diagnosticEventId: z.number().int().positive(),
   causes: z.array(likelyCauseOutputSchema),
+});
+
+const diyGuideOutputSchema = z.object({
+  id: z.number().int().positive(),
+  dtcCode: z.string(),
+  title: z.string(),
+  estimatedMinutes: z.number().int().positive(),
+  difficulty: z.string(),
+  tools: z.array(z.string()),
+  parts: z.array(z.string()),
+  safetyWarnings: z.array(z.string()),
+  steps: z.array(z.string()),
+  reviewStatus: z.string(),
+  updatedAt: z.string(),
+});
+
+const diyGuideResponseSchema = z.object({
+  diagnosticEventId: z.number().int().positive(),
+  guide: diyGuideOutputSchema.nullable(),
 });
 
 function toIso(value: Date | string): string {
@@ -368,6 +388,7 @@ export const recommendationsRouter = router({
     )
     .output(likelyCausesResponseSchema)
     .query(async ({ ctx, input }) => {
+      const startedAt = Date.now();
       const featureFlags = getServerFeatureFlags();
       if (!featureFlags.likelyCausesEnabled) {
         throw new TRPCError({
@@ -384,13 +405,47 @@ export const recommendationsRouter = router({
 
       const causes = rankLikelyCauses({
         dtcCode: ownedDiagnosticEvent.dtcCode,
+        severity: ownedDiagnosticEvent.severity,
         freezeFrame: (ownedDiagnosticEvent.freezeFrame as Record<string, unknown> | null) ?? null,
         sensorSnapshot: (ownedDiagnosticEvent.sensorSnapshot as Record<string, unknown> | null) ?? null,
       });
 
+      console.info(
+        JSON.stringify({
+          level: "info",
+          event: "likely_causes.generated",
+          metric: "likely_causes_requests_total",
+          value: 1,
+          requestId: ctx.requestId,
+          correlationId: ctx.correlationId,
+          userId: ctx.session.user.id,
+          diagnosticEventId: input.diagnosticEventId,
+          count: causes.length,
+          durationMs: Date.now() - startedAt,
+        }),
+      );
+
       return {
         diagnosticEventId: input.diagnosticEventId,
         causes,
+      };
+    }),
+
+  diyGuide: protectedProcedure
+    .input(
+      z.object({
+        diagnosticEventId: z.number().int().positive(),
+      }),
+    )
+    .output(diyGuideResponseSchema)
+    .query(async ({ ctx, input }) => {
+      await requireEntitlement(ctx.session.user.id, "pro.diy_guides");
+      const ownedDiagnosticEvent = await getOwnedDiagnosticEvent(ctx.session.user.id, input.diagnosticEventId);
+
+      const guide = await findApprovedDiyGuideByDtcCode(ownedDiagnosticEvent.dtcCode);
+      return {
+        diagnosticEventId: input.diagnosticEventId,
+        guide,
       };
     }),
 });

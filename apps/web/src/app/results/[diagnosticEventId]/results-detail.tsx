@@ -96,10 +96,22 @@ function getString(
   return typeof val === "string" ? val : null;
 }
 
+function extractBusinessCode(error: unknown): string | undefined {
+  if (!error || typeof error !== "object") return undefined;
+  const maybeData = (error as { data?: unknown }).data;
+  if (!maybeData || typeof maybeData !== "object") return undefined;
+  const code = (maybeData as { businessCode?: unknown }).businessCode;
+  return typeof code === "string" ? code : undefined;
+}
+
 // ─── Components ───────────────────────────────────────────────────────────────
 
 function RecommendationCard({
   rec,
+  currentRating,
+  onRateHelpful,
+  onRateNotHelpful,
+  isSaving,
 }: {
   rec: {
     id: number;
@@ -109,6 +121,10 @@ function RecommendationCard({
     triageClass: TriageClass | null;
     details: Record<string, unknown> | null;
   };
+  currentRating: number | null;
+  onRateHelpful: () => void;
+  onRateNotHelpful: () => void;
+  isSaving: boolean;
 }) {
   const triageDetails = getTriageDetails(rec.details);
   const driveability = getString(triageDetails, "driveability");
@@ -202,6 +218,32 @@ function RecommendationCard({
             ))}
           </div>
         )}
+
+        <div className="rounded border border-dashed px-2 py-2">
+          <p className="mb-2 text-xs font-semibold text-muted-foreground">
+            Was this recommendation helpful?
+          </p>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant={currentRating !== null && currentRating >= 4 ? "default" : "outline"}
+              disabled={isSaving}
+              onClick={onRateHelpful}
+            >
+              Helpful
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={currentRating !== null && currentRating <= 3 ? "default" : "outline"}
+              disabled={isSaving}
+              onClick={onRateNotHelpful}
+            >
+              Not helpful
+            </Button>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
@@ -215,6 +257,7 @@ export default function ResultsDetail({
   diagnosticEventId: number;
 }) {
   const [generating, setGenerating] = useState(false);
+  const [estimateRegion, setEstimateRegion] = useState("us-ca-bay-area");
 
   const recommendations = useQuery(
     trpc.recommendations.listByDiagnosticEvent.queryOptions({
@@ -226,6 +269,20 @@ export default function ResultsDetail({
     ...trpc.recommendations.likelyCauses.queryOptions({ diagnosticEventId }),
     retry: false,
   });
+  const feedback = useQuery(
+    trpc.feedback.listByDiagnosticEvent.queryOptions({
+      diagnosticEventId,
+    }),
+  );
+  const diyGuide = useQuery({
+    ...trpc.recommendations.diyGuide.queryOptions({ diagnosticEventId }),
+    retry: false,
+  });
+  const estimates = useQuery(
+    trpc.estimates.listByDiagnosticEvent.queryOptions({
+      diagnosticEventId,
+    }),
+  );
 
   const generateMutation = useMutation(
     trpc.recommendations.generateForDiagnosticEvent.mutationOptions({
@@ -240,19 +297,61 @@ export default function ResultsDetail({
       onError: () => setGenerating(false),
     }),
   );
+  const feedbackMutation = useMutation(
+    trpc.feedback.createOrUpdate.mutationOptions({
+      onSuccess: async () => {
+        await queryClient.invalidateQueries(
+          trpc.feedback.listByDiagnosticEvent.queryFilter({
+            diagnosticEventId,
+          }),
+        );
+      },
+    }),
+  );
+  const generateEstimateMutation = useMutation(
+    trpc.estimates.generateForDiagnosticEvent.mutationOptions({
+      onSuccess: async () => {
+        await queryClient.invalidateQueries(
+          trpc.estimates.listByDiagnosticEvent.queryFilter({
+            diagnosticEventId,
+          }),
+        );
+      },
+    }),
+  );
 
   const activeRecs = (recommendations.data ?? []).filter((r) => r.isActive);
+  const feedbackByRecommendationId = new Map(
+    (feedback.data ?? [])
+      .filter((item) => item.recommendationId !== null)
+      .map((item) => [item.recommendationId as number, item]),
+  );
   const firstRec = activeRecs[0];
+  const latestEstimate = (estimates.data ?? [])[0] ?? null;
+  const negotiationScript = useQuery({
+    ...trpc.estimates.negotiationScript.queryOptions({
+      estimateId: latestEstimate?.id ?? 0,
+    }),
+    enabled: latestEstimate !== null,
+    retry: false,
+  });
 
   // Derive DTC info from first recommendation's details if available
   const dtcFromDetails = firstRec?.details
     ? getString(firstRec.details as Record<string, unknown>, "dtcCode")
     : null;
 
-  const isProLocked =
+  const isLikelyCausesProLocked =
     likelyCauses.isError &&
-    (likelyCauses.error as { data?: { businessCode?: string } } | undefined)
-      ?.data?.businessCode === "ENTITLEMENT_REQUIRED";
+    extractBusinessCode(likelyCauses.error) === "PRO_UPGRADE_REQUIRED";
+  const isDiyProLocked =
+    diyGuide.isError && extractBusinessCode(diyGuide.error) === "PRO_UPGRADE_REQUIRED";
+  const isEstimateProLocked =
+    (estimates.isError && extractBusinessCode(estimates.error) === "PRO_UPGRADE_REQUIRED") ||
+    (generateEstimateMutation.isError &&
+      extractBusinessCode(generateEstimateMutation.error) === "PRO_UPGRADE_REQUIRED");
+  const isNegotiationProLocked =
+    negotiationScript.isError && extractBusinessCode(negotiationScript.error) === "PRO_UPGRADE_REQUIRED";
 
   function handleGenerate() {
     setGenerating(true);
@@ -323,7 +422,28 @@ export default function ResultsDetail({
         ) : (
           <div className="space-y-4">
             {activeRecs.map((rec) => (
-              <RecommendationCard key={rec.id} rec={rec} />
+              <RecommendationCard
+                key={rec.id}
+                rec={rec}
+                currentRating={feedbackByRecommendationId.get(rec.id)?.rating ?? null}
+                isSaving={feedbackMutation.isPending}
+                onRateHelpful={() =>
+                  feedbackMutation.mutate({
+                    recommendationId: rec.id,
+                    diagnosticEventId,
+                    rating: 5,
+                    outcome: "helpful",
+                  })
+                }
+                onRateNotHelpful={() =>
+                  feedbackMutation.mutate({
+                    recommendationId: rec.id,
+                    diagnosticEventId,
+                    rating: 2,
+                    outcome: "not_helpful",
+                  })
+                }
+              />
             ))}
           </div>
         )}
@@ -335,7 +455,7 @@ export default function ResultsDetail({
 
         {likelyCauses.isLoading ? (
           <div className="h-24 animate-pulse rounded-lg bg-muted" />
-        ) : isProLocked ? (
+        ) : isLikelyCausesProLocked ? (
           <Card className="relative overflow-hidden">
             <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
               <p className="font-semibold">Pro Feature</p>
@@ -395,6 +515,195 @@ export default function ResultsDetail({
         ) : (
           <p className="text-sm text-muted-foreground">
             No likely causes data available.
+          </p>
+        )}
+      </section>
+
+      <section>
+        <h2 className="mb-3 text-base font-semibold">DIY Guide</h2>
+
+        {diyGuide.isLoading ? (
+          <div className="h-24 animate-pulse rounded-lg bg-muted" />
+        ) : isDiyProLocked ? (
+          <Card>
+            <CardContent className="py-4">
+              <p className="font-semibold">Pro Feature</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Upgrade to Pro to access structured DIY guides with safety checks.
+              </p>
+            </CardContent>
+          </Card>
+        ) : diyGuide.data?.guide ? (
+          <Card>
+            <CardContent className="space-y-3 py-4">
+              <div className="flex items-center justify-between gap-2">
+                <p className="font-medium">{diyGuide.data.guide.title}</p>
+                <span className="text-xs text-muted-foreground">
+                  {diyGuide.data.guide.estimatedMinutes} min · {diyGuide.data.guide.difficulty}
+                </span>
+              </div>
+              <div>
+                <p className="mb-1 text-xs font-semibold">Tools</p>
+                <p className="text-xs text-muted-foreground">
+                  {diyGuide.data.guide.tools.join(", ")}
+                </p>
+              </div>
+              <div>
+                <p className="mb-1 text-xs font-semibold">Parts</p>
+                <p className="text-xs text-muted-foreground">
+                  {diyGuide.data.guide.parts.join(", ")}
+                </p>
+              </div>
+              <div>
+                <p className="mb-1 text-xs font-semibold">Safety Warnings</p>
+                <ul className="space-y-1">
+                  {diyGuide.data.guide.safetyWarnings.map((warning, index) => (
+                    <li key={index} className="text-xs text-muted-foreground">
+                      • {warning}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <p className="mb-1 text-xs font-semibold">Steps</p>
+                <ol className="space-y-1">
+                  {diyGuide.data.guide.steps.map((step, index) => (
+                    <li key={index} className="text-xs text-muted-foreground">
+                      {index + 1}. {step}
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            No approved DIY guide is currently available for this code.
+          </p>
+        )}
+      </section>
+
+      <section>
+        <h2 className="mb-3 text-base font-semibold">Cost Estimate</h2>
+
+        {isEstimateProLocked ? (
+          <Card>
+            <CardContent className="py-4">
+              <p className="font-semibold">Pro Feature</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Upgrade to Pro to generate estimate ranges and disclosures.
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card>
+            <CardContent className="space-y-3 py-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <label className="text-xs text-muted-foreground" htmlFor="region">
+                  Region basis
+                </label>
+                <input
+                  id="region"
+                  value={estimateRegion}
+                  onChange={(event) => setEstimateRegion(event.target.value)}
+                  className="h-8 rounded border px-2 text-xs"
+                />
+                <Button
+                  size="sm"
+                  onClick={() =>
+                    generateEstimateMutation.mutate({
+                      diagnosticEventId,
+                      region: estimateRegion,
+                    })
+                  }
+                  disabled={generateEstimateMutation.isPending}
+                >
+                  {generateEstimateMutation.isPending ? "Generating..." : "Generate Estimate"}
+                </Button>
+              </div>
+
+              {latestEstimate ? (
+                <div className="space-y-1 text-xs text-muted-foreground">
+                  <p>
+                    Total range: $
+                    {((latestEstimate.laborLowCents + latestEstimate.partsLowCents) / 100).toFixed(0)} - $
+                    {((latestEstimate.laborHighCents + latestEstimate.partsHighCents) / 100).toFixed(0)}
+                  </p>
+                  <p>
+                    Labor: ${(latestEstimate.laborLowCents / 100).toFixed(0)} - $
+                    {(latestEstimate.laborHighCents / 100).toFixed(0)}
+                  </p>
+                  <p>
+                    Parts: ${(latestEstimate.partsLowCents / 100).toFixed(0)} - $
+                    {(latestEstimate.partsHighCents / 100).toFixed(0)}
+                  </p>
+                  <p>Region: {latestEstimate.region}</p>
+                  <p>
+                    Geography basis:{" "}
+                    {latestEstimate.disclosure?.geographyBasis ?? latestEstimate.region}
+                  </p>
+                  <p>
+                    Assumptions:{" "}
+                    {latestEstimate.disclosure?.assumptions.length
+                      ? latestEstimate.disclosure.assumptions.join(" ")
+                      : "No assumptions provided."}
+                  </p>
+                  <p>
+                    Exclusions:{" "}
+                    {latestEstimate.disclosure?.exclusions.length
+                      ? latestEstimate.disclosure.exclusions.join(" ")
+                      : "No exclusions provided."}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  No estimate generated for this diagnostic event yet.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        )}
+      </section>
+
+      <section>
+        <h2 className="mb-3 text-base font-semibold">Negotiation Script</h2>
+
+        {isNegotiationProLocked ? (
+          <p className="text-sm text-muted-foreground">
+            Upgrade to Pro to unlock negotiation script guidance.
+          </p>
+        ) : negotiationScript.isLoading ? (
+          <div className="h-24 animate-pulse rounded-lg bg-muted" />
+        ) : negotiationScript.data ? (
+          <Card>
+            <CardContent className="space-y-3 py-4">
+              <p className="font-medium">{negotiationScript.data.headline}</p>
+              <div>
+                <p className="mb-1 text-xs font-semibold">Questions to Ask</p>
+                <ol className="space-y-1">
+                  {negotiationScript.data.keyQuestions.map((question, index) => (
+                    <li key={index} className="text-xs text-muted-foreground">
+                      {index + 1}. {question}
+                    </li>
+                  ))}
+                </ol>
+              </div>
+              <div>
+                <p className="mb-1 text-xs font-semibold">Cost Anchors</p>
+                <ul className="space-y-1">
+                  {negotiationScript.data.costAnchors.map((anchor, index) => (
+                    <li key={index} className="text-xs text-muted-foreground">
+                      • {anchor}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <p className="text-xs text-muted-foreground">{negotiationScript.data.closingPrompt}</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Generate an estimate first to build a negotiation script.
           </p>
         )}
       </section>

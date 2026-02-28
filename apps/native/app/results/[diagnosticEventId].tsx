@@ -99,6 +99,7 @@ export default function ResultsDetailScreen() {
 
   const [generating, setGenerating] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
+  const [estimateRegion] = useState("us-ca-bay-area");
 
   const recommendations = useQuery(
     trpc.recommendations.listByDiagnosticEvent.queryOptions({
@@ -110,6 +111,20 @@ export default function ResultsDetailScreen() {
     ...trpc.recommendations.likelyCauses.queryOptions({ diagnosticEventId }),
     retry: false,
   });
+  const feedback = useQuery(
+    trpc.feedback.listByDiagnosticEvent.queryOptions({
+      diagnosticEventId,
+    }),
+  );
+  const diyGuide = useQuery({
+    ...trpc.recommendations.diyGuide.queryOptions({ diagnosticEventId }),
+    retry: false,
+  });
+  const estimates = useQuery(
+    trpc.estimates.listByDiagnosticEvent.queryOptions({
+      diagnosticEventId,
+    }),
+  );
 
   const generateMutation = useMutation(
     trpc.recommendations.generateForDiagnosticEvent.mutationOptions({
@@ -134,13 +149,56 @@ export default function ResultsDetailScreen() {
       },
     }),
   );
+  const feedbackMutation = useMutation(
+    trpc.feedback.createOrUpdate.mutationOptions({
+      onSuccess: async () => {
+        await queryClient.invalidateQueries(
+          trpc.feedback.listByDiagnosticEvent.queryFilter({
+            diagnosticEventId,
+          }),
+        );
+      },
+    }),
+  );
+  const generateEstimateMutation = useMutation(
+    trpc.estimates.generateForDiagnosticEvent.mutationOptions({
+      onSuccess: async () => {
+        await queryClient.invalidateQueries(
+          trpc.estimates.listByDiagnosticEvent.queryFilter({
+            diagnosticEventId,
+          }),
+        );
+      },
+    }),
+  );
 
   const activeRecs = (recommendations.data ?? []).filter((r) => r.isActive);
+  const feedbackByRecommendationId = new Map(
+    (feedback.data ?? [])
+      .filter((item) => item.recommendationId !== null)
+      .map((item) => [item.recommendationId as number, item]),
+  );
   const firstRec = activeRecs[0];
+  const latestEstimate = (estimates.data ?? [])[0] ?? null;
+  const negotiationScript = useQuery({
+    ...trpc.estimates.negotiationScript.queryOptions({
+      estimateId: latestEstimate?.id ?? 0,
+    }),
+    enabled: latestEstimate !== null,
+    retry: false,
+  });
 
   const isProLocked =
     likelyCauses.isError &&
-    extractBusinessCode(likelyCauses.error) === "ENTITLEMENT_REQUIRED";
+    extractBusinessCode(likelyCauses.error) === "PRO_UPGRADE_REQUIRED";
+  const isDiyProLocked =
+    diyGuide.isError && extractBusinessCode(diyGuide.error) === "PRO_UPGRADE_REQUIRED";
+  const isEstimateProLocked =
+    (estimates.isError && extractBusinessCode(estimates.error) === "PRO_UPGRADE_REQUIRED") ||
+    (generateEstimateMutation.isError &&
+      extractBusinessCode(generateEstimateMutation.error) === "PRO_UPGRADE_REQUIRED");
+  const isNegotiationProLocked =
+    negotiationScript.isError && extractBusinessCode(negotiationScript.error) === "PRO_UPGRADE_REQUIRED";
 
   function handleGenerate() {
     setGenerating(true);
@@ -313,6 +371,53 @@ export default function ResultsDetailScreen() {
                         ))}
                       </View>
                     )}
+
+                    <View className="rounded border border-dashed p-2">
+                      <Text className="text-muted text-xs font-semibold">
+                        Was this recommendation helpful?
+                      </Text>
+                      <View className="mt-2 flex-row gap-2">
+                        <Button
+                          variant={
+                            (feedbackByRecommendationId.get(rec.id)?.rating ?? 0) >= 4
+                              ? "primary"
+                              : "secondary"
+                          }
+                          size="sm"
+                          isDisabled={feedbackMutation.isPending}
+                          onPress={() =>
+                            feedbackMutation.mutate({
+                              recommendationId: rec.id,
+                              diagnosticEventId,
+                              rating: 5,
+                              outcome: "helpful",
+                            })
+                          }
+                        >
+                          Helpful
+                        </Button>
+                        <Button
+                          variant={
+                            (feedbackByRecommendationId.get(rec.id)?.rating ?? 0) > 0 &&
+                            (feedbackByRecommendationId.get(rec.id)?.rating ?? 0) <= 3
+                              ? "primary"
+                              : "secondary"
+                          }
+                          size="sm"
+                          isDisabled={feedbackMutation.isPending}
+                          onPress={() =>
+                            feedbackMutation.mutate({
+                              recommendationId: rec.id,
+                              diagnosticEventId,
+                              rating: 2,
+                              outcome: "not_helpful",
+                            })
+                          }
+                        >
+                          Not helpful
+                        </Button>
+                      </View>
+                    </View>
                   </View>
                 </Card>
               );
@@ -367,6 +472,197 @@ export default function ResultsDetailScreen() {
               </View>
             </Card>
           ) : null}
+        </View>
+
+        <View className="gap-3">
+          <Text className="text-foreground text-base font-semibold">
+            DIY Guide
+          </Text>
+
+          {diyGuide.isLoading ? (
+            <View className="items-center py-4">
+              <Spinner size="sm" />
+            </View>
+          ) : isDiyProLocked ? (
+            <Card className="items-center p-6">
+              <Text className="text-foreground font-semibold">Pro Feature</Text>
+              <Text className="text-muted mt-1 text-xs text-center">
+                Upgrade to Pro to access structured DIY guides.
+              </Text>
+            </Card>
+          ) : diyGuide.data?.guide ? (
+            <Card className="p-4">
+              <View className="gap-2">
+                <Text className="text-foreground text-sm font-semibold">
+                  {diyGuide.data.guide.title}
+                </Text>
+                <Text className="text-muted text-xs">
+                  {diyGuide.data.guide.estimatedMinutes} min ·{" "}
+                  {diyGuide.data.guide.difficulty}
+                </Text>
+                <Text className="text-muted text-xs">
+                  Tools: {diyGuide.data.guide.tools.join(", ")}
+                </Text>
+                <Text className="text-muted text-xs">
+                  Parts: {diyGuide.data.guide.parts.join(", ")}
+                </Text>
+                {diyGuide.data.guide.safetyWarnings.length > 0 && (
+                  <View className="gap-1">
+                    <Text className="text-foreground text-xs font-semibold">
+                      Safety Warnings
+                    </Text>
+                    {diyGuide.data.guide.safetyWarnings.map((warning, index) => (
+                      <Text key={index} className="text-muted text-xs">
+                        • {warning}
+                      </Text>
+                    ))}
+                  </View>
+                )}
+                {diyGuide.data.guide.steps.length > 0 && (
+                  <View className="gap-1">
+                    <Text className="text-foreground text-xs font-semibold">
+                      Steps
+                    </Text>
+                    {diyGuide.data.guide.steps.map((step, index) => (
+                      <Text key={index} className="text-muted text-xs">
+                        {index + 1}. {step}
+                      </Text>
+                    ))}
+                  </View>
+                )}
+              </View>
+            </Card>
+          ) : (
+            <Text className="text-muted text-xs">
+              No approved DIY guide is currently available for this code.
+            </Text>
+          )}
+        </View>
+
+        <View className="gap-3">
+          <Text className="text-foreground text-base font-semibold">
+            Cost Estimate
+          </Text>
+
+          {isEstimateProLocked ? (
+            <Card className="items-center p-6">
+              <Text className="text-foreground font-semibold">Pro Feature</Text>
+              <Text className="text-muted mt-1 text-xs text-center">
+                Upgrade to Pro to generate estimates.
+              </Text>
+            </Card>
+          ) : (
+            <Card className="p-4">
+              <View className="gap-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  isDisabled={generateEstimateMutation.isPending}
+                  onPress={() =>
+                    generateEstimateMutation.mutate({
+                      diagnosticEventId,
+                      region: estimateRegion,
+                    })
+                  }
+                >
+                  {generateEstimateMutation.isPending
+                    ? "Generating..."
+                    : "Generate Estimate"}
+                </Button>
+                {latestEstimate ? (
+                  <>
+                    <Text className="text-muted text-xs">
+                      Total: $
+                      {(
+                        (latestEstimate.laborLowCents +
+                          latestEstimate.partsLowCents) /
+                        100
+                      ).toFixed(0)}{" "}
+                      - $
+                      {(
+                        (latestEstimate.laborHighCents +
+                          latestEstimate.partsHighCents) /
+                        100
+                      ).toFixed(0)}
+                    </Text>
+                    <Text className="text-muted text-xs">
+                      Region: {latestEstimate.region}
+                    </Text>
+                    <Text className="text-muted text-xs">
+                      Labor: ${(latestEstimate.laborLowCents / 100).toFixed(0)} - $
+                      {(latestEstimate.laborHighCents / 100).toFixed(0)}
+                    </Text>
+                    <Text className="text-muted text-xs">
+                      Parts: ${(latestEstimate.partsLowCents / 100).toFixed(0)} - $
+                      {(latestEstimate.partsHighCents / 100).toFixed(0)}
+                    </Text>
+                    {latestEstimate.disclosure && (
+                      <>
+                        <Text className="text-muted text-xs">
+                          Geography basis: {latestEstimate.disclosure.geographyBasis}
+                        </Text>
+                        {latestEstimate.disclosure.assumptions.map((item, index) => (
+                          <Text key={`assumption-${index}`} className="text-muted text-xs">
+                            Assumption: {item}
+                          </Text>
+                        ))}
+                        {latestEstimate.disclosure.exclusions.map((item, index) => (
+                          <Text key={index} className="text-muted text-xs">
+                            Exclusion: {item}
+                          </Text>
+                        ))}
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <Text className="text-muted text-xs">
+                    No estimate generated for this event yet.
+                  </Text>
+                )}
+              </View>
+            </Card>
+          )}
+        </View>
+
+        <View className="gap-3">
+          <Text className="text-foreground text-base font-semibold">
+            Negotiation Script
+          </Text>
+
+          {isNegotiationProLocked ? (
+            <Text className="text-muted text-xs">
+              Upgrade to Pro to unlock negotiation guidance.
+            </Text>
+          ) : negotiationScript.isLoading ? (
+            <View className="items-center py-4">
+              <Spinner size="sm" />
+            </View>
+          ) : negotiationScript.data ? (
+            <Card className="p-4">
+              <View className="gap-2">
+                <Text className="text-foreground text-sm font-semibold">
+                  {negotiationScript.data.headline}
+                </Text>
+                {negotiationScript.data.keyQuestions.map((question, index) => (
+                  <Text key={index} className="text-muted text-xs">
+                    {index + 1}. {question}
+                  </Text>
+                ))}
+                {negotiationScript.data.costAnchors.map((anchor, index) => (
+                  <Text key={`anchor-${index}`} className="text-muted text-xs">
+                    • {anchor}
+                  </Text>
+                ))}
+                <Text className="text-muted text-xs">
+                  {negotiationScript.data.closingPrompt}
+                </Text>
+              </View>
+            </Card>
+          ) : (
+            <Text className="text-muted text-xs">
+              Generate an estimate first to build the script.
+            </Text>
+          )}
         </View>
 
         {/* Disclaimer */}
