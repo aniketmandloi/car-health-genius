@@ -20,7 +20,11 @@ export const PRO_FEATURE_KEYS = [
 
 export type ProFeatureKey = (typeof PRO_FEATURE_KEYS)[number];
 
-const ACTIVE_SUBSCRIPTION_STATUSES = new Set(["active", "trialing", "past_due"]);
+const ACTIVE_SUBSCRIPTION_STATUSES = new Set([
+  "active",
+  "trialing",
+  "past_due",
+]);
 
 export type EntitlementSnapshot = {
   userId: string;
@@ -30,7 +34,10 @@ export type EntitlementSnapshot = {
   subscriptionStatus: string;
 };
 
-function normalizePlanToFeatures(plan: string, status: string): ProFeatureKey[] {
+function normalizePlanToFeatures(
+  plan: string,
+  status: string,
+): ProFeatureKey[] {
   const normalizedPlan = plan.trim().toLowerCase();
   const normalizedStatus = status.trim().toLowerCase();
 
@@ -45,7 +52,9 @@ function normalizePlanToFeatures(plan: string, status: string): ProFeatureKey[] 
   return [...PRO_FEATURE_KEYS];
 }
 
-export async function resolveEntitlements(userId: string): Promise<EntitlementSnapshot> {
+export async function resolveEntitlements(
+  userId: string,
+): Promise<EntitlementSnapshot> {
   const now = new Date();
 
   const [entitlementRows, latestSubscription] = await Promise.all([
@@ -83,14 +92,20 @@ export async function resolveEntitlements(userId: string): Promise<EntitlementSn
     byFeature.set(row.featureKey as ProFeatureKey, "entitlement");
   }
 
-  for (const featureKey of normalizePlanToFeatures(latestSubscription.plan, latestSubscription.status)) {
+  for (const featureKey of normalizePlanToFeatures(
+    latestSubscription.plan,
+    latestSubscription.status,
+  )) {
     if (!byFeature.has(featureKey)) {
       byFeature.set(featureKey, "subscription");
     }
   }
 
   const features = Array.from(byFeature.keys());
-  const sources = Object.fromEntries(byFeature.entries()) as Record<ProFeatureKey, "entitlement" | "subscription">;
+  const sources = Object.fromEntries(byFeature.entries()) as Record<
+    ProFeatureKey,
+    "entitlement" | "subscription"
+  >;
 
   return {
     userId,
@@ -101,11 +116,17 @@ export async function resolveEntitlements(userId: string): Promise<EntitlementSn
   };
 }
 
-export function hasEntitlement(snapshot: EntitlementSnapshot, featureKey: ProFeatureKey): boolean {
+export function hasEntitlement(
+  snapshot: EntitlementSnapshot,
+  featureKey: ProFeatureKey,
+): boolean {
   return snapshot.features.includes(featureKey);
 }
 
-export async function requireEntitlement(userId: string, featureKey: ProFeatureKey): Promise<EntitlementSnapshot> {
+export async function requireEntitlement(
+  userId: string,
+  featureKey: ProFeatureKey,
+): Promise<EntitlementSnapshot> {
   const snapshot = await resolveEntitlements(userId);
 
   if (!hasEntitlement(snapshot, featureKey)) {
