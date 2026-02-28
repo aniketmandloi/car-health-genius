@@ -1,0 +1,89 @@
+name: Performance
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "15 6 * * 2"
+
+jobs:
+  k6-smoke:
+    name: k6 Smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PERF_SMOKE_BLOCKING: ${{ vars.PERF_SMOKE_BLOCKING }}
+      PERF_INGEST_URL: ${{ secrets.PERF_INGEST_URL }}
+      PERF_HISTORY_URL: ${{ secrets.PERF_HISTORY_URL }}
+      PERF_RECOMMEND_URL: ${{ secrets.PERF_RECOMMEND_URL }}
+      PERF_AUTH_HEADER: ${{ secrets.PERF_AUTH_HEADER }}
+      PERF_INGEST_BODY: ${{ secrets.PERF_INGEST_BODY }}
+      PERF_RECOMMEND_BODY: ${{ secrets.PERF_RECOMMEND_BODY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup k6
+        uses: grafana/setup-k6-action@v1
+
+      - name: Check perf target configuration
+        id: preflight
+        run: |
+          if [ -z "${PERF_INGEST_URL}" ] || [ -z "${PERF_HISTORY_URL}" ] || [ -z "${PERF_RECOMMEND_URL}" ] || [ -z "${PERF_AUTH_HEADER}" ] || [ -z "${PERF_INGEST_BODY}" ] || [ -z "${PERF_RECOMMEND_BODY}" ]; then
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "Performance targets are not configured; skipping run."
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run smoke profile
+        if: steps.preflight.outputs.enabled == 'true'
+        continue-on-error: ${{ vars.PERF_SMOKE_BLOCKING != 'true' }}
+        run: k6 run --summary-export=perf-smoke-summary.json tests/perf/k6/smoke.js
+
+      - name: Upload smoke summary
+        if: steps.preflight.outputs.enabled == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: perf-smoke-summary
+          path: perf-smoke-summary.json
+
+  k6-full:
+    name: k6 Full
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: github.event_name == 'workflow_dispatch'
+    env:
+      PERF_INGEST_URL: ${{ secrets.PERF_INGEST_URL }}
+      PERF_HISTORY_URL: ${{ secrets.PERF_HISTORY_URL }}
+      PERF_RECOMMEND_URL: ${{ secrets.PERF_RECOMMEND_URL }}
+      PERF_AUTH_HEADER: ${{ secrets.PERF_AUTH_HEADER }}
+      PERF_INGEST_BODY: ${{ secrets.PERF_INGEST_BODY }}
+      PERF_RECOMMEND_BODY: ${{ secrets.PERF_RECOMMEND_BODY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup k6
+        uses: grafana/setup-k6-action@v1
+
+      - name: Check perf target configuration
+        id: preflight
+        run: |
+          if [ -z "${PERF_INGEST_URL}" ] || [ -z "${PERF_HISTORY_URL}" ] || [ -z "${PERF_RECOMMEND_URL}" ] || [ -z "${PERF_AUTH_HEADER}" ] || [ -z "${PERF_INGEST_BODY}" ] || [ -z "${PERF_RECOMMEND_BODY}" ]; then
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "Performance targets are not configured; skipping run."
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run full profile
+        if: steps.preflight.outputs.enabled == 'true'
+        continue-on-error: ${{ vars.PERF_SMOKE_BLOCKING != 'true' }}
+        run: k6 run --summary-export=perf-full-summary.json tests/perf/k6/full.js
+
+      - name: Upload full summary
+        if: steps.preflight.outputs.enabled == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: perf-full-summary
+          path: perf-full-summary.json

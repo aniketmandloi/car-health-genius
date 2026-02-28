@@ -17,6 +17,7 @@ import {
   normalizeIngestScanInput,
   type IngestScanInput,
 } from "../services/obd.service";
+import { withActiveSpan } from "../services/tracing.service";
 
 const jsonRecordSchema = z.record(z.string(), z.unknown());
 
@@ -418,59 +419,71 @@ export const diagnosticsRouter = router({
     .input(ingestScanInputSchema)
     .output(ingestScanOutputSchema)
     .mutation(async ({ ctx, input }) => {
-      const ownedSession = await getOwnedSession(ctx.session.user.id, input.sessionId);
-      if (ownedSession.status !== "active") {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "OBD session is not active",
-          cause: {
-            businessCode: "OBD_SESSION_CLOSED",
-            sessionStatus: ownedSession.status,
-          },
-        });
-      }
+      return withActiveSpan(
+        "diagnostics.ingestScan",
+        {
+          "app.request_id": ctx.requestId,
+          "app.correlation_id": ctx.correlationId,
+          "app.user_id": ctx.session.user.id,
+          "app.session_id": input.sessionId,
+          "app.readings_count": input.dtcReadings.length,
+        },
+        async () => {
+          const ownedSession = await getOwnedSession(ctx.session.user.id, input.sessionId);
+          if (ownedSession.status !== "active") {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "OBD session is not active",
+              cause: {
+                businessCode: "OBD_SESSION_CLOSED",
+                sessionStatus: ownedSession.status,
+              },
+            });
+          }
 
-      const normalizedInput = normalizeIngestScanInput(input);
-      const createdOrExistingRows: typeof diagnosticEvent.$inferSelect[] = [];
-      let insertedCount = 0;
+          const normalizedInput = normalizeIngestScanInput(input);
+          const createdOrExistingRows: typeof diagnosticEvent.$inferSelect[] = [];
+          let insertedCount = 0;
 
-      for (let index = 0; index < normalizedInput.dtcReadings.length; index += 1) {
-        const result = await insertIngestEventWithIdempotency({
-          session: ownedSession,
-          input: normalizedInput,
-          index,
-        });
-        createdOrExistingRows.push(result.row);
-        if (result.inserted) {
-          insertedCount += 1;
-        }
-      }
+          for (let index = 0; index < normalizedInput.dtcReadings.length; index += 1) {
+            const result = await insertIngestEventWithIdempotency({
+              session: ownedSession,
+              input: normalizedInput,
+              index,
+            });
+            createdOrExistingRows.push(result.row);
+            if (result.inserted) {
+              insertedCount += 1;
+            }
+          }
 
-      const deduplicated = insertedCount === 0;
+          const deduplicated = insertedCount === 0;
 
-      if (!deduplicated) {
-        await db.insert(timelineEvent).values({
-          userId: ctx.session.user.id,
-          vehicleId: ownedSession.vehicleId,
-          obdSessionId: ownedSession.id,
-          eventType: "scan.ingested",
-          eventRefId: createdOrExistingRows[0]?.id,
-          source: "obd_upload",
-          occurredAt: normalizedInput.capturedAt ?? new Date(),
-          payload: {
-            uploadId: normalizedInput.uploadId,
-            readingCount: normalizedInput.dtcReadings.length,
+          if (!deduplicated) {
+            await db.insert(timelineEvent).values({
+              userId: ctx.session.user.id,
+              vehicleId: ownedSession.vehicleId,
+              obdSessionId: ownedSession.id,
+              eventType: "scan.ingested",
+              eventRefId: createdOrExistingRows[0]?.id,
+              source: "obd_upload",
+              occurredAt: normalizedInput.capturedAt ?? new Date(),
+              payload: {
+                uploadId: normalizedInput.uploadId,
+                readingCount: normalizedInput.dtcReadings.length,
+                insertedCount,
+              },
+            });
+          }
+
+          return {
+            session: mapObdSessionRow(ownedSession),
+            events: createdOrExistingRows.map(mapDiagnosticEventRow),
+            deduplicated,
             insertedCount,
-          },
-        });
-      }
-
-      return {
-        session: mapObdSessionRow(ownedSession),
-        events: createdOrExistingRows.map(mapDiagnosticEventRow),
-        deduplicated,
-        insertedCount,
-      };
+          };
+        },
+      );
     }),
 
   listByVehicle: protectedProcedure
@@ -501,19 +514,31 @@ export const diagnosticsRouter = router({
     )
     .output(timelineByVehicleOutputSchema)
     .query(async ({ ctx, input }) => {
-      await ensureVehicleOwnership(ctx.session.user.id, input.vehicleId);
-      const limit = input.limit ?? 200;
+      return withActiveSpan(
+        "diagnostics.timelineByVehicle",
+        {
+          "app.request_id": ctx.requestId,
+          "app.correlation_id": ctx.correlationId,
+          "app.user_id": ctx.session.user.id,
+          "app.vehicle_id": input.vehicleId,
+          "app.limit": input.limit ?? 200,
+        },
+        async () => {
+          await ensureVehicleOwnership(ctx.session.user.id, input.vehicleId);
+          const limit = input.limit ?? 200;
 
-      const rows = await db
-        .select()
-        .from(timelineEvent)
-        .where(and(eq(timelineEvent.vehicleId, input.vehicleId), eq(timelineEvent.userId, ctx.session.user.id)))
-        .orderBy(asc(timelineEvent.occurredAt), asc(timelineEvent.id))
-        .limit(limit);
+          const rows = await db
+            .select()
+            .from(timelineEvent)
+            .where(and(eq(timelineEvent.vehicleId, input.vehicleId), eq(timelineEvent.userId, ctx.session.user.id)))
+            .orderBy(asc(timelineEvent.occurredAt), asc(timelineEvent.id))
+            .limit(limit);
 
-      return {
-        events: rows.map(mapTimelineEventRow),
-      };
+          return {
+            events: rows.map(mapTimelineEventRow),
+          };
+        },
+      );
     }),
 
   createEvent: protectedProcedure

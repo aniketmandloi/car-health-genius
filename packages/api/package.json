@@ -18,6 +18,7 @@
     "@car-health-genius/auth": "workspace:*",
     "@car-health-genius/db": "workspace:*",
     "@car-health-genius/env": "workspace:*",
+    "@opentelemetry/api": "catalog:",
     "@trpc/client": "catalog:",
     "@trpc/server": "catalog:",
     "@types/pg": "^8.16.0",

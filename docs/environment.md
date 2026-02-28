@@ -21,6 +21,9 @@
 | `NHTSA_RECALL_RATE_LIMIT_PER_MINUTE` | internal non-secret | Server-side recall request guardrail per minute |
 | `CORS_ORIGIN` | internal non-secret | allowed web origin |
 | `LOG_LEVEL` | internal non-secret | runtime logging verbosity |
+| `OTEL_ENABLED` | internal non-secret | toggles OpenTelemetry tracing bootstrap |
+| `OTEL_SERVICE_NAME` | internal non-secret | OpenTelemetry service.name resource attribute |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | internal non-secret | OTLP HTTP traces endpoint (optional) |
 | `FLAG_*` server vars | internal non-secret | backend feature controls |
 | `NEXT_PUBLIC_*` vars | public client-exposed | shipped in web bundle |
 | `EXPO_PUBLIC_*` vars | public client-exposed | shipped in native app config |
@@ -46,6 +49,9 @@ Required variables:
 - `NHTSA_RECALL_RATE_LIMIT_PER_MINUTE`
 - `CORS_ORIGIN`
 - `LOG_LEVEL`
+- `OTEL_ENABLED`
+- `OTEL_SERVICE_NAME`
+- `OTEL_EXPORTER_OTLP_ENDPOINT` (optional)
 - `FLAG_FREE_TIER_ENABLED`
 - `FLAG_PRO_PAYWALL_ENABLED`
 - `FLAG_AI_EXPLANATIONS_ENABLED`

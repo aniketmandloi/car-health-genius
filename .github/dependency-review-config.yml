@@ -1,0 +1,4 @@
+fail-on-severity: critical
+fail-on-scopes:
+  - runtime
+comment-summary-in-pr: on-failure

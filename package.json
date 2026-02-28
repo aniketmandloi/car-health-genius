@@ -22,9 +22,13 @@
     "db:migrate": "turbo -F @car-health-genius/db db:migrate",
     "db:baseline": "node scripts/db-baseline.mjs",
     "db:check-migrations": "node scripts/check-migration-drift.mjs",
+    "security:audit": "node scripts/security-audit.mjs",
+    "security:ci": "pnpm run security:audit",
     "seed:dtc-knowledge": "node scripts/seed-dtc-knowledge.mjs",
     "seed:diy-guides": "node scripts/seed-diy-guides.mjs",
-    "seed:partners-sprint6": "node scripts/seed-partners-sprint6.mjs"
+    "seed:partners-sprint6": "node scripts/seed-partners-sprint6.mjs",
+    "test:perf:smoke": "k6 run tests/perf/k6/smoke.js",
+    "test:perf:full": "k6 run tests/perf/k6/full.js"
   },
   "dependencies": {
     "@car-health-genius/env": "workspace:*",

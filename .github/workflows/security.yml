@@ -1,0 +1,138 @@
+name: Security
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "37 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-review:
+    name: Dependency Review
+    if: github.event_name == 'pull_request' && vars.DEPENDENCY_REVIEW_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Dependency review
+        uses: actions/dependency-review-action@v4
+        with:
+          config-file: .github/dependency-review-config.yml
+
+  codeql:
+    name: CodeQL
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      NODE_ENV: test
+      LOG_LEVEL: info
+      CORS_ORIGIN: http://localhost:3001
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/car_health_genius
+      BETTER_AUTH_SECRET: ci-placeholder-secret-minimum-32-chars
+      BETTER_AUTH_URL: http://localhost:3000
+      POLAR_ACCESS_TOKEN: ci-placeholder-polar-token
+      POLAR_ENV: sandbox
+      POLAR_WEBHOOK_SECRET: ci-placeholder-webhook-secret
+      POLAR_PRODUCT_ID_PRO_MONTHLY: ci-placeholder-monthly
+      POLAR_PRODUCT_ID_PRO_ANNUAL: ci-placeholder-annual
+      POLAR_SUCCESS_URL: http://localhost:3001/success
+      NHTSA_VPIC_BASE_URL: https://vpic.nhtsa.dot.gov/api
+      NHTSA_VPIC_TIMEOUT_MS: "5000"
+      NHTSA_RECALL_BASE_URL: https://api.nhtsa.gov/recalls
+      NHTSA_RECALL_TIMEOUT_MS: "5000"
+      NHTSA_RECALL_CACHE_TTL_MINUTES: "720"
+      NHTSA_RECALL_RATE_LIMIT_PER_MINUTE: "30"
+      OTEL_ENABLED: "false"
+      OTEL_SERVICE_NAME: car-health-genius-server
+      NEXT_PUBLIC_SERVER_URL: http://localhost:3000
+      EXPO_PUBLIC_SERVER_URL: http://localhost:3000
+      FLAG_FREE_TIER_ENABLED: "true"
+      FLAG_PRO_PAYWALL_ENABLED: "true"
+      FLAG_AI_EXPLANATIONS_ENABLED: "false"
+      FLAG_LIKELY_CAUSES_ENABLED: "false"
+      FLAG_PARTNER_PORTAL_ENABLED: "false"
+      FLAG_ADMIN_KILL_SWITCH_ENABLED: "true"
+      NEXT_PUBLIC_FLAG_FREE_TIER_ENABLED: "true"
+      NEXT_PUBLIC_FLAG_PRO_PAYWALL_ENABLED: "true"
+      NEXT_PUBLIC_FLAG_AI_EXPLANATIONS_ENABLED: "false"
+      NEXT_PUBLIC_FLAG_LIKELY_CAUSES_ENABLED: "false"
+      NEXT_PUBLIC_FLAG_PARTNER_PORTAL_ENABLED: "false"
+      NEXT_PUBLIC_FLAG_ADMIN_KILL_SWITCH_ENABLED: "true"
+      EXPO_PUBLIC_FLAG_FREE_TIER_ENABLED: "true"
+      EXPO_PUBLIC_FLAG_PRO_PAYWALL_ENABLED: "true"
+      EXPO_PUBLIC_FLAG_AI_EXPLANATIONS_ENABLED: "false"
+      EXPO_PUBLIC_FLAG_LIKELY_CAUSES_ENABLED: "false"
+      EXPO_PUBLIC_FLAG_PARTNER_PORTAL_ENABLED: "false"
+      EXPO_PUBLIC_FLAG_ADMIN_KILL_SWITCH_ENABLED: "true"
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language:
+          - javascript-typescript
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build for analysis
+        run: pnpm run build
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v4
+
+  dependency-audit:
+    name: Dependency Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run critical vulnerability audit
+        run: pnpm run security:ci
