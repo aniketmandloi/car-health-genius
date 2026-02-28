@@ -16,6 +16,7 @@ import { recordModelTrace } from "../services/modelTrace.service";
 import { applyRecommendationPolicy } from "../services/policy.service";
 import { generateRecommendationForDiagnosticEvent } from "../services/recommendation.service";
 import { enqueueReviewQueueItem } from "../services/reviewQueue.service";
+import { requireSafetySwitchEnabled } from "../services/safetySwitch.service";
 
 const jsonRecordSchema = z.record(z.string(), z.unknown());
 const triageClassSchema = z.enum(["safe", "service_soon", "service_now"]);
@@ -439,6 +440,9 @@ export const recommendationsRouter = router({
     )
     .output(diyGuideResponseSchema)
     .query(async ({ ctx, input }) => {
+      await requireSafetySwitchEnabled("diy_guides", {
+        message: "DIY guidance is temporarily unavailable",
+      });
       await requireEntitlement(ctx.session.user.id, "pro.diy_guides");
       const ownedDiagnosticEvent = await getOwnedDiagnosticEvent(ctx.session.user.id, input.diagnosticEventId);
 

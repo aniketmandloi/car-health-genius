@@ -13,6 +13,7 @@ import { and, asc, desc, eq, gte, inArray, lte } from "drizzle-orm";
 import { z } from "zod";
 
 import { adminProcedure, router } from "../index";
+import { listSafetySwitches, SAFETY_SWITCH_SCOPES, upsertSafetySwitch } from "../services/safetySwitch.service";
 
 const jsonRecordSchema = z.record(z.string(), z.unknown());
 
@@ -45,6 +46,17 @@ const recommendationOutputSchema = z.object({
 const adapterStatusSchema = z.enum(["active", "archived", "deprecated"]);
 const reviewQueueStatusSchema = z.enum(["pending", "in_review", "approved", "rejected", "needs_revision"]);
 const reviewResolutionSchema = z.enum(["approved", "rejected", "needs_revision"]);
+const safetySwitchScopeSchema = z.enum(SAFETY_SWITCH_SCOPES);
+
+const safetySwitchOutputSchema = z.object({
+  scope: safetySwitchScopeSchema,
+  enabled: z.boolean(),
+  reason: z.string().nullable(),
+  changedByUserId: z.string().nullable(),
+  effectiveAt: z.string(),
+  expiresAt: z.string().nullable(),
+  updatedAt: z.string(),
+});
 
 const adapterOutputSchema = z.object({
   id: z.number().int().positive(),
@@ -917,6 +929,54 @@ export const adminRouter = router({
       });
 
       return mapDtcKnowledgeRow(upserted);
+    }),
+
+  listSafetySwitches: adminProcedure
+    .output(z.array(safetySwitchOutputSchema))
+    .query(async () => {
+      const rows = await listSafetySwitches();
+      return rows.map((row) => safetySwitchOutputSchema.parse(row));
+    }),
+
+  setSafetySwitch: adminProcedure
+    .input(
+      z.object({
+        scope: safetySwitchScopeSchema,
+        enabled: z.boolean(),
+        reason: z.string().trim().max(500).optional(),
+        expiresAt: z.coerce.date().nullable().optional(),
+      }),
+    )
+    .output(safetySwitchOutputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const updated = await upsertSafetySwitch({
+        scope: input.scope,
+        enabled: input.enabled,
+        reason: input.reason,
+        changedByUserId: ctx.session.user.id,
+        expiresAt: input.expiresAt,
+        metadata: {
+          requestId: ctx.requestId,
+          correlationId: ctx.correlationId,
+        },
+      });
+
+      await appendAuditLog({
+        actorUserId: ctx.session.user.id,
+        actorRole: ctx.userRole,
+        action: "safety_switch.set",
+        targetType: "safety_switch",
+        targetId: input.scope,
+        changeSet: {
+          enabled: input.enabled,
+          reason: input.reason ?? null,
+          expiresAt: input.expiresAt?.toISOString() ?? null,
+        },
+        requestId: ctx.requestId,
+        correlationId: ctx.correlationId,
+      });
+
+      return safetySwitchOutputSchema.parse(updated);
     }),
 
   listBillingWebhookEvents: adminProcedure

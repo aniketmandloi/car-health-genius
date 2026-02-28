@@ -23,9 +23,13 @@ export const booking = pgTable(
     issueSummary: text("issue_summary").notNull(),
     preferredWindowStart: timestamp("preferred_window_start").notNull(),
     preferredWindowEnd: timestamp("preferred_window_end").notNull(),
+    alternateWindowStart: timestamp("alternate_window_start"),
+    alternateWindowEnd: timestamp("alternate_window_end"),
     status: text("status").notNull().default("requested"),
     partnerResponseNote: text("partner_response_note"),
+    partnerRespondedAt: timestamp("partner_responded_at"),
     requestedAt: timestamp("requested_at").defaultNow().notNull(),
+    confirmedAt: timestamp("confirmed_at"),
     resolvedAt: timestamp("resolved_at"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
@@ -39,6 +43,7 @@ export const booking = pgTable(
     index("booking_partner_id_idx").on(table.partnerId),
     index("booking_status_idx").on(table.status),
     index("booking_preferred_window_start_idx").on(table.preferredWindowStart),
+    index("booking_partner_responded_at_idx").on(table.partnerRespondedAt),
   ],
 );
 

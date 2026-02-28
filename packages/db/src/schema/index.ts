@@ -25,4 +25,6 @@ export * from "./reviewQueueItem";
 export * from "./analyticsEvent";
 export * from "./dtcKnowledge";
 export * from "./billingWebhookEvent";
+export * from "./supportIssue";
+export * from "./safetySwitch";
 export {};

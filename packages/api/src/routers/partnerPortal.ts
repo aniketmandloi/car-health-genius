@@ -19,9 +19,13 @@ const bookingOutputSchema = z.object({
   issueSummary: z.string(),
   preferredWindowStart: z.string(),
   preferredWindowEnd: z.string(),
+  alternateWindowStart: z.string().nullable(),
+  alternateWindowEnd: z.string().nullable(),
   status: leadStatusSchema,
   partnerResponseNote: z.string().nullable(),
+  partnerRespondedAt: z.string().nullable(),
   requestedAt: z.string(),
+  confirmedAt: z.string().nullable(),
   resolvedAt: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
@@ -49,9 +53,13 @@ function mapBookingRow(row: typeof booking.$inferSelect) {
     issueSummary: row.issueSummary,
     preferredWindowStart: toIso(row.preferredWindowStart),
     preferredWindowEnd: toIso(row.preferredWindowEnd),
+    alternateWindowStart: toIsoNullable(row.alternateWindowStart),
+    alternateWindowEnd: toIsoNullable(row.alternateWindowEnd),
     status: leadStatusSchema.parse(row.status),
     partnerResponseNote: row.partnerResponseNote,
+    partnerRespondedAt: toIsoNullable(row.partnerRespondedAt),
     requestedAt: toIso(row.requestedAt),
+    confirmedAt: toIsoNullable(row.confirmedAt),
     resolvedAt: toIsoNullable(row.resolvedAt),
     createdAt: toIso(row.createdAt),
     updatedAt: toIso(row.updatedAt),
@@ -95,11 +103,43 @@ export const partnerPortalRouter = router({
 
   respondToLead: partnerProcedure
     .input(
-      z.object({
-        bookingId: z.number().int().positive(),
-        status: z.enum(["accepted", "alternate", "rejected"]),
-        message: z.string().trim().min(1).optional(),
-      }),
+      z
+        .object({
+          bookingId: z.number().int().positive(),
+          status: z.enum(["accepted", "alternate", "rejected"]),
+          message: z.string().trim().min(1).optional(),
+          alternateWindowStart: z.coerce.date().optional(),
+          alternateWindowEnd: z.coerce.date().optional(),
+        })
+        .superRefine((input, ctx) => {
+          if (input.status === "alternate") {
+            if (!input.alternateWindowStart) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Alternate window start is required when proposing alternate time",
+                path: ["alternateWindowStart"],
+              });
+            }
+            if (!input.alternateWindowEnd) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Alternate window end is required when proposing alternate time",
+                path: ["alternateWindowEnd"],
+              });
+            }
+            if (
+              input.alternateWindowStart &&
+              input.alternateWindowEnd &&
+              input.alternateWindowEnd <= input.alternateWindowStart
+            ) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Alternate window end must be after start",
+                path: ["alternateWindowEnd"],
+              });
+            }
+          }
+        }),
     )
     .output(bookingOutputSchema)
     .mutation(async ({ ctx, input }) => {
@@ -156,6 +196,9 @@ export const partnerPortalRouter = router({
           .set({
             status: input.status,
             partnerResponseNote: input.message,
+            alternateWindowStart: input.status === "alternate" ? input.alternateWindowStart ?? null : null,
+            alternateWindowEnd: input.status === "alternate" ? input.alternateWindowEnd ?? null : null,
+            partnerRespondedAt: new Date(),
             resolvedAt: transition.isTerminal ? new Date() : null,
           })
           .where(and(eq(booking.id, input.bookingId), eq(booking.partnerId, ctx.partnerMembership.partnerId)))
@@ -178,6 +221,8 @@ export const partnerPortalRouter = router({
             fromStatus: existing.status,
             status: input.status,
             message: input.message,
+            alternateWindowStart: input.alternateWindowStart?.toISOString() ?? null,
+            alternateWindowEnd: input.alternateWindowEnd?.toISOString() ?? null,
             actor: "partner",
           },
           requestId: ctx.requestId,
