@@ -11,6 +11,7 @@ import { requireEntitlement } from "../services/entitlement.service";
 import { buildEstimateDisclosure } from "../services/estimateDisclosure.service";
 import { generateEstimateFromDiagnostic } from "../services/estimate.service";
 import { buildNegotiationScript } from "../services/negotiationScript.service";
+import { requireSafetySwitchEnabled } from "../services/safetySwitch.service";
 
 const jsonRecordSchema = z.record(z.string(), z.unknown());
 
@@ -145,6 +146,9 @@ export const estimatesRouter = router({
     )
     .output(z.array(estimateOutputSchema))
     .query(async ({ ctx, input }) => {
+      await requireSafetySwitchEnabled("estimates", {
+        message: "Estimates are temporarily unavailable",
+      });
       await requireEntitlement(ctx.session.user.id, "pro.cost_estimates");
       await ensureVehicleOwnership(ctx.session.user.id, input.vehicleId);
 
@@ -165,6 +169,9 @@ export const estimatesRouter = router({
     )
     .output(z.array(estimateOutputSchema))
     .query(async ({ ctx, input }) => {
+      await requireSafetySwitchEnabled("estimates", {
+        message: "Estimates are temporarily unavailable",
+      });
       await requireEntitlement(ctx.session.user.id, "pro.cost_estimates");
       const ownedDiagnosticEvent = await getOwnedDiagnosticEvent(ctx.session.user.id, input.diagnosticEventId);
       const rows = await db
@@ -186,6 +193,9 @@ export const estimatesRouter = router({
     )
     .output(estimateOutputSchema)
     .mutation(async ({ ctx, input }) => {
+      await requireSafetySwitchEnabled("estimates", {
+        message: "Estimates are temporarily unavailable",
+      });
       await requireEntitlement(ctx.session.user.id, "pro.cost_estimates");
       const ownedDiagnosticEvent = await getOwnedDiagnosticEvent(ctx.session.user.id, input.diagnosticEventId);
 
@@ -254,6 +264,9 @@ export const estimatesRouter = router({
     )
     .output(estimateOutputSchema)
     .mutation(async ({ ctx, input }) => {
+      await requireSafetySwitchEnabled("estimates", {
+        message: "Estimates are temporarily unavailable",
+      });
       await requireEntitlement(ctx.session.user.id, "pro.cost_estimates");
       await ensureVehicleOwnership(ctx.session.user.id, input.vehicleId);
 
@@ -296,6 +309,9 @@ export const estimatesRouter = router({
     )
     .output(negotiationScriptOutputSchema)
     .query(async ({ ctx, input }) => {
+      await requireSafetySwitchEnabled("estimates", {
+        message: "Estimates are temporarily unavailable",
+      });
       await requireEntitlement(ctx.session.user.id, "pro.negotiation_script");
 
       const [ownedEstimate] = await db
