@@ -59,11 +59,11 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="todos"
+        name="history"
         options={{
-          title: "Todos",
+          title: "History",
           tabBarIcon: ({ color, size }: { color: string; size: number }) => (
-            <Ionicons name="checkbox-outline" size={size} color={color} />
+            <Ionicons name="time-outline" size={size} color={color} />
           ),
         }}
       />

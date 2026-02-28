@@ -2,12 +2,16 @@ import { env } from "@car-health-genius/env/native";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button, Card, Input, Spinner, TextField } from "heroui-native";
 import * as Network from "expo-network";
+import { useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Alert, Text, View } from "react-native";
 
 import { Container } from "@/components/container";
 import { createAdapterDriver } from "@/src/modules/adapter";
-import type { AdapterConnectionState, AdapterReadResult } from "@/src/modules/adapter";
+import type {
+  AdapterConnectionState,
+  AdapterReadResult,
+} from "@/src/modules/adapter";
 import {
   enqueueScanUpload,
   listReadyScanUploads,
@@ -35,19 +39,26 @@ function createUploadId() {
 export default function ScanTab() {
   const mode = env.EXPO_PUBLIC_ADAPTER_MODE;
   const driver = useMemo(() => createAdapterDriver({ mode }), [mode]);
+  const router = useRouter();
 
   const [status, setStatus] = useState<string>("Idle");
-  const [onboardingStatus, setOnboardingStatus] = useState<string>("No vehicle created in this session.");
+  const [onboardingStatus, setOnboardingStatus] = useState<string>(
+    "No vehicle created in this session.",
+  );
   const [vinInput, setVinInput] = useState("");
   const [countryCode, setCountryCode] = useState("US");
   const [stateCode, setStateCode] = useState("");
-  const [driverState, setDriverState] = useState<AdapterConnectionState>(driver.getState());
+  const [driverState, setDriverState] = useState<AdapterConnectionState>(
+    driver.getState(),
+  );
   const [readResult, setReadResult] = useState<AdapterReadResult | null>(null);
   const [busy, setBusy] = useState(false);
   const [activeVehicleId, setActiveVehicleId] = useState<number | null>(null);
   const [activeSessionId, setActiveSessionId] = useState<number | null>(null);
 
-  const adapters = useQuery(trpc.diagnostics.listCompatibleAdapters.queryOptions());
+  const adapters = useQuery(
+    trpc.diagnostics.listCompatibleAdapters.queryOptions(),
+  );
   const vehicles = useQuery(trpc.vehicles.list.queryOptions());
 
   useEffect(() => {
@@ -65,11 +76,15 @@ export default function ScanTab() {
     trpc.vehicles.createFromVin.mutationOptions({
       onSuccess: async (result) => {
         if (result.created) {
-          setOnboardingStatus(`Created ${result.vehicle.make} ${result.vehicle.model} (${result.vehicle.modelYear})`);
+          setOnboardingStatus(
+            `Created ${result.vehicle.make} ${result.vehicle.model} (${result.vehicle.modelYear})`,
+          );
           setActiveVehicleId(result.vehicle.id);
           await queryClient.invalidateQueries(trpc.vehicles.list.queryFilter());
         } else {
-          setOnboardingStatus(`VIN fallback required: ${result.decode.message}`);
+          setOnboardingStatus(
+            `VIN fallback required: ${result.decode.message}`,
+          );
         }
       },
       onError: (error) => {
@@ -85,10 +100,14 @@ export default function ScanTab() {
     }),
   );
 
-  const startSession = useMutation(trpc.diagnostics.startSession.mutationOptions());
+  const startSession = useMutation(
+    trpc.diagnostics.startSession.mutationOptions(),
+  );
   const ingestScan = useMutation(trpc.diagnostics.ingestScan.mutationOptions());
   const clearCode = useMutation(trpc.diagnostics.clearCode.mutationOptions());
-  const finishSession = useMutation(trpc.diagnostics.finishSession.mutationOptions());
+  const finishSession = useMutation(
+    trpc.diagnostics.finishSession.mutationOptions(),
+  );
 
   useEffect(() => {
     setDriverState(driver.getState());
@@ -99,7 +118,10 @@ export default function ScanTab() {
 
   async function flushPendingUploads() {
     const networkState = await Network.getNetworkStateAsync();
-    if (!networkState.isConnected || networkState.isInternetReachable === false) {
+    if (
+      !networkState.isConnected ||
+      networkState.isInternetReachable === false
+    ) {
       return {
         processed: 0,
         uploaded: 0,
@@ -129,7 +151,10 @@ export default function ScanTab() {
           continue;
         }
 
-        await markScanUploadFailed(item.id, error instanceof Error ? error.message : "Upload failed");
+        await markScanUploadFailed(
+          item.id,
+          error instanceof Error ? error.message : "Upload failed",
+        );
       }
     }
 
@@ -219,7 +244,13 @@ export default function ScanTab() {
       return;
     }
 
-    setStatus(`Read ${result.dtcCodes.length} DTC code(s); processed ${flush.processed}, persisted ${flush.uploaded}`);
+    setStatus(
+      `Read ${result.dtcCodes.length} DTC code(s); processed ${flush.processed}, persisted ${flush.uploaded}`,
+    );
+
+    if (flush.uploaded > 0 && activeVehicleId) {
+      router.push(`/scan-results?vehicleId=${activeVehicleId}` as never);
+    }
   }
 
   function confirmAndClearCodes() {
@@ -284,7 +315,9 @@ export default function ScanTab() {
       <View className="gap-4">
         <Card variant="secondary" className="p-4">
           <Card.Title>Vehicle Onboarding</Card.Title>
-          <Card.Description>VIN + US-only validation path (Sprint 2).</Card.Description>
+          <Card.Description>
+            Enter your VIN to create a vehicle profile.
+          </Card.Description>
           <View className="mt-3 gap-2">
             <TextField>
               <Input
@@ -300,7 +333,9 @@ export default function ScanTab() {
                 <TextField>
                   <Input
                     value={countryCode}
-                    onChangeText={(value) => setCountryCode(value.toUpperCase())}
+                    onChangeText={(value) =>
+                      setCountryCode(value.toUpperCase())
+                    }
                     placeholder="Country (US)"
                     autoCapitalize="characters"
                   />
@@ -318,7 +353,9 @@ export default function ScanTab() {
               </View>
             </View>
             <Button
-              isDisabled={createFromVin.isPending || vinInput.trim().length !== 17}
+              isDisabled={
+                createFromVin.isPending || vinInput.trim().length !== 17
+              }
               onPress={() =>
                 createFromVin.mutate({
                   vin: vinInput,
@@ -327,7 +364,11 @@ export default function ScanTab() {
                 })
               }
             >
-              {createFromVin.isPending ? <Spinner size="sm" color="default" /> : "Create From VIN"}
+              {createFromVin.isPending ? (
+                <Spinner size="sm" color="default" />
+              ) : (
+                "Create From VIN"
+              )}
             </Button>
             <Text className="text-muted text-xs">{onboardingStatus}</Text>
             <Text className="text-muted text-xs">
@@ -344,7 +385,8 @@ export default function ScanTab() {
         <Card variant="secondary" className="p-4">
           <Card.Title>Scan Adapter Mode</Card.Title>
           <Card.Description>
-            Current mode: {mode}. Use `simulated` for Expo Go, `ble` for dev builds.
+            Current mode: {mode}. Use `simulated` for Expo Go, `ble` for dev
+            builds.
           </Card.Description>
           <Card.Description>
             Session: {activeSessionId ? `#${activeSessionId}` : "Not started"}
@@ -366,11 +408,17 @@ export default function ScanTab() {
                 })
               }
             >
-              {busy && driverState !== "connected" ? <Spinner size="sm" color="default" /> : "Connect"}
+              {busy && driverState !== "connected" ? (
+                <Spinner size="sm" color="default" />
+              ) : (
+                "Connect"
+              )}
             </Button>
             <Button
               variant="secondary"
-              isDisabled={busy || driverState !== "connected" || !activeSessionId}
+              isDisabled={
+                busy || driverState !== "connected" || !activeSessionId
+              }
               onPress={() =>
                 run(async () => {
                   await readAndUpload();
@@ -381,7 +429,12 @@ export default function ScanTab() {
             </Button>
             <Button
               variant="secondary"
-              isDisabled={busy || driverState !== "connected" || !readResult || readResult.dtcCodes.length === 0}
+              isDisabled={
+                busy ||
+                driverState !== "connected" ||
+                !readResult ||
+                readResult.dtcCodes.length === 0
+              }
               onPress={confirmAndClearCodes}
             >
               Clear DTC
@@ -415,14 +468,17 @@ export default function ScanTab() {
                   {entry.vendor} {entry.model}
                 </Text>
                 <Text className="text-muted text-xs">
-                  {entry.connectionType} | iOS {entry.iosSupported ? "yes" : "no"} | Android{" "}
+                  {entry.connectionType} | iOS{" "}
+                  {entry.iosSupported ? "yes" : "no"} | Android{" "}
                   {entry.androidSupported ? "yes" : "no"}
                 </Text>
               </Card>
             ))}
 
             {!adapters.isLoading && (adapters.data?.length ?? 0) === 0 ? (
-              <Text className="text-muted text-xs">No active adapters configured yet.</Text>
+              <Text className="text-muted text-xs">
+                No active adapters configured yet.
+              </Text>
             ) : null}
           </View>
         </Card>

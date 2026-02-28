@@ -16,7 +16,15 @@ function StackLayout() {
   return (
     <Stack screenOptions={{}}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="modal" options={{ title: "Modal", presentation: "modal" }} />
+      <Stack.Screen
+        name="modal"
+        options={{ title: "Modal", presentation: "modal" }}
+      />
+      <Stack.Screen name="scan-results" options={{ title: "Scan Results" }} />
+      <Stack.Screen
+        name="results/[diagnosticEventId]"
+        options={{ title: "Diagnostic Detail" }}
+      />
     </Stack>
   );
 }

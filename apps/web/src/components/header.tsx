@@ -11,7 +11,7 @@ export default function Header() {
     { to: "/pricing", label: "Pricing" },
     { to: "/vehicles", label: "Vehicles" },
     { to: "/scan", label: "Scan" },
-    { to: "/todos", label: "Todos" },
+    { to: "/diagnostics", label: "Diagnostics" },
   ];
 
   return (
