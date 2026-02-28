@@ -54,15 +54,8 @@
     {
       "idx": 7,
       "version": "7",
-      "when": 1772275200000,
-      "tag": "0007_sprint7_safety_support",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1772278800000,
-      "tag": "0008_sprint7_partner_booking_windows",
+      "when": 1772279884149,
+      "tag": "0007_modern_nebula",
       "breakpoints": true
     }
   ]

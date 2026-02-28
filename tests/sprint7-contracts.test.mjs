@@ -13,8 +13,7 @@ function assertFileExists(path) {
 test("sprint-7 schema and migration artifacts exist", () => {
   assertFileExists("packages/db/src/schema/supportIssue.ts");
   assertFileExists("packages/db/src/schema/safetySwitch.ts");
-  assertFileExists("packages/db/src/migrations/0007_sprint7_safety_support.sql");
-  assertFileExists("packages/db/src/migrations/0008_sprint7_partner_booking_windows.sql");
+  assertFileExists("packages/db/src/migrations/0007_modern_nebula.sql");
 
   const schemaIndex = read("packages/db/src/schema/index.ts");
   const journal = read("packages/db/src/migrations/meta/_journal.json");
@@ -22,8 +21,7 @@ test("sprint-7 schema and migration artifacts exist", () => {
 
   assert.match(schemaIndex, /export \* from "\.\/supportIssue";/);
   assert.match(schemaIndex, /export \* from "\.\/safetySwitch";/);
-  assert.match(journal, /"tag"\s*:\s*"0007_sprint7_safety_support"/);
-  assert.match(journal, /"tag"\s*:\s*"0008_sprint7_partner_booking_windows"/);
+  assert.match(journal, /"tag"\s*:\s*"0007_modern_nebula"/);
   assert.match(bookingSchema, /alternateWindowStart/);
   assert.match(bookingSchema, /alternateWindowEnd/);
   assert.match(bookingSchema, /partnerRespondedAt/);
