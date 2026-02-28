@@ -89,3 +89,6 @@ car-health-genius/
 - `pnpm run db:studio`: Open database studio UI
 - `pnpm run seed:diy-guides`: Seed approved DIY guide rows
 - `pnpm run seed:partners-sprint6`: Seed launch-metro vetted partner rows
+- `pnpm run security:ci`: Run critical dependency audit gate
+- `pnpm run test:perf:smoke`: Execute k6 smoke profile (requires perf env vars)
+- `pnpm run test:perf:full`: Execute k6 full profile (requires perf env vars)

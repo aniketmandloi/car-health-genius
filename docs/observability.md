@@ -13,6 +13,8 @@ Every server log event should include:
 - `type` (tRPC)
 - `durationMs`
 - `statusCode` (HTTP response logs)
+- `traceId` (when tracing is enabled)
+- `spanId` (when tracing is enabled)
 
 ## Redaction Rules
 
@@ -42,3 +44,9 @@ The server logger redacts/removes sensitive fields:
 3. p95 latency > 1500ms on `/trpc` over 10 minutes.
 4. `billing_webhook_failed_total` > 5 in 5 minutes.
 5. `ai_explanation_failures_total` > 10 in 5 minutes.
+
+## Tracing Notes
+
+1. Set `OTEL_ENABLED=true` on server environments where tracing is required.
+2. Optionally set `OTEL_EXPORTER_OTLP_ENDPOINT` for collector export.
+3. Trace coverage is focused on the scan -> recommendation critical path.

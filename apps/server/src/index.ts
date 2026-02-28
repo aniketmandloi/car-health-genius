@@ -1,11 +1,14 @@
 import { createContext } from "@car-health-genius/api/context";
 import { appRouter, type AppRouter } from "@car-health-genius/api/routers/index";
+import { readActiveTraceContext } from "@car-health-genius/api/services/tracing.service";
 import { auth } from "@car-health-genius/auth";
 import { env } from "@car-health-genius/env/server";
 import { getServerFeatureFlags } from "@car-health-genius/env/server-flags";
 import fastifyCors from "@fastify/cors";
 import { fastifyTRPCPlugin, type FastifyTRPCPluginOptions } from "@trpc/server/adapters/fastify";
 import Fastify from "fastify";
+
+import { initializeOtel } from "./otel";
 
 const baseCorsConfig = {
   origin: env.CORS_ORIGIN,
@@ -20,6 +23,8 @@ const baseCorsConfig = {
   credentials: true,
   maxAge: 86400,
 };
+
+const otel = await initializeOtel();
 
 const fastify = Fastify({
   logger: {
@@ -48,6 +53,10 @@ const featureFlags = getServerFeatureFlags();
 
 fastify.register(fastifyCors, baseCorsConfig);
 
+fastify.addHook("onClose", async () => {
+  await otel.shutdown();
+});
+
 fastify.addHook("onRequest", async (request, reply) => {
   const correlationHeader = request.headers["x-correlation-id"];
   const correlationId = Array.isArray(correlationHeader)
@@ -57,6 +66,7 @@ fastify.addHook("onRequest", async (request, reply) => {
   reply.header("x-request-id", request.id);
   reply.header("x-correlation-id", correlationId);
 
+  const traceContext = readActiveTraceContext();
   request.log.info(
     {
       event: "http.request.start",
@@ -64,6 +74,7 @@ fastify.addHook("onRequest", async (request, reply) => {
       correlationId,
       method: request.method,
       url: request.url,
+      ...traceContext,
     },
     "Incoming HTTP request",
   );
@@ -75,6 +86,7 @@ fastify.addHook("onResponse", async (request, reply) => {
     ? (correlationHeader[0] ?? request.id)
     : (correlationHeader ?? request.id);
 
+  const traceContext = readActiveTraceContext();
   request.log.info(
     {
       event: "http.request.complete",
@@ -84,6 +96,7 @@ fastify.addHook("onResponse", async (request, reply) => {
       url: request.url,
       statusCode: reply.statusCode,
       durationMs: reply.elapsedTime,
+      ...traceContext,
     },
     "Completed HTTP request",
   );
@@ -109,11 +122,13 @@ fastify.route({
       response.headers.forEach((value, key) => reply.header(key, value));
       reply.send(response.body ? await response.text() : null);
     } catch (error) {
+      const traceContext = readActiveTraceContext();
       request.log.error(
         {
           event: "auth.request.error",
           requestId: request.id,
           err: error,
+          ...traceContext,
         },
         "Authentication request failed",
       );
@@ -131,6 +146,7 @@ fastify.register(fastifyTRPCPlugin, {
     router: appRouter,
     createContext,
     onError({ path, type, error, ctx }) {
+      const traceContext = readActiveTraceContext();
       fastify.log.error(
         {
           event: "trpc.handler.error",
@@ -140,6 +156,7 @@ fastify.register(fastifyTRPCPlugin, {
           type,
           code: error.code,
           err: error,
+          ...traceContext,
         },
         "Error in tRPC handler",
       );
@@ -165,6 +182,7 @@ fastify.listen({ host: serverHost, port: serverPort }, (err) => {
       host: serverHost,
       port: serverPort,
       featureFlags,
+      otelEnabled: otel.enabled,
     },
     "Server running",
   );

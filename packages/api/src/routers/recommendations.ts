@@ -17,6 +17,7 @@ import { applyRecommendationPolicy } from "../services/policy.service";
 import { generateRecommendationForDiagnosticEvent } from "../services/recommendation.service";
 import { enqueueReviewQueueItem } from "../services/reviewQueue.service";
 import { requireSafetySwitchEnabled } from "../services/safetySwitch.service";
+import { withActiveSpan } from "../services/tracing.service";
 
 const jsonRecordSchema = z.record(z.string(), z.unknown());
 const triageClassSchema = z.enum(["safe", "service_soon", "service_now"]);
@@ -291,94 +292,106 @@ export const recommendationsRouter = router({
     )
     .output(recommendationOutputSchema)
     .mutation(async ({ ctx, input }) => {
-      const startedAt = Date.now();
-      if (!env.FLAG_AI_EXPLANATIONS_ENABLED) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "AI explanations are currently disabled",
-          cause: {
-            businessCode: "AI_EXPLANATIONS_DISABLED",
-          },
-        });
-      }
+      return withActiveSpan(
+        "recommendations.generateForDiagnosticEvent",
+        {
+          "app.request_id": ctx.requestId,
+          "app.correlation_id": ctx.correlationId,
+          "app.user_id": ctx.session.user.id,
+          "app.diagnostic_event_id": input.diagnosticEventId,
+          "app.mode": input.mode,
+        },
+        async () => {
+          const startedAt = Date.now();
+          if (!env.FLAG_AI_EXPLANATIONS_ENABLED) {
+            throw new TRPCError({
+              code: "FORBIDDEN",
+              message: "AI explanations are currently disabled",
+              cause: {
+                businessCode: "AI_EXPLANATIONS_DISABLED",
+              },
+            });
+          }
 
-      const ownedEvent = await getOwnedDiagnosticEvent(ctx.session.user.id, input.diagnosticEventId);
-      if (input.mode === "pro") {
-        await requireEntitlement(ctx.session.user.id, "pro.advanced_diagnostics");
-      }
+          const ownedEvent = await getOwnedDiagnosticEvent(ctx.session.user.id, input.diagnosticEventId);
+          if (input.mode === "pro") {
+            await requireEntitlement(ctx.session.user.id, "pro.advanced_diagnostics");
+          }
 
-      let generated: Awaited<ReturnType<typeof generateRecommendationForDiagnosticEvent>>;
-      try {
-        generated = await generateRecommendationForDiagnosticEvent({
-          id: ownedEvent.id,
-          dtcCode: ownedEvent.dtcCode,
-          severity: ownedEvent.severity,
-          freezeFrame: ownedEvent.freezeFrame,
-          sensorSnapshot: ownedEvent.sensorSnapshot,
-          occurredAt: ownedEvent.occurredAt,
-          source: ownedEvent.source,
-        });
-      } catch (error) {
-        console.error(
-          JSON.stringify({
-            level: "error",
-            event: "recommendation.generate.failed",
-            metric: "ai_explanation_failures_total",
-            value: 1,
-            requestId: ctx.requestId,
-            correlationId: ctx.correlationId,
-            diagnosticEventId: ownedEvent.id,
-            userId: ctx.session.user.id,
-            mode: input.mode,
-            error: error instanceof Error ? error.message : "Unknown error",
-            durationMs: Date.now() - startedAt,
-          }),
-        );
-        throw error;
-      }
+          let generated: Awaited<ReturnType<typeof generateRecommendationForDiagnosticEvent>>;
+          try {
+            generated = await generateRecommendationForDiagnosticEvent({
+              id: ownedEvent.id,
+              dtcCode: ownedEvent.dtcCode,
+              severity: ownedEvent.severity,
+              freezeFrame: ownedEvent.freezeFrame,
+              sensorSnapshot: ownedEvent.sensorSnapshot,
+              occurredAt: ownedEvent.occurredAt,
+              source: ownedEvent.source,
+            });
+          } catch (error) {
+            console.error(
+              JSON.stringify({
+                level: "error",
+                event: "recommendation.generate.failed",
+                metric: "ai_explanation_failures_total",
+                value: 1,
+                requestId: ctx.requestId,
+                correlationId: ctx.correlationId,
+                diagnosticEventId: ownedEvent.id,
+                userId: ctx.session.user.id,
+                mode: input.mode,
+                error: error instanceof Error ? error.message : "Unknown error",
+                durationMs: Date.now() - startedAt,
+              }),
+            );
+            throw error;
+          }
 
-      const [created] = await db
-        .insert(recommendation)
-        .values({
-          diagnosticEventId: ownedEvent.id,
-          recommendationType: generated.recommendationType,
-          urgency: generated.urgency,
-          confidence: generated.confidence,
-          title: generated.title,
-          details: {
-            ...generated.details,
-            mode: input.mode,
-            rationale: generated.rationale,
-            triageClass: generated.urgency,
-          },
-        })
-        .returning();
+          const [created] = await db
+            .insert(recommendation)
+            .values({
+              diagnosticEventId: ownedEvent.id,
+              recommendationType: generated.recommendationType,
+              urgency: generated.urgency,
+              confidence: generated.confidence,
+              title: generated.title,
+              details: {
+                ...generated.details,
+                mode: input.mode,
+                rationale: generated.rationale,
+                triageClass: generated.urgency,
+              },
+            })
+            .returning();
 
-      if (!created) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to generate recommendation",
-        });
-      }
+          if (!created) {
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: "Failed to generate recommendation",
+            });
+          }
 
-      console.info(
-        JSON.stringify({
-          level: "info",
-          event: "recommendation.generate.succeeded",
-          metric: "ai_explanation_generated_total",
-          value: 1,
-          requestId: ctx.requestId,
-          correlationId: ctx.correlationId,
-          recommendationId: created.id,
-          diagnosticEventId: ownedEvent.id,
-          userId: ctx.session.user.id,
-          mode: input.mode,
-          triageClass: generated.urgency,
-          durationMs: Date.now() - startedAt,
-        }),
+          console.info(
+            JSON.stringify({
+              level: "info",
+              event: "recommendation.generate.succeeded",
+              metric: "ai_explanation_generated_total",
+              value: 1,
+              requestId: ctx.requestId,
+              correlationId: ctx.correlationId,
+              recommendationId: created.id,
+              diagnosticEventId: ownedEvent.id,
+              userId: ctx.session.user.id,
+              mode: input.mode,
+              triageClass: generated.urgency,
+              durationMs: Date.now() - startedAt,
+            }),
+          );
+
+          return mapRecommendationRow(created);
+        },
       );
-
-      return mapRecommendationRow(created);
     }),
 
   likelyCauses: protectedProcedure
@@ -389,47 +402,58 @@ export const recommendationsRouter = router({
     )
     .output(likelyCausesResponseSchema)
     .query(async ({ ctx, input }) => {
-      const startedAt = Date.now();
-      const featureFlags = getServerFeatureFlags();
-      if (!featureFlags.likelyCausesEnabled) {
-        throw new TRPCError({
-          code: "PRECONDITION_FAILED",
-          message: "Likely causes is not enabled",
-          cause: {
-            businessCode: "FEATURE_DISABLED",
-          },
-        });
-      }
+      return withActiveSpan(
+        "recommendations.likelyCauses",
+        {
+          "app.request_id": ctx.requestId,
+          "app.correlation_id": ctx.correlationId,
+          "app.user_id": ctx.session.user.id,
+          "app.diagnostic_event_id": input.diagnosticEventId,
+        },
+        async () => {
+          const startedAt = Date.now();
+          const featureFlags = getServerFeatureFlags();
+          if (!featureFlags.likelyCausesEnabled) {
+            throw new TRPCError({
+              code: "PRECONDITION_FAILED",
+              message: "Likely causes is not enabled",
+              cause: {
+                businessCode: "FEATURE_DISABLED",
+              },
+            });
+          }
 
-      await requireEntitlement(ctx.session.user.id, "pro.likely_causes");
-      const ownedDiagnosticEvent = await getOwnedDiagnosticEvent(ctx.session.user.id, input.diagnosticEventId);
+          await requireEntitlement(ctx.session.user.id, "pro.likely_causes");
+          const ownedDiagnosticEvent = await getOwnedDiagnosticEvent(ctx.session.user.id, input.diagnosticEventId);
 
-      const causes = rankLikelyCauses({
-        dtcCode: ownedDiagnosticEvent.dtcCode,
-        severity: ownedDiagnosticEvent.severity,
-        freezeFrame: (ownedDiagnosticEvent.freezeFrame as Record<string, unknown> | null) ?? null,
-        sensorSnapshot: (ownedDiagnosticEvent.sensorSnapshot as Record<string, unknown> | null) ?? null,
-      });
+          const causes = rankLikelyCauses({
+            dtcCode: ownedDiagnosticEvent.dtcCode,
+            severity: ownedDiagnosticEvent.severity,
+            freezeFrame: (ownedDiagnosticEvent.freezeFrame as Record<string, unknown> | null) ?? null,
+            sensorSnapshot: (ownedDiagnosticEvent.sensorSnapshot as Record<string, unknown> | null) ?? null,
+          });
 
-      console.info(
-        JSON.stringify({
-          level: "info",
-          event: "likely_causes.generated",
-          metric: "likely_causes_requests_total",
-          value: 1,
-          requestId: ctx.requestId,
-          correlationId: ctx.correlationId,
-          userId: ctx.session.user.id,
-          diagnosticEventId: input.diagnosticEventId,
-          count: causes.length,
-          durationMs: Date.now() - startedAt,
-        }),
+          console.info(
+            JSON.stringify({
+              level: "info",
+              event: "likely_causes.generated",
+              metric: "likely_causes_requests_total",
+              value: 1,
+              requestId: ctx.requestId,
+              correlationId: ctx.correlationId,
+              userId: ctx.session.user.id,
+              diagnosticEventId: input.diagnosticEventId,
+              count: causes.length,
+              durationMs: Date.now() - startedAt,
+            }),
+          );
+
+          return {
+            diagnosticEventId: input.diagnosticEventId,
+            causes,
+          };
+        },
       );
-
-      return {
-        diagnosticEventId: input.diagnosticEventId,
-        causes,
-      };
     }),
 
   diyGuide: protectedProcedure

@@ -1,6 +1,7 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 
 import type { Context } from "./context";
+import { readActiveTraceContext, withActiveSpan } from "./services/tracing.service";
 
 function readBusinessCode(cause: unknown): string | undefined {
   if (!cause || typeof cause !== "object") {
@@ -27,37 +28,54 @@ export const router = t.router;
 
 const instrumentedProcedure = t.procedure.use(async ({ ctx, path, type, next }) => {
   const startedAt = Date.now();
+  return withActiveSpan(
+    "trpc.request",
+    {
+      "trpc.path": path,
+      "trpc.type": type,
+      "app.request_id": ctx.requestId,
+      "app.correlation_id": ctx.correlationId,
+      "app.user_role": ctx.userRole,
+    },
+    async () => {
+      try {
+        const result = await next();
+        const traceContext = readActiveTraceContext();
+        console.info(
+          JSON.stringify({
+            level: "info",
+            event: "trpc.request",
+            requestId: ctx.requestId,
+            correlationId: ctx.correlationId,
+            path,
+            type,
+            userRole: ctx.userRole,
+            durationMs: Date.now() - startedAt,
+            ...traceContext,
+          }),
+        );
 
-  try {
-    const result = await next();
-    console.info(
-      JSON.stringify({
-        level: "info",
-        event: "trpc.request",
-        requestId: ctx.requestId,
-        correlationId: ctx.correlationId,
-        path,
-        type,
-        durationMs: Date.now() - startedAt,
-      }),
-    );
-
-    return result;
-  } catch (error) {
-    console.error(
-      JSON.stringify({
-        level: "error",
-        event: "trpc.request.error",
-        requestId: ctx.requestId,
-        correlationId: ctx.correlationId,
-        path,
-        type,
-        durationMs: Date.now() - startedAt,
-        error: error instanceof Error ? error.message : "Unknown error",
-      }),
-    );
-    throw error;
-  }
+        return result;
+      } catch (error) {
+        const traceContext = readActiveTraceContext();
+        console.error(
+          JSON.stringify({
+            level: "error",
+            event: "trpc.request.error",
+            requestId: ctx.requestId,
+            correlationId: ctx.correlationId,
+            path,
+            type,
+            userRole: ctx.userRole,
+            durationMs: Date.now() - startedAt,
+            error: error instanceof Error ? error.message : "Unknown error",
+            ...traceContext,
+          }),
+        );
+        throw error;
+      }
+    },
+  );
 });
 
 export const publicProcedure = instrumentedProcedure;
@@ -80,6 +98,7 @@ export const protectedProcedure = instrumentedProcedure.use(({ ctx, next }) => {
 
 export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (ctx.userRole !== "admin") {
+    const traceContext = readActiveTraceContext();
     console.warn(
       JSON.stringify({
         level: "warn",
@@ -89,6 +108,7 @@ export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
         correlationId: ctx.correlationId,
         requiredRole: "admin",
         actualRole: ctx.userRole,
+        ...traceContext,
       }),
     );
     throw new TRPCError({
@@ -107,6 +127,7 @@ export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
 
 export const partnerProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (!ctx.partnerMembership) {
+    const traceContext = readActiveTraceContext();
     console.warn(
       JSON.stringify({
         level: "warn",
@@ -116,6 +137,7 @@ export const partnerProcedure = protectedProcedure.use(({ ctx, next }) => {
         correlationId: ctx.correlationId,
         requiredRole: "partner_member",
         actualRole: ctx.userRole,
+        ...traceContext,
       }),
     );
     throw new TRPCError({
