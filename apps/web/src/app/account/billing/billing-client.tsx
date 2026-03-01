@@ -98,7 +98,7 @@ export default function BillingClient() {
                 <div className="flex gap-2">
                   <Button
                     size="sm"
-                    onClick={() => checkoutMutation.mutate({ plan: "monthly" })}
+                    onClick={() => checkoutMutation.mutate({ plan: "monthly", successUrl: `${window.location.origin}/success?plan=monthly&checkout_id={CHECKOUT_ID}` })}
                     disabled={checkoutMutation.isPending}
                   >
                     Upgrade to Pro (Monthly)
@@ -106,7 +106,7 @@ export default function BillingClient() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => checkoutMutation.mutate({ plan: "annual" })}
+                    onClick={() => checkoutMutation.mutate({ plan: "annual", successUrl: `${window.location.origin}/success?plan=annual&checkout_id={CHECKOUT_ID}` })}
                     disabled={checkoutMutation.isPending}
                   >
                     Annual (Save 20%)

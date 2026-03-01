@@ -61,7 +61,7 @@ export default function PricingPage() {
     setCheckoutError(null);
 
     try {
-      const successUrl = `${window.location.origin}/success?plan=${plan}`;
+      const successUrl = `${window.location.origin}/success?plan=${plan}&checkout_id={CHECKOUT_ID}`;
       const checkoutIntent = await createCheckoutSession.mutateAsync({
         plan,
         successUrl,
