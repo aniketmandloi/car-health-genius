@@ -9,6 +9,7 @@ const booleanFlag = (defaultValue: boolean) =>
     .transform((value) => value === "true");
 
 export const env = createEnv({
+  skipValidation: !!process.env.SKIP_ENV_VALIDATION,
   server: {
     DATABASE_URL: z.string().min(1),
     BETTER_AUTH_SECRET: z.string().min(32),
