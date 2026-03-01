@@ -21,22 +21,29 @@ jobs:
       BETTER_AUTH_SECRET: ci-placeholder-secret-minimum-32-chars
       BETTER_AUTH_URL: http://localhost:3000
       POLAR_ACCESS_TOKEN: ci-placeholder-polar-token
+      POLAR_WEBHOOK_SECRET: ci-placeholder-webhook-secret-minimum-32c
+      POLAR_PRODUCT_ID_PRO_MONTHLY: ci-placeholder-monthly-product-id
+      POLAR_PRODUCT_ID_PRO_ANNUAL: ci-placeholder-annual-product-id
       POLAR_SUCCESS_URL: http://localhost:3001/success
       NEXT_PUBLIC_SERVER_URL: http://localhost:3000
       EXPO_PUBLIC_SERVER_URL: http://localhost:3000
+      EXPO_PUBLIC_ADAPTER_MODE: simulated
       FLAG_FREE_TIER_ENABLED: "true"
       FLAG_PRO_PAYWALL_ENABLED: "true"
       FLAG_AI_EXPLANATIONS_ENABLED: "false"
+      FLAG_LIKELY_CAUSES_ENABLED: "false"
       FLAG_PARTNER_PORTAL_ENABLED: "false"
       FLAG_ADMIN_KILL_SWITCH_ENABLED: "true"
       NEXT_PUBLIC_FLAG_FREE_TIER_ENABLED: "true"
       NEXT_PUBLIC_FLAG_PRO_PAYWALL_ENABLED: "true"
       NEXT_PUBLIC_FLAG_AI_EXPLANATIONS_ENABLED: "false"
+      NEXT_PUBLIC_FLAG_LIKELY_CAUSES_ENABLED: "false"
       NEXT_PUBLIC_FLAG_PARTNER_PORTAL_ENABLED: "false"
       NEXT_PUBLIC_FLAG_ADMIN_KILL_SWITCH_ENABLED: "true"
       EXPO_PUBLIC_FLAG_FREE_TIER_ENABLED: "true"
       EXPO_PUBLIC_FLAG_PRO_PAYWALL_ENABLED: "true"
       EXPO_PUBLIC_FLAG_AI_EXPLANATIONS_ENABLED: "false"
+      EXPO_PUBLIC_FLAG_LIKELY_CAUSES_ENABLED: "false"
       EXPO_PUBLIC_FLAG_PARTNER_PORTAL_ENABLED: "false"
       EXPO_PUBLIC_FLAG_ADMIN_KILL_SWITCH_ENABLED: "true"
 

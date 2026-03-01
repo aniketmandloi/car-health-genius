@@ -1,0 +1,16 @@
+import SafetySwitchesClient from "./safety-switches-client";
+
+export default function SafetySwitchesPage() {
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-semibold">Safety Kill Switches</h1>
+        <p className="text-sm text-muted-foreground">
+          Enable or disable AI-generated features globally. Changes take effect
+          immediately.
+        </p>
+      </div>
+      <SafetySwitchesClient />
+    </div>
+  );
+}

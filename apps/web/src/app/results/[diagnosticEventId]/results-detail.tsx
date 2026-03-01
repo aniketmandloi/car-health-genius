@@ -227,7 +227,11 @@ function RecommendationCard({
             <Button
               type="button"
               size="sm"
-              variant={currentRating !== null && currentRating >= 4 ? "default" : "outline"}
+              variant={
+                currentRating !== null && currentRating >= 4
+                  ? "default"
+                  : "outline"
+              }
               disabled={isSaving}
               onClick={onRateHelpful}
             >
@@ -236,7 +240,11 @@ function RecommendationCard({
             <Button
               type="button"
               size="sm"
-              variant={currentRating !== null && currentRating <= 3 ? "default" : "outline"}
+              variant={
+                currentRating !== null && currentRating <= 3
+                  ? "default"
+                  : "outline"
+              }
               disabled={isSaving}
               onClick={onRateNotHelpful}
             >
@@ -246,6 +254,207 @@ function RecommendationCard({
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+// ─── Repair Outcome ───────────────────────────────────────────────────────────
+
+const OUTCOME_STATUS_OPTIONS = [
+  { value: "repaired", label: "Repaired" },
+  { value: "partially_repaired", label: "Partially Repaired" },
+  { value: "deferred", label: "Deferred" },
+  { value: "not_repaired", label: "Not Repaired" },
+  { value: "still_investigating", label: "Still Investigating" },
+];
+
+function RepairOutcomeSection({
+  diagnosticEventId,
+}: {
+  diagnosticEventId: number;
+}) {
+  const [showForm, setShowForm] = useState(false);
+  const [outcomeStatus, setOutcomeStatus] = useState("repaired");
+  const [shopName, setShopName] = useState("");
+  const [invoiceAmount, setInvoiceAmount] = useState("");
+  const [notes, setNotes] = useState("");
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const outcomes = useQuery(
+    trpc.repairOutcome.getByDiagnosticEvent.queryOptions({ diagnosticEventId }),
+  );
+  const createMutation = useMutation(
+    trpc.repairOutcome.create.mutationOptions({
+      onSuccess: async () => {
+        setFormError(null);
+        setShowForm(false);
+        setShopName("");
+        setInvoiceAmount("");
+        setNotes("");
+        await queryClient.invalidateQueries(
+          trpc.repairOutcome.getByDiagnosticEvent.queryFilter({
+            diagnosticEventId,
+          }),
+        );
+      },
+      onError: (error) => {
+        setFormError(
+          error instanceof Error ? error.message : "Failed to record outcome",
+        );
+      },
+    }),
+  );
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const invoiceCents = invoiceAmount.trim()
+      ? Math.round(parseFloat(invoiceAmount) * 100)
+      : undefined;
+    createMutation.mutate({
+      diagnosticEventId,
+      outcomeStatus: outcomeStatus as
+        | "repaired"
+        | "partially_repaired"
+        | "deferred"
+        | "not_repaired"
+        | "still_investigating",
+      shopName: shopName.trim() || undefined,
+      invoiceAmountCents: invoiceCents,
+      notes: notes.trim() || undefined,
+    });
+  }
+
+  const existingOutcomes = outcomes.data ?? [];
+
+  return (
+    <section>
+      <div className="mb-3 flex items-center justify-between">
+        <h2 className="text-base font-semibold">Repair Outcome</h2>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => setShowForm(!showForm)}
+        >
+          {showForm ? "Cancel" : "Record Outcome"}
+        </Button>
+      </div>
+
+      {showForm && (
+        <Card className="mb-4">
+          <CardContent className="pt-4">
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <div>
+                <label className="mb-1 block text-xs font-medium">
+                  Outcome Status
+                </label>
+                <select
+                  value={outcomeStatus}
+                  onChange={(e) => setOutcomeStatus(e.target.value)}
+                  className="h-8 w-full rounded border bg-background px-2 text-xs"
+                >
+                  {OUTCOME_STATUS_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium">
+                  Shop Name
+                </label>
+                <input
+                  type="text"
+                  value={shopName}
+                  onChange={(e) => setShopName(e.target.value)}
+                  placeholder="Optional"
+                  className="h-8 w-full rounded border bg-background px-2 text-xs"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium">
+                  Invoice Amount (USD)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={invoiceAmount}
+                  onChange={(e) => setInvoiceAmount(e.target.value)}
+                  placeholder="e.g. 450.00"
+                  className="h-8 w-full rounded border bg-background px-2 text-xs"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium">Notes</label>
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows={2}
+                  className="w-full rounded border bg-background px-2 py-1.5 text-xs"
+                  placeholder="Optional notes..."
+                />
+              </div>
+              {formError && <p className="text-xs text-red-500">{formError}</p>}
+              <Button
+                type="submit"
+                size="sm"
+                disabled={createMutation.isPending}
+              >
+                {createMutation.isPending ? "Saving..." : "Save Outcome"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+
+      {existingOutcomes.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          No repair outcomes recorded yet.
+        </p>
+      ) : (
+        <div className="space-y-2">
+          {existingOutcomes.map((outcome) => (
+            <Card key={outcome.id}>
+              <CardContent className="grid grid-cols-2 gap-2 py-3 text-xs sm:grid-cols-4">
+                <div>
+                  <span className="text-muted-foreground">Status</span>
+                  <p className="font-medium capitalize">
+                    {outcome.outcomeStatus.replace(/_/g, " ")}
+                  </p>
+                </div>
+                {outcome.shopName && (
+                  <div>
+                    <span className="text-muted-foreground">Shop</span>
+                    <p className="font-medium">{outcome.shopName}</p>
+                  </div>
+                )}
+                {outcome.invoiceAmountCents !== null && (
+                  <div>
+                    <span className="text-muted-foreground">Invoice</span>
+                    <p className="font-medium">
+                      ${(outcome.invoiceAmountCents / 100).toFixed(2)}
+                    </p>
+                  </div>
+                )}
+                <div>
+                  <span className="text-muted-foreground">Recorded</span>
+                  <p className="font-medium">
+                    {new Date(outcome.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                {outcome.notes && (
+                  <div className="col-span-2 sm:col-span-4">
+                    <span className="text-muted-foreground">Notes</span>
+                    <p className="text-muted-foreground">{outcome.notes}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -345,13 +554,17 @@ export default function ResultsDetail({
     likelyCauses.isError &&
     extractBusinessCode(likelyCauses.error) === "PRO_UPGRADE_REQUIRED";
   const isDiyProLocked =
-    diyGuide.isError && extractBusinessCode(diyGuide.error) === "PRO_UPGRADE_REQUIRED";
+    diyGuide.isError &&
+    extractBusinessCode(diyGuide.error) === "PRO_UPGRADE_REQUIRED";
   const isEstimateProLocked =
-    (estimates.isError && extractBusinessCode(estimates.error) === "PRO_UPGRADE_REQUIRED") ||
+    (estimates.isError &&
+      extractBusinessCode(estimates.error) === "PRO_UPGRADE_REQUIRED") ||
     (generateEstimateMutation.isError &&
-      extractBusinessCode(generateEstimateMutation.error) === "PRO_UPGRADE_REQUIRED");
+      extractBusinessCode(generateEstimateMutation.error) ===
+        "PRO_UPGRADE_REQUIRED");
   const isNegotiationProLocked =
-    negotiationScript.isError && extractBusinessCode(negotiationScript.error) === "PRO_UPGRADE_REQUIRED";
+    negotiationScript.isError &&
+    extractBusinessCode(negotiationScript.error) === "PRO_UPGRADE_REQUIRED";
 
   function handleGenerate() {
     setGenerating(true);
@@ -425,7 +638,9 @@ export default function ResultsDetail({
               <RecommendationCard
                 key={rec.id}
                 rec={rec}
-                currentRating={feedbackByRecommendationId.get(rec.id)?.rating ?? null}
+                currentRating={
+                  feedbackByRecommendationId.get(rec.id)?.rating ?? null
+                }
                 isSaving={feedbackMutation.isPending}
                 onRateHelpful={() =>
                   feedbackMutation.mutate({
@@ -529,7 +744,8 @@ export default function ResultsDetail({
             <CardContent className="py-4">
               <p className="font-semibold">Pro Feature</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                Upgrade to Pro to access structured DIY guides with safety checks.
+                Upgrade to Pro to access structured DIY guides with safety
+                checks.
               </p>
             </CardContent>
           </Card>
@@ -539,7 +755,8 @@ export default function ResultsDetail({
               <div className="flex items-center justify-between gap-2">
                 <p className="font-medium">{diyGuide.data.guide.title}</p>
                 <span className="text-xs text-muted-foreground">
-                  {diyGuide.data.guide.estimatedMinutes} min · {diyGuide.data.guide.difficulty}
+                  {diyGuide.data.guide.estimatedMinutes} min ·{" "}
+                  {diyGuide.data.guide.difficulty}
                 </span>
               </div>
               <div>
@@ -574,6 +791,12 @@ export default function ResultsDetail({
                   ))}
                 </ol>
               </div>
+              <Link
+                href={`/diy/${diagnosticEventId}` as never}
+                className="mt-1 inline-block text-xs font-medium text-primary hover:underline"
+              >
+                View Full Step-by-Step Guide →
+              </Link>
             </CardContent>
           </Card>
         ) : (
@@ -599,7 +822,10 @@ export default function ResultsDetail({
           <Card>
             <CardContent className="space-y-3 py-4">
               <div className="flex flex-wrap items-center gap-2">
-                <label className="text-xs text-muted-foreground" htmlFor="region">
+                <label
+                  className="text-xs text-muted-foreground"
+                  htmlFor="region"
+                >
                   Region basis
                 </label>
                 <input
@@ -618,42 +844,70 @@ export default function ResultsDetail({
                   }
                   disabled={generateEstimateMutation.isPending}
                 >
-                  {generateEstimateMutation.isPending ? "Generating..." : "Generate Estimate"}
+                  {generateEstimateMutation.isPending
+                    ? "Generating..."
+                    : "Generate Estimate"}
                 </Button>
               </div>
 
               {latestEstimate ? (
-                <div className="space-y-1 text-xs text-muted-foreground">
-                  <p>
-                    Total range: $
-                    {((latestEstimate.laborLowCents + latestEstimate.partsLowCents) / 100).toFixed(0)} - $
-                    {((latestEstimate.laborHighCents + latestEstimate.partsHighCents) / 100).toFixed(0)}
-                  </p>
-                  <p>
-                    Labor: ${(latestEstimate.laborLowCents / 100).toFixed(0)} - $
-                    {(latestEstimate.laborHighCents / 100).toFixed(0)}
-                  </p>
-                  <p>
-                    Parts: ${(latestEstimate.partsLowCents / 100).toFixed(0)} - $
-                    {(latestEstimate.partsHighCents / 100).toFixed(0)}
-                  </p>
-                  <p>Region: {latestEstimate.region}</p>
-                  <p>
-                    Geography basis:{" "}
-                    {latestEstimate.disclosure?.geographyBasis ?? latestEstimate.region}
-                  </p>
-                  <p>
-                    Assumptions:{" "}
-                    {latestEstimate.disclosure?.assumptions.length
-                      ? latestEstimate.disclosure.assumptions.join(" ")
-                      : "No assumptions provided."}
-                  </p>
-                  <p>
-                    Exclusions:{" "}
-                    {latestEstimate.disclosure?.exclusions.length
-                      ? latestEstimate.disclosure.exclusions.join(" ")
-                      : "No exclusions provided."}
-                  </p>
+                <div className="space-y-3">
+                  <div className="space-y-1 text-xs text-muted-foreground">
+                    <p className="font-semibold text-foreground">
+                      $
+                      {(
+                        (latestEstimate.laborLowCents +
+                          latestEstimate.partsLowCents) /
+                        100
+                      ).toFixed(0)}{" "}
+                      – $
+                      {(
+                        (latestEstimate.laborHighCents +
+                          latestEstimate.partsHighCents) /
+                        100
+                      ).toFixed(0)}
+                    </p>
+                    <p>
+                      Labor: ${(latestEstimate.laborLowCents / 100).toFixed(0)}{" "}
+                      – ${(latestEstimate.laborHighCents / 100).toFixed(0)}
+                    </p>
+                    <p>
+                      Parts: ${(latestEstimate.partsLowCents / 100).toFixed(0)}{" "}
+                      – ${(latestEstimate.partsHighCents / 100).toFixed(0)}
+                    </p>
+                    <p>Region: {latestEstimate.region}</p>
+                  </div>
+                  {/* CMP-003: Estimate disclosure block */}
+                  <div className="rounded border border-dashed px-3 py-2 text-xs text-muted-foreground">
+                    <p className="mb-1 font-semibold text-foreground">
+                      Estimate Disclosure (CMP-003)
+                    </p>
+                    <p>
+                      <span className="font-medium">Geography basis: </span>
+                      {latestEstimate.disclosure?.geographyBasis ??
+                        latestEstimate.region}
+                    </p>
+                    {(latestEstimate.disclosure?.assumptions.length ?? 0) >
+                      0 && (
+                      <div className="mt-1">
+                        <span className="font-medium">Assumptions: </span>
+                        {latestEstimate.disclosure!.assumptions.join("; ")}
+                      </div>
+                    )}
+                    {(latestEstimate.disclosure?.exclusions.length ?? 0) >
+                      0 && (
+                      <div className="mt-1">
+                        <span className="font-medium">Exclusions: </span>
+                        {latestEstimate.disclosure!.exclusions.join("; ")}
+                      </div>
+                    )}
+                    <p className="mt-1 italic">
+                      This estimate is for informational purposes only and may
+                      vary based on actual parts, labor rates, and vehicle
+                      condition. Consult a licensed mechanic for an accurate
+                      diagnosis and quote.
+                    </p>
+                  </div>
                 </div>
               ) : (
                 <p className="text-xs text-muted-foreground">
@@ -681,11 +935,13 @@ export default function ResultsDetail({
               <div>
                 <p className="mb-1 text-xs font-semibold">Questions to Ask</p>
                 <ol className="space-y-1">
-                  {negotiationScript.data.keyQuestions.map((question, index) => (
-                    <li key={index} className="text-xs text-muted-foreground">
-                      {index + 1}. {question}
-                    </li>
-                  ))}
+                  {negotiationScript.data.keyQuestions.map(
+                    (question, index) => (
+                      <li key={index} className="text-xs text-muted-foreground">
+                        {index + 1}. {question}
+                      </li>
+                    ),
+                  )}
                 </ol>
               </div>
               <div>
@@ -698,7 +954,9 @@ export default function ResultsDetail({
                   ))}
                 </ul>
               </div>
-              <p className="text-xs text-muted-foreground">{negotiationScript.data.closingPrompt}</p>
+              <p className="text-xs text-muted-foreground">
+                {negotiationScript.data.closingPrompt}
+              </p>
             </CardContent>
           </Card>
         ) : (
@@ -707,6 +965,9 @@ export default function ResultsDetail({
           </p>
         )}
       </section>
+
+      {/* Repair Outcome (FR-017) */}
+      <RepairOutcomeSection diagnosticEventId={diagnosticEventId} />
 
       {/* Compliance disclaimer (CMP-002) */}
       <div className="rounded-lg border border-dashed px-4 py-3 text-xs text-muted-foreground">

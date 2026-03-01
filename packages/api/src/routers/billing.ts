@@ -5,8 +5,15 @@ import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { protectedProcedure, router } from "../index";
-import { MONETIZATION_EVENTS, trackAnalyticsEvent } from "../services/analytics.service";
-import { PRO_FEATURE_KEYS, resolveEntitlements } from "../services/entitlement.service";
+import {
+  MONETIZATION_EVENTS,
+  trackAnalyticsEvent,
+} from "../services/analytics.service";
+import {
+  PRO_FEATURE_KEYS,
+  resolveEntitlements,
+} from "../services/entitlement.service";
+import { computeSavingsSummary } from "../services/savings.service";
 import { resolveSupportPriority } from "../services/supportPriority.service";
 
 const subscriptionOutputSchema = z.object({
@@ -83,7 +90,9 @@ function checkoutSlugForPlan(plan: "monthly" | "annual") {
 }
 
 function productIdForPlan(plan: "monthly" | "annual") {
-  return plan === "annual" ? env.POLAR_PRODUCT_ID_PRO_ANNUAL : env.POLAR_PRODUCT_ID_PRO_MONTHLY;
+  return plan === "annual"
+    ? env.POLAR_PRODUCT_ID_PRO_ANNUAL
+    : env.POLAR_PRODUCT_ID_PRO_MONTHLY;
 }
 
 export const billingRouter = router({
@@ -103,11 +112,15 @@ export const billingRouter = router({
       const snapshot = await resolveEntitlements(ctx.session.user.id);
       return {
         featureKey: input.featureKey,
-        enabled: snapshot.features.includes(input.featureKey as (typeof snapshot.features)[number]),
+        enabled: snapshot.features.includes(
+          input.featureKey as (typeof snapshot.features)[number],
+        ),
       };
     }),
 
-  listKnownProFeatures: protectedProcedure.output(z.array(z.string())).query(() => [...PRO_FEATURE_KEYS]),
+  listKnownProFeatures: protectedProcedure
+    .output(z.array(z.string()))
+    .query(() => [...PRO_FEATURE_KEYS]),
 
   getSubscription: protectedProcedure
     .output(z.object({ subscription: subscriptionOutputSchema.nullable() }))
@@ -120,7 +133,9 @@ export const billingRouter = router({
         .limit(1);
 
       return {
-        subscription: latestSubscription ? mapSubscriptionRow(latestSubscription) : null,
+        subscription: latestSubscription
+          ? mapSubscriptionRow(latestSubscription)
+          : null,
       };
     }),
 
@@ -144,9 +159,29 @@ export const billingRouter = router({
       };
     }),
 
-  getSupportPriority: protectedProcedure.output(supportPriorityOutputSchema).query(async ({ ctx }) => {
-    return resolveSupportPriority(ctx.session.user.id);
-  }),
+  getSupportPriority: protectedProcedure
+    .output(supportPriorityOutputSchema)
+    .query(async ({ ctx }) => {
+      return resolveSupportPriority(ctx.session.user.id);
+    }),
+
+  getSavingsSummary: protectedProcedure
+    .output(
+      z.object({
+        totalEstimatedRangeLowCents: z.number().int().nonnegative(),
+        totalEstimatedRangeHighCents: z.number().int().nonnegative(),
+        totalActualCents: z.number().int().nonnegative(),
+        estimatedSavingsLowCents: z.number().int().nonnegative(),
+        estimatedSavingsHighCents: z.number().int().nonnegative(),
+        outcomeCount: z.number().int().nonnegative(),
+        estimateCount: z.number().int().nonnegative(),
+        confidenceNote: z.string(),
+        disclaimer: z.string(),
+      }),
+    )
+    .query(async ({ ctx }) => {
+      return computeSavingsSummary(ctx.session.user.id);
+    }),
 
   trackPaywallView: protectedProcedure
     .input(

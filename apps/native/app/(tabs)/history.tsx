@@ -2,8 +2,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import { Button, Card, Chip, Spinner, useThemeColor } from "heroui-native";
 import { useRouter } from "expo-router";
-import { useState } from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { useMemo, useState } from "react";
+import {
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 import { Container } from "@/components/container";
 import { trpc } from "@/utils/trpc";
@@ -37,6 +43,13 @@ function getEventTypeLabel(eventType: string): string {
   }
 }
 
+const EVENT_TYPE_OPTIONS = [
+  { value: "", label: "All Types" },
+  { value: "scan.ingested", label: "Scan" },
+  { value: "dtc.cleared", label: "Cleared" },
+  { value: "scan.event.created", label: "DTC Detected" },
+];
+
 export default function HistoryTab() {
   const router = useRouter();
   const mutedColor = useThemeColor("muted");
@@ -45,6 +58,8 @@ export default function HistoryTab() {
   const [selectedVehicleId, setSelectedVehicleId] = useState<number | null>(
     null,
   );
+  const [eventTypeFilter, setEventTypeFilter] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
 
   const activeVehicleId = selectedVehicleId ?? vehicles.data?.[0]?.id ?? null;
 
@@ -58,6 +73,7 @@ export default function HistoryTab() {
   const timeline = useQuery({
     ...trpc.diagnostics.timelineByVehicle.queryOptions({
       vehicleId: activeVehicleId ?? 0,
+      eventType: eventTypeFilter.length > 0 ? eventTypeFilter : undefined,
     }),
     enabled: activeVehicleId !== null,
   });
@@ -67,8 +83,17 @@ export default function HistoryTab() {
     (activeVehicleId !== null && (events.isLoading || timeline.isLoading));
 
   // Build a combined list: diagnostic events with timeline context
-  const diagnosticEvents = events.data ?? [];
+  const allDiagnosticEvents = events.data ?? [];
   const timelineEvents = timeline.data?.events ?? [];
+
+  // When eventType filter is active, only show events that have a matching timeline entry
+  const diagnosticEvents = useMemo(() => {
+    if (!eventTypeFilter) return allDiagnosticEvents;
+    const refIds = new Set(
+      timelineEvents.map((t) => t.eventRefId).filter(Boolean),
+    );
+    return allDiagnosticEvents.filter((e) => refIds.has(e.id));
+  }, [allDiagnosticEvents, timelineEvents, eventTypeFilter]);
 
   // Merge timeline events as annotations on top of diagnostic events
   function getTimelineEventForDiagnostic(eventId: number) {
@@ -123,6 +148,56 @@ export default function HistoryTab() {
             </ScrollView>
           )}
         </View>
+
+        {/* Filters */}
+        {activeVehicleId !== null && (
+          <View className="gap-2">
+            <TouchableOpacity
+              onPress={() => setShowFilters(!showFilters)}
+              className="flex-row items-center gap-1"
+            >
+              <Ionicons name="filter-outline" size={14} color={mutedColor} />
+              <Text className="text-muted text-xs">
+                {showFilters ? "Hide Filters" : "Filters"}
+              </Text>
+            </TouchableOpacity>
+
+            {showFilters && (
+              <View className="gap-2 rounded-lg border border-border p-3">
+                <Text className="text-foreground text-xs font-medium">
+                  Event Type
+                </Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerClassName="gap-2"
+                >
+                  {EVENT_TYPE_OPTIONS.map((opt) => (
+                    <TouchableOpacity
+                      key={opt.value}
+                      onPress={() => setEventTypeFilter(opt.value)}
+                      className={`rounded-full border px-3 py-1 ${
+                        eventTypeFilter === opt.value
+                          ? "border-primary bg-primary"
+                          : "border-border bg-card"
+                      }`}
+                    >
+                      <Text
+                        className={`text-xs ${
+                          eventTypeFilter === opt.value
+                            ? "text-primary-foreground"
+                            : "text-foreground"
+                        }`}
+                      >
+                        {opt.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+          </View>
+        )}
 
         {/* History */}
         {activeVehicleId === null ? null : isLoading ? (

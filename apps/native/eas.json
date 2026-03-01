@@ -1,0 +1,64 @@
+{
+  "cli": {
+    "version": ">= 10.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_SERVER_URL": "http://localhost:3000",
+        "EXPO_PUBLIC_ADAPTER_MODE": "simulated",
+        "EXPO_PUBLIC_FLAG_FREE_TIER_ENABLED": "true",
+        "EXPO_PUBLIC_FLAG_PRO_PAYWALL_ENABLED": "true",
+        "EXPO_PUBLIC_FLAG_AI_EXPLANATIONS_ENABLED": "true",
+        "EXPO_PUBLIC_FLAG_LIKELY_CAUSES_ENABLED": "true",
+        "EXPO_PUBLIC_FLAG_PARTNER_PORTAL_ENABLED": "true",
+        "EXPO_PUBLIC_FLAG_ADMIN_KILL_SWITCH_ENABLED": "true"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_SERVER_URL": "https://car-health-genius.onrender.com",
+        "EXPO_PUBLIC_ADAPTER_MODE": "ble",
+        "EXPO_PUBLIC_FLAG_FREE_TIER_ENABLED": "true",
+        "EXPO_PUBLIC_FLAG_PRO_PAYWALL_ENABLED": "true",
+        "EXPO_PUBLIC_FLAG_AI_EXPLANATIONS_ENABLED": "true",
+        "EXPO_PUBLIC_FLAG_LIKELY_CAUSES_ENABLED": "true",
+        "EXPO_PUBLIC_FLAG_PARTNER_PORTAL_ENABLED": "true",
+        "EXPO_PUBLIC_FLAG_ADMIN_KILL_SWITCH_ENABLED": "true"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_SERVER_URL": "https://car-health-genius.onrender.com",
+        "EXPO_PUBLIC_ADAPTER_MODE": "ble",
+        "EXPO_PUBLIC_FLAG_FREE_TIER_ENABLED": "true",
+        "EXPO_PUBLIC_FLAG_PRO_PAYWALL_ENABLED": "true",
+        "EXPO_PUBLIC_FLAG_AI_EXPLANATIONS_ENABLED": "true",
+        "EXPO_PUBLIC_FLAG_LIKELY_CAUSES_ENABLED": "true",
+        "EXPO_PUBLIC_FLAG_PARTNER_PORTAL_ENABLED": "true",
+        "EXPO_PUBLIC_FLAG_ADMIN_KILL_SWITCH_ENABLED": "true"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "appleId": "your-apple-id@example.com",
+        "ascAppId": "YOUR_APP_STORE_CONNECT_APP_ID",
+        "appleTeamId": "YOUR_APPLE_TEAM_ID"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./google-services-key.json",
+        "track": "internal"
+      }
+    }
+  }
+}

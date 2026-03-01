@@ -24,7 +24,12 @@ const supportPayloadOutputSchema = z.object({
   generatedAt: z.string(),
 });
 
-const supportIssueStatusSchema = z.enum(["open", "in_progress", "resolved", "closed"]);
+const supportIssueStatusSchema = z.enum([
+  "open",
+  "in_progress",
+  "resolved",
+  "closed",
+]);
 
 const supportIssueOutputSchema = z.object({
   id: z.number().int().positive(),
@@ -64,7 +69,8 @@ function mapSupportIssueRow(row: typeof supportIssue.$inferSelect) {
     includeDiagnosticBundle: row.includeDiagnosticBundle,
     consentedToDiagnosticBundle: row.consentedToDiagnosticBundle,
     consentCapturedAt: toIsoNullable(row.consentCapturedAt),
-    diagnosticBundle: (row.diagnosticBundle as Record<string, unknown> | null) ?? null,
+    diagnosticBundle:
+      (row.diagnosticBundle as Record<string, unknown> | null) ?? null,
     priorityTier: supportPriorityTierSchema.parse(row.priorityTier),
     priorityReason: row.priorityReason,
     slaTargetMinutes: row.slaTargetMinutes,
@@ -163,7 +169,8 @@ export const supportRouter = router({
       if (input.includeDiagnosticBundle && !input.consentDiagnosticBundle) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "You must explicitly consent before attaching diagnostic data",
+          message:
+            "You must explicitly consent before attaching diagnostic data",
           cause: {
             businessCode: "SUPPORT_BUNDLE_CONSENT_REQUIRED",
           },
@@ -229,7 +236,12 @@ export const supportRouter = router({
       const [ownedIssue] = await db
         .select()
         .from(supportIssue)
-        .where(and(eq(supportIssue.id, input.issueId), eq(supportIssue.userId, ctx.session.user.id)))
+        .where(
+          and(
+            eq(supportIssue.id, input.issueId),
+            eq(supportIssue.userId, ctx.session.user.id),
+          ),
+        )
         .limit(1);
 
       if (!ownedIssue) {
