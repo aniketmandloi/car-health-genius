@@ -2,7 +2,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button, Card, Chip, Spinner } from "heroui-native";
 import { useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 import { Container } from "@/components/container";
 import { queryClient, trpc } from "@/utils/trpc";
@@ -192,13 +192,17 @@ export default function ResultsDetailScreen() {
     likelyCauses.isError &&
     extractBusinessCode(likelyCauses.error) === "PRO_UPGRADE_REQUIRED";
   const isDiyProLocked =
-    diyGuide.isError && extractBusinessCode(diyGuide.error) === "PRO_UPGRADE_REQUIRED";
+    diyGuide.isError &&
+    extractBusinessCode(diyGuide.error) === "PRO_UPGRADE_REQUIRED";
   const isEstimateProLocked =
-    (estimates.isError && extractBusinessCode(estimates.error) === "PRO_UPGRADE_REQUIRED") ||
+    (estimates.isError &&
+      extractBusinessCode(estimates.error) === "PRO_UPGRADE_REQUIRED") ||
     (generateEstimateMutation.isError &&
-      extractBusinessCode(generateEstimateMutation.error) === "PRO_UPGRADE_REQUIRED");
+      extractBusinessCode(generateEstimateMutation.error) ===
+        "PRO_UPGRADE_REQUIRED");
   const isNegotiationProLocked =
-    negotiationScript.isError && extractBusinessCode(negotiationScript.error) === "PRO_UPGRADE_REQUIRED";
+    negotiationScript.isError &&
+    extractBusinessCode(negotiationScript.error) === "PRO_UPGRADE_REQUIRED";
 
   function handleGenerate() {
     setGenerating(true);
@@ -379,7 +383,8 @@ export default function ResultsDetailScreen() {
                       <View className="mt-2 flex-row gap-2">
                         <Button
                           variant={
-                            (feedbackByRecommendationId.get(rec.id)?.rating ?? 0) >= 4
+                            (feedbackByRecommendationId.get(rec.id)?.rating ??
+                              0) >= 4
                               ? "primary"
                               : "secondary"
                           }
@@ -398,8 +403,10 @@ export default function ResultsDetailScreen() {
                         </Button>
                         <Button
                           variant={
-                            (feedbackByRecommendationId.get(rec.id)?.rating ?? 0) > 0 &&
-                            (feedbackByRecommendationId.get(rec.id)?.rating ?? 0) <= 3
+                            (feedbackByRecommendationId.get(rec.id)?.rating ??
+                              0) > 0 &&
+                            (feedbackByRecommendationId.get(rec.id)?.rating ??
+                              0) <= 3
                               ? "primary"
                               : "secondary"
                           }
@@ -511,11 +518,13 @@ export default function ResultsDetailScreen() {
                     <Text className="text-foreground text-xs font-semibold">
                       Safety Warnings
                     </Text>
-                    {diyGuide.data.guide.safetyWarnings.map((warning, index) => (
-                      <Text key={index} className="text-muted text-xs">
-                        • {warning}
-                      </Text>
-                    ))}
+                    {diyGuide.data.guide.safetyWarnings.map(
+                      (warning, index) => (
+                        <Text key={index} className="text-muted text-xs">
+                          • {warning}
+                        </Text>
+                      ),
+                    )}
                   </View>
                 )}
                 {diyGuide.data.guide.steps.length > 0 && (
@@ -531,6 +540,16 @@ export default function ResultsDetailScreen() {
                   </View>
                 )}
               </View>
+              <TouchableOpacity
+                onPress={() =>
+                  router.push(`/diy/${diagnosticEventId}` as never)
+                }
+                className="mt-2"
+              >
+                <Text className="text-primary text-xs font-medium">
+                  View Full Step-by-Step Guide →
+                </Text>
+              </TouchableOpacity>
             </Card>
           ) : (
             <Text className="text-muted text-xs">
@@ -589,30 +608,48 @@ export default function ResultsDetailScreen() {
                       Region: {latestEstimate.region}
                     </Text>
                     <Text className="text-muted text-xs">
-                      Labor: ${(latestEstimate.laborLowCents / 100).toFixed(0)} - $
-                      {(latestEstimate.laborHighCents / 100).toFixed(0)}
+                      Labor: ${(latestEstimate.laborLowCents / 100).toFixed(0)}{" "}
+                      - ${(latestEstimate.laborHighCents / 100).toFixed(0)}
                     </Text>
                     <Text className="text-muted text-xs">
-                      Parts: ${(latestEstimate.partsLowCents / 100).toFixed(0)} - $
-                      {(latestEstimate.partsHighCents / 100).toFixed(0)}
+                      Parts: ${(latestEstimate.partsLowCents / 100).toFixed(0)}{" "}
+                      - ${(latestEstimate.partsHighCents / 100).toFixed(0)}
                     </Text>
-                    {latestEstimate.disclosure && (
-                      <>
-                        <Text className="text-muted text-xs">
-                          Geography basis: {latestEstimate.disclosure.geographyBasis}
-                        </Text>
-                        {latestEstimate.disclosure.assumptions.map((item, index) => (
-                          <Text key={`assumption-${index}`} className="text-muted text-xs">
+                    {/* CMP-003: Estimate disclosure block */}
+                    <View className="mt-2 rounded border border-dashed p-2">
+                      <Text className="text-foreground text-xs font-semibold">
+                        Estimate Disclosure (CMP-003)
+                      </Text>
+                      <Text className="text-muted mt-0.5 text-xs">
+                        Geography basis:{" "}
+                        {latestEstimate.disclosure?.geographyBasis ??
+                          latestEstimate.region}
+                      </Text>
+                      {latestEstimate.disclosure?.assumptions.map(
+                        (item, index) => (
+                          <Text
+                            key={`assumption-${index}`}
+                            className="text-muted text-xs"
+                          >
                             Assumption: {item}
                           </Text>
-                        ))}
-                        {latestEstimate.disclosure.exclusions.map((item, index) => (
-                          <Text key={index} className="text-muted text-xs">
+                        ),
+                      )}
+                      {latestEstimate.disclosure?.exclusions.map(
+                        (item, index) => (
+                          <Text
+                            key={`exclusion-${index}`}
+                            className="text-muted text-xs"
+                          >
                             Exclusion: {item}
                           </Text>
-                        ))}
-                      </>
-                    )}
+                        ),
+                      )}
+                      <Text className="text-muted mt-1 text-xs italic">
+                        Estimate is for informational purposes only. Consult a
+                        licensed mechanic for an accurate quote.
+                      </Text>
+                    </View>
                   </>
                 ) : (
                   <Text className="text-muted text-xs">

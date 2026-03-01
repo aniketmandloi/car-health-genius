@@ -7,7 +7,7 @@ import { obdSession } from "@car-health-genius/db/schema/obdSession";
 import { timelineEvent } from "@car-health-genius/db/schema/timelineEvent";
 import { vehicle } from "@car-health-genius/db/schema/vehicle";
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, gte, lte } from "drizzle-orm";
 import { z } from "zod";
 
 import { protectedProcedure, router } from "../index";
@@ -60,7 +60,12 @@ const adapterOutputSchema = z.object({
   updatedAt: z.string(),
 });
 
-const obdSessionStatusSchema = z.enum(["active", "completed", "failed", "cancelled"]);
+const obdSessionStatusSchema = z.enum([
+  "active",
+  "completed",
+  "failed",
+  "cancelled",
+]);
 
 const obdSessionOutputSchema = z.object({
   id: z.number().int().positive(),
@@ -123,7 +128,8 @@ function mapDiagnosticEventRow(row: typeof diagnosticEvent.$inferSelect) {
     severity: row.severity,
     ingestIdempotencyKey: row.ingestIdempotencyKey,
     freezeFrame: (row.freezeFrame as Record<string, unknown> | null) ?? null,
-    sensorSnapshot: (row.sensorSnapshot as Record<string, unknown> | null) ?? null,
+    sensorSnapshot:
+      (row.sensorSnapshot as Record<string, unknown> | null) ?? null,
     capturedAt: toIsoNullable(row.capturedAt),
     occurredAt: toIso(row.occurredAt),
     ingestedAt: toIso(row.ingestedAt),
@@ -186,14 +192,19 @@ function isUniqueIngestViolation(error: unknown): boolean {
     return false;
   }
 
-  const dbError = error as { code?: string; constraint?: string; detail?: string };
+  const dbError = error as {
+    code?: string;
+    constraint?: string;
+    detail?: string;
+  };
   if (dbError.code !== "23505") {
     return false;
   }
 
   return (
     dbError.constraint === "diagnostic_event_ingest_idempotency_key_uq" ||
-    (typeof dbError.detail === "string" && dbError.detail.includes("diagnostic_event_ingest_idempotency_key_uq"))
+    (typeof dbError.detail === "string" &&
+      dbError.detail.includes("diagnostic_event_ingest_idempotency_key_uq"))
   );
 }
 
@@ -295,15 +306,17 @@ async function insertIngestEventWithIdempotency(args: {
 }
 
 export const diagnosticsRouter = router({
-  listCompatibleAdapters: protectedProcedure.output(z.array(adapterOutputSchema)).query(async () => {
-    const rows = await db
-      .select()
-      .from(adapter)
-      .where(eq(adapter.status, "active"))
-      .orderBy(asc(adapter.vendor), asc(adapter.model));
+  listCompatibleAdapters: protectedProcedure
+    .output(z.array(adapterOutputSchema))
+    .query(async () => {
+      const rows = await db
+        .select()
+        .from(adapter)
+        .where(eq(adapter.status, "active"))
+        .orderBy(asc(adapter.vendor), asc(adapter.model));
 
-    return rows.map(mapAdapterRow);
-  }),
+      return rows.map(mapAdapterRow);
+    }),
 
   startSession: protectedProcedure
     .input(
@@ -325,7 +338,12 @@ export const diagnosticsRouter = router({
             id: adapter.id,
           })
           .from(adapter)
-          .where(and(eq(adapter.slug, input.adapterSlug), eq(adapter.status, "active")))
+          .where(
+            and(
+              eq(adapter.slug, input.adapterSlug),
+              eq(adapter.status, "active"),
+            ),
+          )
           .limit(1);
 
         if (!knownAdapter) {
@@ -386,12 +404,17 @@ export const diagnosticsRouter = router({
     .input(
       z.object({
         sessionId: z.number().int().positive(),
-        status: z.enum(["completed", "failed", "cancelled"]).default("completed"),
+        status: z
+          .enum(["completed", "failed", "cancelled"])
+          .default("completed"),
       }),
     )
     .output(obdSessionOutputSchema)
     .mutation(async ({ ctx, input }) => {
-      const ownedSession = await getOwnedSession(ctx.session.user.id, input.sessionId);
+      const ownedSession = await getOwnedSession(
+        ctx.session.user.id,
+        input.sessionId,
+      );
       if (ownedSession.endedAt) {
         return mapObdSessionRow(ownedSession);
       }
@@ -402,7 +425,12 @@ export const diagnosticsRouter = router({
           status: input.status,
           endedAt: new Date(),
         })
-        .where(and(eq(obdSession.id, input.sessionId), eq(obdSession.userId, ctx.session.user.id)))
+        .where(
+          and(
+            eq(obdSession.id, input.sessionId),
+            eq(obdSession.userId, ctx.session.user.id),
+          ),
+        )
         .returning();
 
       if (!updated) {
@@ -429,7 +457,10 @@ export const diagnosticsRouter = router({
           "app.readings_count": input.dtcReadings.length,
         },
         async () => {
-          const ownedSession = await getOwnedSession(ctx.session.user.id, input.sessionId);
+          const ownedSession = await getOwnedSession(
+            ctx.session.user.id,
+            input.sessionId,
+          );
           if (ownedSession.status !== "active") {
             throw new TRPCError({
               code: "BAD_REQUEST",
@@ -442,10 +473,15 @@ export const diagnosticsRouter = router({
           }
 
           const normalizedInput = normalizeIngestScanInput(input);
-          const createdOrExistingRows: typeof diagnosticEvent.$inferSelect[] = [];
+          const createdOrExistingRows: (typeof diagnosticEvent.$inferSelect)[] =
+            [];
           let insertedCount = 0;
 
-          for (let index = 0; index < normalizedInput.dtcReadings.length; index += 1) {
+          for (
+            let index = 0;
+            index < normalizedInput.dtcReadings.length;
+            index += 1
+          ) {
             const result = await insertIngestEventWithIdempotency({
               session: ownedSession,
               input: normalizedInput,
@@ -500,7 +536,10 @@ export const diagnosticsRouter = router({
         .select()
         .from(diagnosticEvent)
         .where(eq(diagnosticEvent.vehicleId, input.vehicleId))
-        .orderBy(desc(diagnosticEvent.occurredAt), desc(diagnosticEvent.createdAt));
+        .orderBy(
+          desc(diagnosticEvent.occurredAt),
+          desc(diagnosticEvent.createdAt),
+        );
 
       return rows.map(mapDiagnosticEventRow);
     }),
@@ -510,6 +549,9 @@ export const diagnosticsRouter = router({
       z.object({
         vehicleId: z.number().int().positive(),
         limit: z.number().int().positive().max(500).optional(),
+        eventType: z.string().trim().min(1).optional(),
+        fromDate: z.coerce.date().optional(),
+        toDate: z.coerce.date().optional(),
       }),
     )
     .output(timelineByVehicleOutputSchema)
@@ -527,10 +569,24 @@ export const diagnosticsRouter = router({
           await ensureVehicleOwnership(ctx.session.user.id, input.vehicleId);
           const limit = input.limit ?? 200;
 
+          const conditions = [
+            eq(timelineEvent.vehicleId, input.vehicleId),
+            eq(timelineEvent.userId, ctx.session.user.id),
+          ];
+          if (input.eventType) {
+            conditions.push(eq(timelineEvent.eventType, input.eventType));
+          }
+          if (input.fromDate) {
+            conditions.push(gte(timelineEvent.occurredAt, input.fromDate));
+          }
+          if (input.toDate) {
+            conditions.push(lte(timelineEvent.occurredAt, input.toDate));
+          }
+
           const rows = await db
             .select()
             .from(timelineEvent)
-            .where(and(eq(timelineEvent.vehicleId, input.vehicleId), eq(timelineEvent.userId, ctx.session.user.id)))
+            .where(and(...conditions))
             .orderBy(asc(timelineEvent.occurredAt), asc(timelineEvent.id))
             .limit(limit);
 
@@ -558,7 +614,10 @@ export const diagnosticsRouter = router({
       await ensureVehicleOwnership(ctx.session.user.id, input.vehicleId);
 
       if (input.sessionId) {
-        const session = await getOwnedSession(ctx.session.user.id, input.sessionId);
+        const session = await getOwnedSession(
+          ctx.session.user.id,
+          input.sessionId,
+        );
         if (session.vehicleId !== input.vehicleId) {
           throw new TRPCError({
             code: "BAD_REQUEST",
@@ -618,7 +677,10 @@ export const diagnosticsRouter = router({
       await ensureVehicleOwnership(ctx.session.user.id, input.vehicleId);
 
       if (input.sessionId) {
-        const session = await getOwnedSession(ctx.session.user.id, input.sessionId);
+        const session = await getOwnedSession(
+          ctx.session.user.id,
+          input.sessionId,
+        );
         if (session.vehicleId !== input.vehicleId) {
           throw new TRPCError({
             code: "BAD_REQUEST",

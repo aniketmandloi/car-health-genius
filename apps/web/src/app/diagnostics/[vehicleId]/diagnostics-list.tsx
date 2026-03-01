@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { buttonVariants } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { trpc } from "@/utils/trpc";
 
@@ -30,13 +32,32 @@ function getSeverityBadgeClass(severity: string) {
   }
 }
 
+const EVENT_TYPE_OPTIONS = [
+  { value: "", label: "All Types" },
+  { value: "scan.ingested", label: "Scan" },
+  { value: "dtc.cleared", label: "Code Cleared" },
+  { value: "scan.event.created", label: "DTC Detected" },
+];
+
 export default function DiagnosticsList({ vehicleId }: { vehicleId: number }) {
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [eventType, setEventType] = useState("");
+
   const vehicle = useQuery(trpc.vehicles.getById.queryOptions({ vehicleId }));
   const events = useQuery(
     trpc.diagnostics.listByVehicle.queryOptions({ vehicleId }),
   );
   const recalls = useQuery(
     trpc.vehicles.getRecalls.queryOptions({ vehicleId }),
+  );
+  const timeline = useQuery(
+    trpc.diagnostics.timelineByVehicle.queryOptions({
+      vehicleId,
+      eventType: eventType.length > 0 ? eventType : undefined,
+      fromDate: fromDate ? new Date(fromDate) : undefined,
+      toDate: toDate ? new Date(toDate) : undefined,
+    }),
   );
 
   const vehicleData = vehicle.data;
@@ -86,6 +107,57 @@ export default function DiagnosticsList({ vehicleId }: { vehicleId: number }) {
           </p>
         </div>
       )}
+
+      {/* Timeline Filters */}
+      <section>
+        <h2 className="mb-3 text-base font-semibold">Timeline Filters</h2>
+        <div className="flex flex-wrap items-center gap-2">
+          <select
+            value={eventType}
+            onChange={(e) => setEventType(e.target.value)}
+            className="h-8 rounded border bg-background px-2 text-xs"
+          >
+            {EVENT_TYPE_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          <Input
+            type="date"
+            value={fromDate}
+            onChange={(e) => setFromDate(e.target.value)}
+            className="h-8 w-36 text-xs"
+            placeholder="From date"
+          />
+          <Input
+            type="date"
+            value={toDate}
+            onChange={(e) => setToDate(e.target.value)}
+            className="h-8 w-36 text-xs"
+            placeholder="To date"
+          />
+          {(fromDate || toDate || eventType) && (
+            <button
+              type="button"
+              onClick={() => {
+                setFromDate("");
+                setToDate("");
+                setEventType("");
+              }}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              Clear filters
+            </button>
+          )}
+        </div>
+        {(fromDate || toDate || eventType) && !timeline.isLoading && (
+          <p className="mt-2 text-xs text-muted-foreground">
+            {timeline.data?.events.length ?? 0} timeline event
+            {timeline.data?.events.length !== 1 ? "s" : ""} match your filters.
+          </p>
+        )}
+      </section>
 
       {/* Diagnostic Events */}
       <section>

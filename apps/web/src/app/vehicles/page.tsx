@@ -4,7 +4,13 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { queryClient, trpc } from "@/utils/trpc";
@@ -35,7 +41,9 @@ function mapMutationError(error: unknown): string {
 
 export default function VehiclesPage() {
   const vehicles = useQuery(trpc.vehicles.list.queryOptions());
-  const adapters = useQuery(trpc.diagnostics.listCompatibleAdapters.queryOptions());
+  const adapters = useQuery(
+    trpc.diagnostics.listCompatibleAdapters.queryOptions(),
+  );
 
   const [vin, setVin] = useState("");
   const [countryCode, setCountryCode] = useState("US");
@@ -51,13 +59,17 @@ export default function VehiclesPage() {
     trpc.vehicles.createFromVin.mutationOptions({
       onSuccess: async (result) => {
         if (result.created) {
-          setStatusMessage(`Created vehicle ${result.vehicle.make} ${result.vehicle.model} (${result.vehicle.modelYear})`);
+          setStatusMessage(
+            `Created vehicle ${result.vehicle.make} ${result.vehicle.model} (${result.vehicle.modelYear})`,
+          );
           setVin("");
           await queryClient.invalidateQueries(trpc.vehicles.list.queryFilter());
           return;
         }
 
-        setStatusMessage(`VIN decode fallback required: ${result.decode.message}`);
+        setStatusMessage(
+          `VIN decode fallback required: ${result.decode.message}`,
+        );
       },
       onError: (error) => {
         setStatusMessage(mapMutationError(error));
@@ -68,7 +80,9 @@ export default function VehiclesPage() {
   const createManual = useMutation(
     trpc.vehicles.create.mutationOptions({
       onSuccess: async (result) => {
-        setStatusMessage(`Created vehicle ${result.make} ${result.model} (${result.modelYear})`);
+        setStatusMessage(
+          `Created vehicle ${result.make} ${result.model} (${result.modelYear})`,
+        );
         setManualMake("");
         setManualModel("");
         setManualYear("");
@@ -96,11 +110,18 @@ export default function VehiclesPage() {
         <Card>
           <CardHeader>
             <CardTitle>VIN Onboarding</CardTitle>
-            <CardDescription>Decode VIN first, then fallback to manual if needed.</CardDescription>
+            <CardDescription>
+              Decode VIN first, then fallback to manual if needed.
+            </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3">
             <Label htmlFor="vin-input">VIN</Label>
-            <Input id="vin-input" value={vin} onChange={(event) => setVin(event.target.value)} placeholder="1HGCM82633A123456" />
+            <Input
+              id="vin-input"
+              value={vin}
+              onChange={(event) => setVin(event.target.value)}
+              placeholder="1HGCM82633A123456"
+            />
 
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-2">
@@ -108,7 +129,9 @@ export default function VehiclesPage() {
                 <Input
                   id="country-code-input"
                   value={countryCode}
-                  onChange={(event) => setCountryCode(event.target.value.toUpperCase())}
+                  onChange={(event) =>
+                    setCountryCode(event.target.value.toUpperCase())
+                  }
                   placeholder="US"
                 />
               </div>
@@ -117,7 +140,9 @@ export default function VehiclesPage() {
                 <Input
                   id="state-code-input"
                   value={stateCode}
-                  onChange={(event) => setStateCode(event.target.value.toUpperCase())}
+                  onChange={(event) =>
+                    setStateCode(event.target.value.toUpperCase())
+                  }
                   placeholder="CA"
                 />
               </div>
@@ -153,18 +178,32 @@ export default function VehiclesPage() {
         <Card>
           <CardHeader>
             <CardTitle>Manual Fallback</CardTitle>
-            <CardDescription>Use this when VIN decode is unavailable or incomplete.</CardDescription>
+            <CardDescription>
+              Use this when VIN decode is unavailable or incomplete.
+            </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3">
-            <Input value={manualMake} onChange={(event) => setManualMake(event.target.value)} placeholder="Make" />
-            <Input value={manualModel} onChange={(event) => setManualModel(event.target.value)} placeholder="Model" />
+            <Input
+              value={manualMake}
+              onChange={(event) => setManualMake(event.target.value)}
+              placeholder="Make"
+            />
+            <Input
+              value={manualModel}
+              onChange={(event) => setManualModel(event.target.value)}
+              placeholder="Model"
+            />
             <Input
               value={manualYear}
               onChange={(event) => setManualYear(event.target.value)}
               placeholder="Model year"
               inputMode="numeric"
             />
-            <Input value={manualEngine} onChange={(event) => setManualEngine(event.target.value)} placeholder="Engine (optional)" />
+            <Input
+              value={manualEngine}
+              onChange={(event) => setManualEngine(event.target.value)}
+              placeholder="Engine (optional)"
+            />
 
             <Button
               disabled={
@@ -203,32 +242,61 @@ export default function VehiclesPage() {
         <Card>
           <CardHeader>
             <CardTitle>Your Vehicles</CardTitle>
-            <CardDescription>{vehicles.isLoading ? "Loading..." : `${vehicles.data?.length ?? 0} vehicles`}</CardDescription>
+            <CardDescription>
+              {vehicles.isLoading
+                ? "Loading..."
+                : `${vehicles.data?.length ?? 0} vehicles`}
+            </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-2">
             {(vehicles.data ?? []).map((entry) => (
-              <div key={entry.id} className="border px-3 py-2 text-xs">
-                {entry.make} {entry.model} ({entry.modelYear}) - {entry.countryCode}
-                {entry.stateCode ? `-${entry.stateCode}` : ""}
+              <div
+                key={entry.id}
+                className="flex items-center justify-between border px-3 py-2 text-xs"
+              >
+                <span>
+                  {entry.make} {entry.model} ({entry.modelYear}) -{" "}
+                  {entry.countryCode}
+                  {entry.stateCode ? `-${entry.stateCode}` : ""}
+                </span>
+                <a
+                  href={`/reports/${entry.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ml-2 text-primary underline-offset-2 hover:underline"
+                >
+                  Health Report
+                </a>
               </div>
             ))}
-            {!vehicles.isLoading && (vehicles.data?.length ?? 0) === 0 ? <p className="text-xs text-muted-foreground">No vehicles yet.</p> : null}
+            {!vehicles.isLoading && (vehicles.data?.length ?? 0) === 0 ? (
+              <p className="text-xs text-muted-foreground">No vehicles yet.</p>
+            ) : null}
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
             <CardTitle>Compatible Adapters</CardTitle>
-            <CardDescription>{adapters.isLoading ? "Loading..." : `${adapters.data?.length ?? 0} active adapters`}</CardDescription>
+            <CardDescription>
+              {adapters.isLoading
+                ? "Loading..."
+                : `${adapters.data?.length ?? 0} active adapters`}
+            </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-2">
             {(adapters.data ?? []).map((entry) => (
               <div key={entry.id} className="border px-3 py-2 text-xs">
-                {entry.vendor} {entry.model} ({entry.connectionType}) - iOS {entry.iosSupported ? "yes" : "no"}, Android{" "}
+                {entry.vendor} {entry.model} ({entry.connectionType}) - iOS{" "}
+                {entry.iosSupported ? "yes" : "no"}, Android{" "}
                 {entry.androidSupported ? "yes" : "no"}
               </div>
             ))}
-            {!adapters.isLoading && (adapters.data?.length ?? 0) === 0 ? <p className="text-xs text-muted-foreground">No active adapters configured.</p> : null}
+            {!adapters.isLoading && (adapters.data?.length ?? 0) === 0 ? (
+              <p className="text-xs text-muted-foreground">
+                No active adapters configured.
+              </p>
+            ) : null}
           </CardContent>
         </Card>
       </div>

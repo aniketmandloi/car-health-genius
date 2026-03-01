@@ -6,8 +6,15 @@ import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { protectedProcedure, router } from "../index";
+import { computeVehicleHealthScore } from "../services/healthScore.service";
+import { computeMaintenancePredictions } from "../services/maintenancePrediction.service";
 
-const maintenanceStatusSchema = z.enum(["scheduled", "completed", "overdue", "dismissed"]);
+const maintenanceStatusSchema = z.enum([
+  "scheduled",
+  "completed",
+  "overdue",
+  "dismissed",
+]);
 
 const maintenanceOutputSchema = z.object({
   id: z.number().int().positive(),
@@ -66,7 +73,48 @@ async function ensureVehicleOwnership(userId: string, vehicleId: number) {
   }
 }
 
+const healthScoreFactorSchema = z.object({
+  name: z.string(),
+  impact: z.enum(["positive", "negative", "neutral"]),
+  detail: z.string(),
+});
+
+const healthScoreOutputSchema = z.object({
+  vehicleId: z.number().int().positive(),
+  score: z.number().int().min(0).max(100),
+  grade: z.enum(["A", "B", "C", "D", "F"]),
+  factors: z.array(healthScoreFactorSchema),
+  summary: z.string(),
+});
+
+const predictionOutputSchema = z.object({
+  serviceType: z.string(),
+  intervalMiles: z.number().int().positive().nullable(),
+  intervalMonths: z.number().int().positive().nullable(),
+  estimatedDueMileage: z.number().int().nonnegative().nullable(),
+  estimatedDueDate: z.string().nullable(),
+  priority: z.enum(["soon", "upcoming", "monitor"]),
+  rationale: z.string(),
+});
+
 export const maintenanceRouter = router({
+  getHealthScore: protectedProcedure
+    .input(z.object({ vehicleId: z.number().int().positive() }))
+    .output(healthScoreOutputSchema.nullable())
+    .query(async ({ ctx, input }) => {
+      return computeVehicleHealthScore(ctx.session.user.id, input.vehicleId);
+    }),
+
+  getPredictions: protectedProcedure
+    .input(z.object({ vehicleId: z.number().int().positive() }))
+    .output(z.array(predictionOutputSchema))
+    .query(async ({ ctx, input }) => {
+      return computeMaintenancePredictions(
+        ctx.session.user.id,
+        input.vehicleId,
+      );
+    }),
+
   listByVehicle: protectedProcedure
     .input(
       z.object({
@@ -80,7 +128,12 @@ export const maintenanceRouter = router({
       const rows = await db
         .select()
         .from(maintenance)
-        .where(and(eq(maintenance.userId, ctx.session.user.id), eq(maintenance.vehicleId, input.vehicleId)))
+        .where(
+          and(
+            eq(maintenance.userId, ctx.session.user.id),
+            eq(maintenance.vehicleId, input.vehicleId),
+          ),
+        )
         .orderBy(desc(maintenance.createdAt));
 
       return rows.map(mapMaintenanceRow);

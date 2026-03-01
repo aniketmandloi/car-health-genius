@@ -42,6 +42,21 @@ function getMaintenanceStatusClass(status: string) {
   }
 }
 
+function gradeColor(grade: string) {
+  switch (grade) {
+    case "A":
+      return "text-green-600 dark:text-green-400";
+    case "B":
+      return "text-lime-600 dark:text-lime-400";
+    case "C":
+      return "text-yellow-600 dark:text-yellow-400";
+    case "D":
+      return "text-orange-600 dark:text-orange-400";
+    default:
+      return "text-red-600 dark:text-red-400";
+  }
+}
+
 function VehicleHealthCard({
   vehicleId,
   make,
@@ -56,16 +71,35 @@ function VehicleHealthCard({
   const diagnostics = useQuery(
     trpc.diagnostics.listByVehicle.queryOptions({ vehicleId }),
   );
+  const healthScore = useQuery(
+    trpc.maintenance.getHealthScore.queryOptions({ vehicleId }),
+  );
   const latestEvent = diagnostics.data?.[0];
 
   return (
     <Link href={`/diagnostics/${vehicleId}` as never}>
       <Card className="h-full transition-shadow hover:shadow-md cursor-pointer">
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">
-            {make} {model}
-          </CardTitle>
-          <CardDescription>{modelYear}</CardDescription>
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <CardTitle className="text-base">
+                {make} {model}
+              </CardTitle>
+              <CardDescription>{modelYear}</CardDescription>
+            </div>
+            {healthScore.data && (
+              <div className="flex shrink-0 flex-col items-center">
+                <span
+                  className={`text-2xl font-bold leading-none ${gradeColor(healthScore.data.grade)}`}
+                >
+                  {healthScore.data.grade}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {healthScore.data.score}/100
+                </span>
+              </div>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {diagnostics.isLoading ? (
@@ -247,6 +281,128 @@ export default function Dashboard({
           </p>
         </section>
       )}
+
+      {/* Predicted Maintenance (FR-012) */}
+      {(vehicles.data?.length ?? 0) > 0 && (
+        <section>
+          <h2 className="mb-3 text-lg font-semibold">Predicted Maintenance</h2>
+          <div className="space-y-2">
+            {vehicles.data!.map((v) => (
+              <MaintenancePredictionsSection
+                key={v.id}
+                vehicleId={v.id}
+                make={v.make}
+                model={v.model}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Savings Summary (FR-015) */}
+      <SavingsSummaryCard />
     </div>
+  );
+}
+
+function priorityBadgeClass(priority: string) {
+  switch (priority) {
+    case "soon":
+      return "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400";
+    case "upcoming":
+      return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400";
+    default:
+      return "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400";
+  }
+}
+
+function MaintenancePredictionsSection({
+  vehicleId,
+  make,
+  model,
+}: {
+  vehicleId: number;
+  make: string;
+  model: string;
+}) {
+  const predictions = useQuery(
+    trpc.maintenance.getPredictions.queryOptions({ vehicleId }),
+  );
+
+  const topItems = (predictions.data ?? [])
+    .filter((p) => p.priority === "soon")
+    .slice(0, 3);
+
+  if (predictions.isLoading || topItems.length === 0) return null;
+
+  return (
+    <>
+      {topItems.map((item) => (
+        <div
+          key={`${vehicleId}-${item.serviceType}`}
+          className="flex items-center justify-between rounded-lg border px-3 py-2"
+        >
+          <div>
+            <p className="text-sm font-medium">{item.serviceType}</p>
+            <p className="text-xs text-muted-foreground">
+              {make} {model}
+              {item.estimatedDueMileage
+                ? ` · ~${item.estimatedDueMileage.toLocaleString()} mi`
+                : ""}
+              {item.estimatedDueDate
+                ? ` · ~${new Date(item.estimatedDueDate).toLocaleDateString()}`
+                : ""}
+            </p>
+          </div>
+          <span
+            className={`rounded-full px-2 py-0.5 text-xs font-medium ${priorityBadgeClass(item.priority)}`}
+          >
+            {item.priority === "soon" ? "Due Soon" : "Upcoming"}
+          </span>
+        </div>
+      ))}
+    </>
+  );
+}
+
+function SavingsSummaryCard() {
+  const savings = useQuery(trpc.billing.getSavingsSummary.queryOptions());
+
+  if (savings.isLoading) {
+    return <div className="h-20 animate-pulse rounded-lg bg-muted" />;
+  }
+
+  const data = savings.data;
+  if (!data) return null;
+
+  const hasSavings = data.estimatedSavingsHighCents > 0;
+
+  return (
+    <section>
+      <h2 className="mb-3 text-lg font-semibold">Savings Summary</h2>
+      <Card>
+        <CardContent className="space-y-3 py-4">
+          {hasSavings ? (
+            <div>
+              <p className="text-2xl font-bold text-green-600">
+                ${(data.estimatedSavingsLowCents / 100).toFixed(0)} – $
+                {(data.estimatedSavingsHighCents / 100).toFixed(0)}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Estimated savings based on {data.outcomeCount} recorded repair
+                outcome{data.outcomeCount !== 1 ? "s" : ""}
+              </p>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {data.confidenceNote}
+            </p>
+          )}
+          <p className="text-xs text-muted-foreground italic">
+            {data.disclaimer}
+          </p>
+        </CardContent>
+      </Card>
+    </section>
   );
 }

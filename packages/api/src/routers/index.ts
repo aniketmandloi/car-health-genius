@@ -1,4 +1,5 @@
 import { protectedProcedure, publicProcedure, router } from "../index";
+import { accountRouter } from "./account";
 import { adminRouter } from "./admin";
 import { billingRouter } from "./billing";
 import { bookingRouter } from "./booking";
@@ -9,6 +10,8 @@ import { kickoffRouter } from "./kickoff";
 import { maintenanceRouter } from "./maintenance";
 import { partnerPortalRouter } from "./partnerPortal";
 import { recommendationsRouter } from "./recommendations";
+import { reportsRouter } from "./reports";
+import { repairOutcomeRouter } from "./repairOutcome";
 import { supportRouter } from "./support";
 import { todoRouter } from "./todo";
 import { vehiclesRouter } from "./vehicles";
@@ -36,5 +39,8 @@ export const appRouter = router({
   support: supportRouter,
   admin: adminRouter,
   partnerPortal: partnerPortalRouter,
+  reports: reportsRouter,
+  repairOutcome: repairOutcomeRouter,
+  account: accountRouter,
 });
 export type AppRouter = typeof appRouter;
