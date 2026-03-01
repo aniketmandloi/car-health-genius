@@ -1,11 +1,17 @@
 import { createContext } from "@car-health-genius/api/context";
-import { appRouter, type AppRouter } from "@car-health-genius/api/routers/index";
+import {
+  appRouter,
+  type AppRouter,
+} from "@car-health-genius/api/routers/index";
 import { readActiveTraceContext } from "@car-health-genius/api/services/tracing.service";
 import { auth } from "@car-health-genius/auth";
 import { env } from "@car-health-genius/env/server";
 import { getServerFeatureFlags } from "@car-health-genius/env/server-flags";
 import fastifyCors from "@fastify/cors";
-import { fastifyTRPCPlugin, type FastifyTRPCPluginOptions } from "@trpc/server/adapters/fastify";
+import {
+  fastifyTRPCPlugin,
+  type FastifyTRPCPluginOptions,
+} from "@trpc/server/adapters/fastify";
 import Fastify from "fastify";
 
 import { initializeOtel } from "./otel";
@@ -169,7 +175,7 @@ fastify.get("/", async () => {
 });
 
 const serverHost = "0.0.0.0";
-const serverPort = 3000;
+const serverPort = Number(process.env.PORT ?? 3000);
 
 fastify.listen({ host: serverHost, port: serverPort }, (err) => {
   if (err) {
