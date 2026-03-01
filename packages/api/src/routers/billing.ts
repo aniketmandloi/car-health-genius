@@ -1,5 +1,6 @@
 import { db } from "@car-health-genius/db";
 import { subscription } from "@car-health-genius/db/schema/subscription";
+import { polarClient } from "@car-health-genius/auth/lib/payments";
 import { env } from "@car-health-genius/env/server";
 import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -32,12 +33,7 @@ const subscriptionOutputSchema = z.object({
 });
 
 const checkoutIntentOutputSchema = z.object({
-  status: z.literal("pending"),
-  plan: z.enum(["monthly", "annual"]),
-  checkoutSlug: z.enum(["pro-monthly", "pro-annual"]),
-  productId: z.string(),
-  successUrl: z.string().url(),
-  checkoutIntentId: z.string(),
+  checkoutUrl: z.string().url(),
 });
 
 const entitlementOutputSchema = z.object({
@@ -83,10 +79,6 @@ function mapSubscriptionRow(row: typeof subscription.$inferSelect) {
     createdAt: toIso(row.createdAt),
     updatedAt: toIso(row.updatedAt),
   };
-}
-
-function checkoutSlugForPlan(plan: "monthly" | "annual") {
-  return plan === "annual" ? "pro-annual" : "pro-monthly";
 }
 
 function productIdForPlan(plan: "monthly" | "annual") {
@@ -244,27 +236,22 @@ export const billingRouter = router({
     )
     .output(checkoutIntentOutputSchema)
     .mutation(async ({ ctx, input }) => {
-      const checkoutSlug = checkoutSlugForPlan(input.plan);
       const productId = productIdForPlan(input.plan);
-      const tracked = await trackAnalyticsEvent({
+      const successUrl = input.successUrl ?? env.POLAR_SUCCESS_URL;
+
+      const checkout = await polarClient.checkouts.create({
+        products: [productId],
+        successUrl,
+      });
+
+      await trackAnalyticsEvent({
         eventName: MONETIZATION_EVENTS.UPGRADE_START,
         userId: ctx.session.user.id,
         channel: "server",
         source: "billing.createCheckoutSession",
-        properties: {
-          plan: input.plan,
-          checkoutSlug,
-          productId,
-        },
+        properties: { plan: input.plan, productId },
       });
 
-      return {
-        status: "pending",
-        plan: input.plan,
-        checkoutSlug,
-        productId,
-        successUrl: input.successUrl ?? env.POLAR_SUCCESS_URL,
-        checkoutIntentId: tracked.eventKey,
-      };
+      return { checkoutUrl: checkout.url };
     }),
 });

@@ -5,7 +5,6 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import { queryClient, trpc } from "@/utils/trpc";
 
@@ -39,21 +38,13 @@ export default function BillingClient() {
     trpc.billing.getSupportPriority.queryOptions(),
   );
 
-  const checkoutMutation = useMutation({
-    mutationFn: async (plan: "monthly" | "annual") => {
-      const slug = plan === "monthly" ? "pro-monthly" : "pro-annual";
-      const result = await authClient.checkout({
-        slug,
-        successUrl: `${window.location.origin}/account/billing?success=true`,
-      });
-      return result;
-    },
-    onSuccess: (data) => {
-      if (data?.data?.url) {
-        window.location.href = data.data.url;
-      }
-    },
-  });
+  const checkoutMutation = useMutation(
+    trpc.billing.createCheckoutSession.mutationOptions({
+      onSuccess: (data) => {
+        window.location.href = data.checkoutUrl;
+      },
+    }),
+  );
 
   const sub = subscription.data?.subscription;
   const isPro = entitlements.data?.plan === "pro";
@@ -107,7 +98,7 @@ export default function BillingClient() {
                 <div className="flex gap-2">
                   <Button
                     size="sm"
-                    onClick={() => checkoutMutation.mutate("monthly")}
+                    onClick={() => checkoutMutation.mutate({ plan: "monthly" })}
                     disabled={checkoutMutation.isPending}
                   >
                     Upgrade to Pro (Monthly)
@@ -115,7 +106,7 @@ export default function BillingClient() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => checkoutMutation.mutate("annual")}
+                    onClick={() => checkoutMutation.mutate({ plan: "annual" })}
                     disabled={checkoutMutation.isPending}
                   >
                     Annual (Save 20%)
