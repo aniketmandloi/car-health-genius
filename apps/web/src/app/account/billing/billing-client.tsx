@@ -41,7 +41,9 @@ export default function BillingClient() {
   const checkoutMutation = useMutation(
     trpc.billing.createCheckoutSession.mutationOptions({
       onSuccess: (data) => {
-        window.location.href = data.checkoutUrl;
+        if (data.checkoutUrl) {
+          window.location.href = data.checkoutUrl;
+        }
       },
     }),
   );

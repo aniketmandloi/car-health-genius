@@ -5,6 +5,8 @@ import { env } from "@car-health-genius/env/server";
 import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
+import { TRPCError } from "@trpc/server";
+
 import { protectedProcedure, router } from "../index";
 import {
   MONETIZATION_EVENTS,
@@ -243,6 +245,13 @@ export const billingRouter = router({
         products: [productId],
         successUrl,
       });
+
+      if (!checkout.url) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Polar returned a checkout session without a URL (id=${checkout.id}, status=${checkout.status}). Check that POLAR_ACCESS_TOKEN and product IDs are correct on Render.`,
+        });
+      }
 
       await trackAnalyticsEvent({
         eventName: MONETIZATION_EVENTS.UPGRADE_START,

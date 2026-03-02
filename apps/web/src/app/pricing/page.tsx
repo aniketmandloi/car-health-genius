@@ -67,6 +67,9 @@ export default function PricingPage() {
         successUrl,
       });
 
+      if (!checkoutIntent.checkoutUrl) {
+        throw new Error("No checkout URL returned. Please try again or contact support.");
+      }
       window.location.href = checkoutIntent.checkoutUrl;
     } catch (error) {
       setCheckoutError(
