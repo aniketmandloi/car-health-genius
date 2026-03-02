@@ -45,7 +45,7 @@ test("billing router exposes entitlement, support priority, and monetization eve
   assert.match(content, /\btrackPaywallView:/);
   assert.match(content, /\btrackUpgradeSuccess:/);
   assert.match(content, /MONETIZATION_EVENTS\.UPGRADE_START/);
-  assert.match(content, /checkoutSlug/);
+  assert.match(content, /checkoutUrl/);
 });
 
 test("support router exposes priority-enriched support payload contract", () => {
@@ -75,9 +75,9 @@ test("web and native pricing/paywall surfaces exist", () => {
   const nativeTabs = read("apps/native/app/(tabs)/_layout.tsx");
 
   assert.match(webPricing, /billing\.trackPaywallView/);
-  assert.match(webPricing, /authClient\.checkout/);
+  assert.match(webPricing, /createCheckoutSession/);
   assert.match(nativePricing, /billing\.trackPaywallView/);
-  assert.match(nativePricing, /\/api\/auth\/checkout/);
+  assert.match(nativePricing, /createCheckoutSession/);
   assert.match(nativeTabs, /name="pricing"/);
 });
 
