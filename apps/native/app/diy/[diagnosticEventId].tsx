@@ -6,19 +6,25 @@ import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { Container } from "@/components/container";
 import { trpc } from "@/utils/trpc";
 
+const TEAL = "#06B6D4";
+const SLATE_400 = "#94A3B8";
+const SLATE_500 = "#64748B";
+const AMBER = "#F59E0B";
+
 function difficultyColor(difficulty: string): string {
   switch (difficulty.toLowerCase()) {
     case "beginner":
     case "easy":
-      return "#16a34a";
+      return "#10B981";
     case "intermediate":
     case "medium":
-      return "#ca8a04";
+    case "moderate":
+      return "#F59E0B";
     case "advanced":
     case "hard":
-      return "#dc2626";
+      return "#EF4444";
     default:
-      return "#6b7280";
+      return "#64748B";
   }
 }
 
@@ -51,7 +57,7 @@ export default function DiyGuideScreen() {
         {/* Header */}
         <View className="flex-row items-center gap-3">
           <TouchableOpacity onPress={() => router.back()}>
-            <Text className="text-primary text-sm">← Back</Text>
+            <Text style={{ color: TEAL, fontSize: 13 }}>← Back</Text>
           </TouchableOpacity>
         </View>
 
@@ -59,42 +65,46 @@ export default function DiyGuideScreen() {
           <Text className="text-foreground text-2xl font-bold">
             DIY Repair Guide
           </Text>
-          <Text className="text-muted mt-1 text-xs">
+          <Text style={{ color: SLATE_400, fontSize: 12, marginTop: 4 }}>
             Step-by-step instructions (Pro feature)
           </Text>
         </View>
 
         {!guide ? (
-          <Card className="items-center p-8">
+          <Card className="items-center p-8 rounded-2xl border border-white/10">
             <Text className="text-foreground font-medium">
               No DIY guide available
             </Text>
-            <Text className="text-muted mt-1 text-xs text-center">
+            <Text style={{ color: SLATE_400, fontSize: 12, textAlign: "center", marginTop: 4 }}>
               A guide hasn&apos;t been published for this fault code yet.
             </Text>
           </Card>
         ) : (
           <>
             {/* Overview Card */}
-            <Card className="p-4">
-              <Text className="text-foreground font-semibold text-base">
+            <Card className="p-4 rounded-2xl border border-white/10">
+              <Text className="text-foreground font-bold text-base">
                 {guide.title}
               </Text>
-              <Text className="text-muted font-mono text-xs mt-0.5">
+              <Text style={{ color: SLATE_500, fontFamily: "monospace", fontSize: 12, marginTop: 2 }}>
                 {guide.dtcCode}
               </Text>
-              <View className="flex-row gap-2 mt-2">
-                <Text
-                  style={{
-                    color: difficultyColor(guide.difficulty),
-                    fontSize: 11,
-                    fontWeight: "600",
-                  }}
+              <View className="flex-row gap-3 mt-2 items-center">
+                <View
+                  style={{ backgroundColor: `${difficultyColor(guide.difficulty)}20` }}
+                  className="rounded-full px-2 py-0.5"
                 >
-                  {guide.difficulty}
-                </Text>
-                <Text className="text-muted text-xs">·</Text>
-                <Text className="text-muted text-xs">
+                  <Text
+                    style={{
+                      color: difficultyColor(guide.difficulty),
+                      fontSize: 11,
+                      fontWeight: "700",
+                    }}
+                  >
+                    {guide.difficulty}
+                  </Text>
+                </View>
+                <Text style={{ color: SLATE_400, fontSize: 12 }}>
                   ~{guide.estimatedMinutes} min
                 </Text>
               </View>
@@ -102,15 +112,15 @@ export default function DiyGuideScreen() {
 
             {/* Safety Warnings */}
             {guide.safetyWarnings.length > 0 && (
-              <Card className="border border-orange-300 p-4">
-                <Text
-                  className="font-semibold text-sm mb-2"
-                  style={{ color: "#c2410c" }}
-                >
-                  ⚠ Safety Warnings
+              <Card
+                className="p-4 rounded-2xl"
+                style={{ borderWidth: 1, borderColor: "rgba(245,158,11,0.3)" }}
+              >
+                <Text style={{ color: AMBER, fontSize: 14, fontWeight: "700", marginBottom: 8 }}>
+                  Safety Warnings
                 </Text>
                 {guide.safetyWarnings.map((warning, idx) => (
-                  <Text key={idx} className="text-muted text-xs mb-1">
+                  <Text key={idx} style={{ color: SLATE_400, fontSize: 12, marginBottom: 4 }}>
                     • {warning}
                   </Text>
                 ))}
@@ -120,26 +130,26 @@ export default function DiyGuideScreen() {
             {/* Tools & Parts */}
             <View className="flex-row gap-3">
               {guide.tools.length > 0 && (
-                <Card className="flex-1 p-4">
+                <Card className="flex-1 p-4 rounded-2xl border border-white/10">
                   <Text className="text-foreground font-semibold text-xs mb-2">
                     Tools Required
                   </Text>
                   {guide.tools.map((tool, idx) => (
-                    <Text key={idx} className="text-muted text-xs mb-1">
-                      🔧 {tool}
+                    <Text key={idx} style={{ color: SLATE_400, fontSize: 12, marginBottom: 3 }}>
+                      {tool}
                     </Text>
                   ))}
                 </Card>
               )}
 
               {guide.parts.length > 0 && (
-                <Card className="flex-1 p-4">
+                <Card className="flex-1 p-4 rounded-2xl border border-white/10">
                   <Text className="text-foreground font-semibold text-xs mb-2">
                     Parts Needed
                   </Text>
                   {guide.parts.map((part, idx) => (
-                    <Text key={idx} className="text-muted text-xs mb-1">
-                      📦 {part}
+                    <Text key={idx} style={{ color: SLATE_400, fontSize: 12, marginBottom: 3 }}>
+                      {part}
                     </Text>
                   ))}
                 </Card>
@@ -148,18 +158,21 @@ export default function DiyGuideScreen() {
 
             {/* Steps */}
             {guide.steps.length > 0 && (
-              <Card className="p-4">
-                <Text className="text-foreground font-semibold text-sm mb-3">
+              <Card className="p-4 rounded-2xl border border-white/10">
+                <Text className="text-foreground font-bold text-sm mb-3">
                   Step-by-Step Instructions
                 </Text>
                 {guide.steps.map((step, idx) => (
                   <View key={idx} className="flex-row gap-3 mb-3">
-                    <View className="h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary">
+                    <View
+                      style={{ backgroundColor: TEAL }}
+                      className="h-6 w-6 shrink-0 items-center justify-center rounded-full"
+                    >
                       <Text className="text-white text-xs font-bold">
                         {idx + 1}
                       </Text>
                     </View>
-                    <Text className="text-muted text-xs leading-relaxed flex-1">
+                    <Text style={{ color: SLATE_400, fontSize: 12, flex: 1, lineHeight: 18 }}>
                       {step}
                     </Text>
                   </View>
@@ -168,7 +181,7 @@ export default function DiyGuideScreen() {
             )}
 
             {/* Disclaimer */}
-            <Text className="text-muted text-xs italic">
+            <Text style={{ color: SLATE_500, fontSize: 11, fontStyle: "italic" }}>
               This guide is for informational purposes only. If unsure about any
               step, consult a licensed mechanic. Improper repairs can cause
               vehicle damage or safety hazards.

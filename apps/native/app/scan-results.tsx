@@ -7,6 +7,10 @@ import { ScrollView, Text, View } from "react-native";
 import { Container } from "@/components/container";
 import { queryClient, trpc } from "@/utils/trpc";
 
+const TEAL = "#06B6D4";
+const SLATE_400 = "#94A3B8";
+const RED = "#EF4444";
+
 function getSeverityColor(
   severity: string,
 ): "success" | "warning" | "danger" | "default" {
@@ -71,11 +75,14 @@ function EventCard({
   );
 
   return (
-    <Card className="p-4">
+    <Card className="p-4 rounded-2xl border border-white/10">
       <View className="gap-2">
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center gap-2">
-            <Text className="text-foreground font-mono text-lg font-bold">
+            <Text
+              className="text-foreground font-bold"
+              style={{ fontFamily: "monospace", fontSize: 16 }}
+            >
               {event.dtcCode}
             </Text>
             <Chip
@@ -88,7 +95,7 @@ function EventCard({
           </View>
         </View>
 
-        <Text className="text-muted text-xs">
+        <Text style={{ color: SLATE_400, fontSize: 12 }}>
           {event.source} ·{" "}
           {new Date(event.occurredAt).toLocaleDateString(undefined, {
             month: "short",
@@ -98,7 +105,7 @@ function EventCard({
         </Text>
 
         {explainError && (
-          <Text className="text-xs text-red-500">{explainError}</Text>
+          <Text style={{ color: RED, fontSize: 12 }}>{explainError}</Text>
         )}
 
         <View className="mt-1 flex-row gap-2">
@@ -149,7 +156,6 @@ export default function ScanResultsScreen() {
     enabled: activeVehicle !== undefined,
   });
 
-  // Show only events from the latest session (most recent ~10 events)
   const recentEvents = (events.data ?? []).slice(0, 10);
 
   return (
@@ -161,7 +167,7 @@ export default function ScanResultsScreen() {
             Scan Results
           </Text>
           {activeVehicle ? (
-            <Text className="text-muted text-sm">
+            <Text style={{ color: SLATE_400, fontSize: 13 }}>
               {activeVehicle.make} {activeVehicle.model} (
               {activeVehicle.modelYear})
             </Text>
@@ -172,12 +178,14 @@ export default function ScanResultsScreen() {
         {events.isLoading ? (
           <View className="items-center py-12">
             <Spinner size="lg" />
-            <Text className="text-muted mt-3 text-sm">Loading results...</Text>
+            <Text style={{ color: SLATE_400, fontSize: 13, marginTop: 12 }}>
+              Loading results...
+            </Text>
           </View>
         ) : recentEvents.length === 0 ? (
-          <Card className="items-center p-6">
+          <Card className="items-center p-6 rounded-2xl border border-white/10">
             <Text className="text-foreground font-medium">No codes found</Text>
-            <Text className="text-muted mt-1 text-xs text-center">
+            <Text style={{ color: SLATE_400, fontSize: 12, textAlign: "center", marginTop: 4 }}>
               Your vehicle scan returned no diagnostic codes.
             </Text>
           </Card>

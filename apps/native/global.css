@@ -3,3 +3,26 @@
 @import "heroui-native/styles";
 
 @source './node_modules/heroui-native/lib';
+
+/*
+ * Custom theme overrides — Automotive Glassmorphic palette
+ * Matches web app design system (Car Health Genius)
+ */
+
+@theme inline {
+  --color-brand-teal: #06B6D4;
+  --color-brand-teal-light: #22D3EE;
+  --color-brand-violet: #8B5CF6;
+
+  --color-severity-critical: #EF4444;
+  --color-severity-high: #F97316;
+  --color-severity-medium: #F59E0B;
+  --color-severity-low: #3B82F6;
+  --color-severity-cleared: #64748B;
+
+  --color-health-a: #10B981;
+  --color-health-b: #06B6D4;
+  --color-health-c: #F59E0B;
+  --color-health-d: #F97316;
+  --color-health-f: #EF4444;
+}

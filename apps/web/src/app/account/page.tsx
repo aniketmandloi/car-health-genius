@@ -23,9 +23,9 @@ export default async function AccountPage() {
   const { user } = session;
 
   return (
-    <div className="container mx-auto max-w-2xl space-y-6 p-4">
+    <div className="container mx-auto max-w-2xl space-y-6 p-4 md:p-6">
       <div>
-        <h1 className="text-2xl font-semibold">Account Settings</h1>
+        <h1 className="text-2xl font-bold">Account Settings</h1>
         <p className="text-sm text-muted-foreground">
           Manage your profile and subscription.
         </p>

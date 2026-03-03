@@ -8,6 +8,13 @@ import { Container } from "@/components/container";
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/utils/trpc";
 
+const TEAL = "#06B6D4";
+const VIOLET = "#8B5CF6";
+const SLATE_400 = "#94A3B8";
+const SLATE_50 = "#F1F5F9";
+const SLATE_500 = "#64748B";
+const RED = "#EF4444";
+
 type Plan = "monthly" | "annual";
 
 export default function PricingTab() {
@@ -18,9 +25,7 @@ export default function PricingTab() {
 
   const trackPaywallView = useMutation(
     trpc.billing.trackPaywallView.mutationOptions({
-      onError: () => {
-        // Non-blocking analytics.
-      },
+      onError: () => {},
     }),
   );
 
@@ -75,61 +80,103 @@ export default function PricingTab() {
   return (
     <Container className="p-6">
       <View className="gap-4">
-        <Card variant="secondary" className="p-5">
-          <Card.Title>Pro Upgrade</Card.Title>
-          <Card.Description>
-            Unlock likely causes, advanced diagnostics, and maintenance
-            intelligence.
-          </Card.Description>
+        {/* Header */}
+        <View className="mb-2">
+          <Text className="text-foreground text-2xl font-bold">
+            Upgrade to{" "}
+            <Text style={{ color: TEAL }}>Pro</Text>
+          </Text>
+          <Text style={{ color: SLATE_400, fontSize: 14, marginTop: 4 }}>
+            Unlock likely causes, advanced diagnostics, and maintenance intelligence.
+          </Text>
+        </View>
 
-          <View className="mt-4 gap-3">
-            <Card className="p-4">
-              <Text className="text-foreground text-lg font-semibold">
-                Monthly Pro - $9.99/mo
+        {/* Monthly Plan */}
+        <Card
+          variant="secondary"
+          className="p-5 rounded-2xl"
+          style={{ borderWidth: 1, borderColor: "rgba(6,182,212,0.25)" }}
+        >
+          <View className="flex-row items-center justify-between mb-2">
+            <Text className="text-foreground text-lg font-bold">
+              Monthly Pro
+            </Text>
+            <View
+              style={{ backgroundColor: "rgba(6,182,212,0.15)" }}
+              className="rounded-full px-2.5 py-0.5"
+            >
+              <Text style={{ color: TEAL, fontSize: 11, fontWeight: "600" }}>
+                Monthly
               </Text>
-              <Text className="mt-1 text-muted text-sm">
-                Best for testing full feature depth before annual commitment.
-              </Text>
-              <Button
-                className="mt-3"
-                onPress={() => startCheckout("monthly")}
-                isDisabled={createCheckoutSession.isPending}
-              >
-                Choose Monthly
-              </Button>
-            </Card>
-
-            <Card className="p-4">
-              <Text className="text-foreground text-lg font-semibold">
-                Annual Pro - $79/yr
-              </Text>
-              <Text className="mt-1 text-muted text-sm">
-                Lower annual effective cost with full Pro diagnostics unlocked.
-              </Text>
-              <Button
-                className="mt-3"
-                onPress={() => startCheckout("annual")}
-                isDisabled={createCheckoutSession.isPending}
-              >
-                Choose Annual
-              </Button>
-            </Card>
-          </View>
-
-          {createCheckoutSession.isPending ? (
-            <View className="mt-4 flex-row items-center gap-2">
-              <Spinner size="sm" />
-              <Text className="text-muted text-sm">Starting checkout...</Text>
             </View>
-          ) : null}
+          </View>
+          <View className="flex-row items-end gap-1 mb-1">
+            <Text className="text-foreground text-3xl font-bold">$9.99</Text>
+            <Text style={{ color: SLATE_400, fontSize: 14, marginBottom: 4 }}>/ month</Text>
+          </View>
+          <Text style={{ color: SLATE_400, fontSize: 13 }}>
+            Full diagnostic intelligence. Cancel anytime.
+          </Text>
+          <Button
+            className="mt-4"
+            onPress={() => startCheckout("monthly")}
+            isDisabled={createCheckoutSession.isPending}
+          >
+            Choose Monthly
+          </Button>
+        </Card>
 
-          <Text className="mt-4 text-sm text-muted">{status}</Text>
+        {/* Annual Plan */}
+        <Card
+          variant="secondary"
+          className="p-5 rounded-2xl"
+          style={{ borderWidth: 1, borderColor: "rgba(139,92,246,0.25)" }}
+        >
+          <View className="flex-row items-center justify-between mb-2">
+            <Text className="text-foreground text-lg font-bold">
+              Annual Pro
+            </Text>
+            <View
+              style={{ backgroundColor: "rgba(139,92,246,0.15)" }}
+              className="rounded-full px-2.5 py-0.5"
+            >
+              <Text style={{ color: VIOLET, fontSize: 11, fontWeight: "600" }}>
+                Best Value
+              </Text>
+            </View>
+          </View>
+          <View className="flex-row items-end gap-1 mb-1">
+            <Text className="text-foreground text-3xl font-bold">$79</Text>
+            <Text style={{ color: SLATE_400, fontSize: 14, marginBottom: 4 }}>/ year</Text>
+          </View>
+          <Text style={{ color: SLATE_400, fontSize: 13 }}>
+            Save 34% vs monthly. Priority access to new features.
+          </Text>
+          <Button
+            className="mt-4"
+            onPress={() => startCheckout("annual")}
+            isDisabled={createCheckoutSession.isPending}
+          >
+            Choose Annual
+          </Button>
+        </Card>
+
+        {/* Status */}
+        {createCheckoutSession.isPending ? (
+          <View className="flex-row items-center gap-2 mt-2">
+            <Spinner size="sm" />
+            <Text style={{ color: SLATE_400, fontSize: 13 }}>Starting checkout...</Text>
+          </View>
+        ) : null}
+
+        <View className="rounded-2xl border border-white/10 p-4 mt-2">
+          <Text style={{ color: SLATE_400, fontSize: 13 }}>{status}</Text>
           {!session?.user ? (
-            <Text className="mt-1 text-xs text-muted">
+            <Text style={{ color: SLATE_500, fontSize: 12, marginTop: 4 }}>
               Sign in from Home tab before starting checkout.
             </Text>
           ) : null}
-        </Card>
+        </View>
       </View>
     </Container>
   );

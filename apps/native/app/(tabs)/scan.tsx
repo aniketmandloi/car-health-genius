@@ -20,6 +20,11 @@ import {
 } from "@/src/modules/scan-upload/queue";
 import { queryClient, trpc } from "@/utils/trpc";
 
+const TEAL = "#06B6D4";
+const SLATE_400 = "#94A3B8";
+const SLATE_500 = "#64748B";
+const EMERALD = "#10B981";
+
 function extractBusinessCode(error: unknown): string | undefined {
   if (!error || typeof error !== "object") {
     return undefined;
@@ -313,7 +318,7 @@ export default function ScanTab() {
   return (
     <Container className="p-6">
       <View className="gap-4">
-        <Card variant="secondary" className="p-4">
+        <Card variant="secondary" className="p-4 rounded-2xl border border-white/10">
           <Card.Title>Vehicle Onboarding</Card.Title>
           <Card.Description>
             Enter your VIN to create a vehicle profile.
@@ -370,8 +375,8 @@ export default function ScanTab() {
                 "Create From VIN"
               )}
             </Button>
-            <Text className="text-muted text-xs">{onboardingStatus}</Text>
-            <Text className="text-muted text-xs">
+            <Text style={{ color: SLATE_400, fontSize: 12 }}>{onboardingStatus}</Text>
+            <Text style={{ color: SLATE_400, fontSize: 12 }}>
               Active vehicle:{" "}
               {activeVehicleId
                 ? `#${activeVehicleId}`
@@ -382,7 +387,7 @@ export default function ScanTab() {
           </View>
         </Card>
 
-        <Card variant="secondary" className="p-4">
+        <Card variant="secondary" className="p-4 rounded-2xl border border-white/10">
           <Card.Title>Scan Adapter Mode</Card.Title>
           <Card.Description>
             Current mode: {mode}. Use `simulated` for Expo Go, `ble` for dev
@@ -393,10 +398,14 @@ export default function ScanTab() {
           </Card.Description>
         </Card>
 
-        <Card variant="secondary" className="p-4">
+        <Card variant="secondary" className="p-4 rounded-2xl border border-white/10">
           <Card.Title>Adapter Driver</Card.Title>
-          <Card.Description>State: {driverState}</Card.Description>
-          <Card.Description>Status: {status}</Card.Description>
+          <View className="mt-2 gap-1">
+            <Text style={{ color: SLATE_400, fontSize: 13 }}>
+              State: <Text style={{ color: driverState === "connected" ? EMERALD : SLATE_400 }}>{driverState}</Text>
+            </Text>
+            <Text style={{ color: SLATE_400, fontSize: 13 }}>Status: {status}</Text>
+          </View>
 
           <View className="mt-3 flex-row flex-wrap gap-2">
             <Button
@@ -453,21 +462,21 @@ export default function ScanTab() {
           </View>
         </Card>
 
-        <Card variant="secondary" className="p-4">
+        <Card variant="secondary" className="p-4 rounded-2xl border border-white/10">
           <Card.Title>Compatible Adapters</Card.Title>
-          <Card.Description>
+          <Text style={{ color: SLATE_400, fontSize: 13, marginTop: 4 }}>
             {adapters.isLoading
               ? "Loading adapter list..."
               : `${adapters.data?.length ?? 0} active adapter(s) available`}
-          </Card.Description>
+          </Text>
 
           <View className="mt-3 gap-2">
             {(adapters.data ?? []).map((entry) => (
-              <Card key={entry.id} className="p-3">
+              <Card key={entry.id} className="p-3 rounded-xl border border-white/10">
                 <Text className="text-foreground text-sm font-semibold">
                   {entry.vendor} {entry.model}
                 </Text>
-                <Text className="text-muted text-xs">
+                <Text style={{ color: SLATE_400, fontSize: 11 }}>
                   {entry.connectionType} | iOS{" "}
                   {entry.iosSupported ? "yes" : "no"} | Android{" "}
                   {entry.androidSupported ? "yes" : "no"}
@@ -476,7 +485,7 @@ export default function ScanTab() {
             ))}
 
             {!adapters.isLoading && (adapters.data?.length ?? 0) === 0 ? (
-              <Text className="text-muted text-xs">
+              <Text style={{ color: SLATE_500, fontSize: 12 }}>
                 No active adapters configured yet.
               </Text>
             ) : null}

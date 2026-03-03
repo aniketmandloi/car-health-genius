@@ -1,24 +1,25 @@
 import type { Metadata } from "next";
 
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 
 import "../index.css";
 import Header from "@/components/header";
 import Providers from "@/components/providers";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-sans",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-mono",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "car-health-genius",
-  description: "car-health-genius",
+  title: "Car Health Genius",
+  description:
+    "AI-powered car diagnostics and health monitoring. Decode check engine lights, track vehicle health, and save on repairs.",
 };
 
 export default function RootLayout({
@@ -28,11 +29,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}>
         <Providers>
-          <div className="grid h-svh grid-rows-[auto_1fr]">
+          <div className="relative min-h-svh bg-background dark:bg-gradient-to-br dark:from-[#0B1120] dark:to-[#162032]">
             <Header />
-            {children}
+            <main>{children}</main>
           </div>
         </Providers>
       </body>

@@ -1,18 +1,21 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
-import { Button, Card, Chip, Spinner, useThemeColor } from "heroui-native";
+import { Button, Card, Chip, Spinner } from "heroui-native";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import {
   ScrollView,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 
 import { Container } from "@/components/container";
 import { trpc } from "@/utils/trpc";
+
+const TEAL = "#06B6D4";
+const SLATE_400 = "#94A3B8";
+const SLATE_500 = "#64748B";
 
 function getSeverityColor(
   severity: string,
@@ -52,7 +55,6 @@ const EVENT_TYPE_OPTIONS = [
 
 export default function HistoryTab() {
   const router = useRouter();
-  const mutedColor = useThemeColor("muted");
 
   const vehicles = useQuery(trpc.vehicles.list.queryOptions());
   const [selectedVehicleId, setSelectedVehicleId] = useState<number | null>(
@@ -82,11 +84,9 @@ export default function HistoryTab() {
     vehicles.isLoading ||
     (activeVehicleId !== null && (events.isLoading || timeline.isLoading));
 
-  // Build a combined list: diagnostic events with timeline context
   const allDiagnosticEvents = events.data ?? [];
   const timelineEvents = timeline.data?.events ?? [];
 
-  // When eventType filter is active, only show events that have a matching timeline entry
   const diagnosticEvents = useMemo(() => {
     if (!eventTypeFilter) return allDiagnosticEvents;
     const refIds = new Set(
@@ -95,7 +95,6 @@ export default function HistoryTab() {
     return allDiagnosticEvents.filter((e) => refIds.has(e.id));
   }, [allDiagnosticEvents, timelineEvents, eventTypeFilter]);
 
-  // Merge timeline events as annotations on top of diagnostic events
   function getTimelineEventForDiagnostic(eventId: number) {
     return timelineEvents.find((t) => t.eventRefId === eventId);
   }
@@ -105,7 +104,7 @@ export default function HistoryTab() {
       <ScrollView contentContainerClassName="p-4 gap-4">
         {/* Vehicle Selector */}
         <View className="gap-2">
-          <Text className="text-foreground text-base font-semibold">
+          <Text className="text-foreground text-base font-bold">
             Select Vehicle
           </Text>
           {vehicles.isLoading ? (
@@ -113,9 +112,9 @@ export default function HistoryTab() {
               <Spinner size="sm" />
             </View>
           ) : (vehicles.data?.length ?? 0) === 0 ? (
-            <Card className="p-4">
-              <Text className="text-muted text-sm">
-                No vehicles found. Add a vehicle in the Scan tab.
+            <Card className="p-4 rounded-2xl border border-white/10">
+              <Text style={{ color: SLATE_400, fontSize: 13 }}>
+                No vehicles found. Add a vehicle in the Vehicles tab.
               </Text>
             </Card>
           ) : (
@@ -128,18 +127,19 @@ export default function HistoryTab() {
                 <TouchableOpacity
                   key={v.id}
                   onPress={() => setSelectedVehicleId(v.id)}
-                  className={`rounded-full border px-3 py-1.5 ${
+                  style={
                     activeVehicleId === v.id
-                      ? "border-primary bg-primary"
-                      : "border-border bg-card"
-                  }`}
+                      ? { backgroundColor: TEAL, borderColor: TEAL }
+                      : { borderColor: "rgba(255,255,255,0.1)" }
+                  }
+                  className="rounded-full border px-3 py-1.5"
                 >
                   <Text
-                    className={`text-xs font-medium ${
-                      activeVehicleId === v.id
-                        ? "text-primary-foreground"
-                        : "text-foreground"
-                    }`}
+                    style={{
+                      fontSize: 12,
+                      fontWeight: "500",
+                      color: activeVehicleId === v.id ? "#FFFFFF" : "#F1F5F9",
+                    }}
                   >
                     {v.make} {v.model} ({v.modelYear})
                   </Text>
@@ -156,14 +156,14 @@ export default function HistoryTab() {
               onPress={() => setShowFilters(!showFilters)}
               className="flex-row items-center gap-1"
             >
-              <Ionicons name="filter-outline" size={14} color={mutedColor} />
-              <Text className="text-muted text-xs">
+              <Ionicons name="filter-outline" size={14} color={SLATE_500} />
+              <Text style={{ color: SLATE_500, fontSize: 12 }}>
                 {showFilters ? "Hide Filters" : "Filters"}
               </Text>
             </TouchableOpacity>
 
             {showFilters && (
-              <View className="gap-2 rounded-lg border border-border p-3">
+              <View className="gap-2 rounded-xl border border-white/10 p-3">
                 <Text className="text-foreground text-xs font-medium">
                   Event Type
                 </Text>
@@ -176,18 +176,18 @@ export default function HistoryTab() {
                     <TouchableOpacity
                       key={opt.value}
                       onPress={() => setEventTypeFilter(opt.value)}
-                      className={`rounded-full border px-3 py-1 ${
+                      style={
                         eventTypeFilter === opt.value
-                          ? "border-primary bg-primary"
-                          : "border-border bg-card"
-                      }`}
+                          ? { backgroundColor: TEAL, borderColor: TEAL }
+                          : { borderColor: "rgba(255,255,255,0.1)" }
+                      }
+                      className="rounded-full border px-3 py-1"
                     >
                       <Text
-                        className={`text-xs ${
-                          eventTypeFilter === opt.value
-                            ? "text-primary-foreground"
-                            : "text-foreground"
-                        }`}
+                        style={{
+                          fontSize: 12,
+                          color: eventTypeFilter === opt.value ? "#FFFFFF" : "#F1F5F9",
+                        }}
                       >
                         {opt.label}
                       </Text>
@@ -203,33 +203,38 @@ export default function HistoryTab() {
         {activeVehicleId === null ? null : isLoading ? (
           <View className="items-center py-12">
             <Spinner size="lg" />
-            <Text className="text-muted mt-3 text-sm">Loading history...</Text>
+            <Text style={{ color: SLATE_400, fontSize: 13, marginTop: 12 }}>
+              Loading history...
+            </Text>
           </View>
         ) : diagnosticEvents.length === 0 ? (
-          <Card className="items-center py-10 p-4">
-            <Ionicons name="time-outline" size={40} color={mutedColor} />
+          <Card className="items-center py-10 p-4 rounded-2xl border border-white/10">
+            <Ionicons name="time-outline" size={40} color={SLATE_500} />
             <Text className="text-foreground mt-3 font-medium">
               No scan history
             </Text>
-            <Text className="text-muted mt-1 text-xs text-center">
+            <Text style={{ color: SLATE_400, fontSize: 12, textAlign: "center", marginTop: 4 }}>
               Connect your OBD adapter in the Scan tab to record your first
               diagnostic.
             </Text>
           </Card>
         ) : (
           <View className="gap-2">
-            <Text className="text-foreground text-base font-semibold">
+            <Text className="text-foreground text-base font-bold">
               Diagnostic Events ({diagnosticEvents.length})
             </Text>
 
             {diagnosticEvents.map((event) => {
               const timelineRef = getTimelineEventForDiagnostic(event.id);
               return (
-                <Card key={event.id} className="p-3">
+                <Card key={event.id} className="p-3 rounded-2xl border border-white/10">
                   <View className="flex-row items-start justify-between gap-2">
                     <View className="flex-1 gap-1">
                       <View className="flex-row items-center gap-2">
-                        <Text className="text-foreground font-mono text-sm font-bold">
+                        <Text
+                          className="text-foreground font-bold"
+                          style={{ fontFamily: "monospace", fontSize: 14 }}
+                        >
                           {event.dtcCode}
                         </Text>
                         <Chip
@@ -241,11 +246,9 @@ export default function HistoryTab() {
                         </Chip>
                       </View>
 
-                      <Text className="text-muted text-xs">
+                      <Text style={{ color: SLATE_400, fontSize: 11 }}>
                         {timelineRef
-                          ? getTimelineEventForDiagnostic(event.id)
-                            ? getEventTypeLabel(timelineRef.eventType)
-                            : event.source
+                          ? getEventTypeLabel(timelineRef.eventType)
                           : event.source}{" "}
                         ·{" "}
                         {new Date(event.occurredAt).toLocaleDateString(

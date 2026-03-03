@@ -10,21 +10,23 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/utils/trpc";
 
-function difficultyColor(difficulty: string) {
+function getDifficultyVariant(difficulty: string) {
   switch (difficulty.toLowerCase()) {
     case "beginner":
     case "easy":
-      return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400";
+      return "easy" as const;
     case "intermediate":
     case "medium":
-      return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400";
+    case "moderate":
+      return "moderate" as const;
     case "advanced":
     case "hard":
-      return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400";
+      return "hard" as const;
     default:
-      return "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300";
+      return "default" as const;
   }
 }
 
@@ -39,9 +41,9 @@ export function DiyGuideClient({
 
   if (guideQuery.isLoading) {
     return (
-      <div className="container mx-auto max-w-3xl space-y-4 p-4">
-        <div className="h-8 w-48 animate-pulse rounded bg-muted" />
-        <div className="h-64 animate-pulse rounded-lg bg-muted" />
+      <div className="container mx-auto max-w-3xl space-y-4 p-4 md:p-6">
+        <div className="h-8 w-48 animate-pulse rounded-lg bg-muted" />
+        <div className="h-64 animate-pulse rounded-2xl bg-muted" />
       </div>
     );
   }
@@ -49,7 +51,7 @@ export function DiyGuideClient({
   const guide = guideQuery.data?.guide;
 
   return (
-    <div className="container mx-auto max-w-3xl space-y-6 p-4">
+    <div className="container mx-auto max-w-3xl space-y-6 p-4 md:p-6">
       <div className="flex items-center gap-3">
         <Link
           href={`/results/${diagnosticEventId}`}
@@ -86,14 +88,12 @@ export function DiyGuideClient({
                 {guide.dtcCode}
               </CardDescription>
               <div className="flex flex-wrap gap-2 pt-1">
-                <span
-                  className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${difficultyColor(guide.difficulty)}`}
-                >
+                <Badge variant={getDifficultyVariant(guide.difficulty)}>
                   {guide.difficulty}
-                </span>
-                <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium">
+                </Badge>
+                <Badge variant="default">
                   ~{guide.estimatedMinutes} min
-                </span>
+                </Badge>
               </div>
             </CardHeader>
           </Card>

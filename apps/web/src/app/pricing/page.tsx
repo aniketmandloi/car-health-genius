@@ -1,25 +1,37 @@
 "use client";
 
+import { motion } from "motion/react";
 import { useMutation } from "@tanstack/react-query";
-import { Bebas_Neue, IBM_Plex_Sans } from "next/font/google";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Check, Crown, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { PageTransition } from "@/components/page-transition";
+import { staggerContainer, fadeUp } from "@/lib/animation-variants";
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/utils/trpc";
 
-const displayFont = Bebas_Neue({
-  subsets: ["latin"],
-  weight: "400",
-});
-
-const bodyFont = IBM_Plex_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-});
-
 type Plan = "monthly" | "annual";
+
+const FREE_FEATURES = [
+  "DTC code read & clear",
+  "Plain-English explanation",
+  "Severity assessment",
+  "Basic next steps",
+];
+
+const PRO_FEATURES = [
+  "Everything in Free",
+  "Likely-causes ranking with confidence",
+  "Advanced sensor context",
+  "DIY step-by-step guides",
+  "Repair cost estimates",
+  "Negotiation scripts",
+  "Health score & predictions",
+  "Priority support routing",
+];
 
 export default function PricingPage() {
   const { data: session } = authClient.useSession();
@@ -27,9 +39,7 @@ export default function PricingPage() {
 
   const trackPaywallView = useMutation(
     trpc.billing.trackPaywallView.mutationOptions({
-      onError: () => {
-        // Non-blocking analytics path.
-      },
+      onError: () => {},
     }),
   );
 
@@ -79,109 +89,155 @@ export default function PricingPage() {
   }
 
   return (
-    <main
-      className={`${bodyFont.className} min-h-screen overflow-hidden bg-[#0d1b1e] text-[#f6efe4]`}
-    >
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_20%_20%,rgba(238,186,78,0.22),transparent_38%),radial-gradient(circle_at_80%_10%,rgba(72,176,153,0.26),transparent_32%),radial-gradient(circle_at_50%_95%,rgba(246,114,72,0.16),transparent_40%)]" />
-      <div className="absolute inset-0 -z-10 bg-[linear-gradient(125deg,rgba(4,12,14,0.15)_0%,rgba(4,12,14,0.65)_70%,rgba(4,12,14,0.95)_100%)]" />
-
-      <section className="mx-auto w-full max-w-6xl px-6 pb-20 pt-20">
-        <div className="mb-10 flex flex-wrap items-center justify-between gap-6">
-          <div>
-            <p className="mb-3 text-xs uppercase tracking-[0.5em] text-[#eece88]">
-              Car Health Genius Pro
-            </p>
-            <h1
-              className={`${displayFont.className} text-6xl leading-[0.9] tracking-[0.04em] sm:text-7xl`}
-            >
-              Stop Guessing.
-              <br />
-              Start Diagnosing.
+    <PageTransition>
+      <div className="container mx-auto max-w-5xl px-4 py-16 md:py-24">
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          animate="show"
+          className="space-y-12"
+        >
+          {/* Header */}
+          <motion.div variants={fadeUp} className="text-center space-y-3">
+            <Badge variant="pro" className="gap-1">
+              <Sparkles className="size-3" />
+              Pro Plans
+            </Badge>
+            <h1 className="text-3xl font-bold sm:text-4xl md:text-5xl">
+              Stop Guessing.{" "}
+              <span className="bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">
+                Start Diagnosing.
+              </span>
             </h1>
-            <p className="mt-4 max-w-2xl text-sm text-[#d9d6cb] sm:text-base">
+            <p className="mx-auto max-w-2xl text-muted-foreground">
               Unlock ranked likely-causes, deeper sensor context, and
               maintenance intelligence with Pro. Safety guidance remains free
               for every driver.
             </p>
+          </motion.div>
+
+          {/* Plans Grid */}
+          <div className="grid gap-6 md:grid-cols-3">
+            {/* Free Plan */}
+            <motion.div variants={fadeUp}>
+              <div className="h-full rounded-2xl border border-border/50 bg-card p-6 dark:bg-white/[0.04] dark:border-white/[0.08]">
+                <h3 className="text-lg font-semibold">Free</h3>
+                <div className="mt-2">
+                  <span className="text-3xl font-bold">$0</span>
+                  <span className="text-muted-foreground"> / forever</span>
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Essential diagnostics for every car owner.
+                </p>
+                <ul className="mt-6 space-y-2.5">
+                  {FREE_FEATURES.map((feature) => (
+                    <li key={feature} className="flex items-start gap-2 text-sm">
+                      <Check className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+                <Button variant="outline" className="mt-8 w-full" disabled>
+                  Current Plan
+                </Button>
+              </div>
+            </motion.div>
+
+            {/* Monthly Pro */}
+            <motion.div variants={fadeUp}>
+              <div className="h-full rounded-2xl border border-primary/30 bg-card p-6 dark:bg-white/[0.06] dark:border-primary/20 shadow-[0_0_24px_rgba(6,182,212,0.12)]">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">Monthly Pro</h3>
+                  <Badge variant="default">Monthly</Badge>
+                </div>
+                <div className="mt-2">
+                  <span className="text-3xl font-bold">$9.99</span>
+                  <span className="text-muted-foreground"> / month</span>
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Full diagnostic intelligence. Cancel anytime.
+                </p>
+                <ul className="mt-6 space-y-2.5">
+                  {PRO_FEATURES.map((feature) => (
+                    <li key={feature} className="flex items-start gap-2 text-sm">
+                      <Check className="mt-0.5 size-4 shrink-0 text-primary" />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  className="mt-8 w-full"
+                  onClick={() => startCheckout("monthly")}
+                  disabled={createCheckoutSession.isPending}
+                >
+                  <Crown className="size-4" />
+                  Choose Monthly
+                </Button>
+              </div>
+            </motion.div>
+
+            {/* Annual Pro */}
+            <motion.div variants={fadeUp}>
+              <div className="relative h-full rounded-2xl border border-secondary/30 bg-card p-6 dark:bg-white/[0.06] dark:border-secondary/20 shadow-[0_0_24px_rgba(139,92,246,0.12)]">
+                <div className="absolute -top-3 right-4">
+                  <Badge variant="secondary" className="shadow-sm">
+                    Best Value
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">Annual Pro</h3>
+                  <Badge variant="secondary">Annual</Badge>
+                </div>
+                <div className="mt-2">
+                  <span className="text-3xl font-bold">$79</span>
+                  <span className="text-muted-foreground"> / year</span>
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Save 34% vs monthly. Priority access to new features.
+                </p>
+                <ul className="mt-6 space-y-2.5">
+                  {PRO_FEATURES.map((feature) => (
+                    <li key={feature} className="flex items-start gap-2 text-sm">
+                      <Check className="mt-0.5 size-4 shrink-0 text-secondary" />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  className="mt-8 w-full bg-secondary text-secondary-foreground hover:bg-secondary/90"
+                  onClick={() => startCheckout("annual")}
+                  disabled={createCheckoutSession.isPending}
+                >
+                  <Crown className="size-4" />
+                  Choose Annual
+                </Button>
+              </div>
+            </motion.div>
           </div>
-          <div className="rounded-2xl border border-[#f6efe440] bg-[#0a1416]/60 px-4 py-3 text-xs uppercase tracking-[0.2em] text-[#f4d78f]">
-            US Launch Pricing
-          </div>
-        </div>
 
-        <div className="grid gap-5 md:grid-cols-2">
-          <article className="group relative overflow-hidden rounded-3xl border border-[#f0dfbf3d] bg-[#102528]/80 p-7 shadow-[0_24px_80px_-45px_rgba(236,190,84,0.75)] transition-transform duration-300 hover:-translate-y-1">
-            <div className="absolute right-5 top-5 rounded-full border border-[#f6efe455] px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-[#f5dfa8]">
-              Monthly
+          {/* Footer Note */}
+          <motion.div variants={fadeUp}>
+            <div className="rounded-2xl border border-border/50 bg-card p-5 text-sm text-muted-foreground dark:bg-white/[0.03]">
+              <p>
+                Free tier keeps DTC read/clear, plain-English explanation, severity,
+                and basic next steps. Pro adds deeper decisioning and predictive
+                value.
+              </p>
+              {!session?.user && (
+                <p className="mt-2">
+                  Sign in first to upgrade.{" "}
+                  <Link href="/login" className="text-primary hover:underline">
+                    Go to login
+                  </Link>
+                </p>
+              )}
+              {checkoutError && (
+                <p className="mt-2 text-destructive">{checkoutError}</p>
+              )}
             </div>
-            <h2
-              className={`${displayFont.className} text-5xl leading-none tracking-[0.05em] text-[#ffe9bf]`}
-            >
-              $9.99
-            </h2>
-            <p className="mt-1 text-xs uppercase tracking-[0.2em] text-[#d4c6a3]">
-              Per Month
-            </p>
-            <ul className="mt-6 space-y-3 text-sm text-[#e5e0d4]">
-              <li>Likely-causes ranking with confidence</li>
-              <li>Advanced scan context and richer diagnostics</li>
-              <li>Priority support routing</li>
-            </ul>
-            <Button
-              className="mt-8 h-11 w-full bg-[#e8bb58] text-[#1e1502] hover:bg-[#f0c869]"
-              onClick={() => startCheckout("monthly")}
-              disabled={createCheckoutSession.isPending}
-            >
-              Choose Monthly
-            </Button>
-          </article>
-
-          <article className="group relative overflow-hidden rounded-3xl border border-[#7ad2bb55] bg-[#11292d]/90 p-7 shadow-[0_24px_80px_-45px_rgba(81,196,168,0.75)] transition-transform duration-300 hover:-translate-y-1">
-            <div className="absolute right-5 top-5 rounded-full border border-[#7ad2bb70] px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-[#98f1d5]">
-              Best Value
-            </div>
-            <h2
-              className={`${displayFont.className} text-5xl leading-none tracking-[0.05em] text-[#baf3e2]`}
-            >
-              $79
-            </h2>
-            <p className="mt-1 text-xs uppercase tracking-[0.2em] text-[#9ad7c6]">
-              Per Year
-            </p>
-            <ul className="mt-6 space-y-3 text-sm text-[#dcf3ea]">
-              <li>Everything in monthly Pro</li>
-              <li>Lower annual effective cost</li>
-              <li>First access to premium diagnostics</li>
-            </ul>
-            <Button
-              className="mt-8 h-11 w-full bg-[#4cb89c] text-[#071610] hover:bg-[#60cfb2]"
-              onClick={() => startCheckout("annual")}
-              disabled={createCheckoutSession.isPending}
-            >
-              Choose Annual
-            </Button>
-          </article>
-        </div>
-
-        <div className="mt-8 rounded-2xl border border-[#f6efe430] bg-[#0a1517]/80 p-4 text-sm text-[#ddd6c7]">
-          <p>
-            Free tier keeps DTC read/clear, plain-English explanation, severity,
-            and basic next steps. Pro adds deeper decisioning and predictive
-            value.
-          </p>
-          {!session?.user ? (
-            <p className="mt-2">
-              Sign in first to upgrade.{" "}
-              <Link href="/login" className="underline">
-                Go to login
-              </Link>
-            </p>
-          ) : null}
-          {checkoutError ? (
-            <p className="mt-2 text-[#ffb297]">{checkoutError}</p>
-          ) : null}
-        </div>
-      </section>
-    </main>
+          </motion.div>
+        </motion.div>
+      </div>
+    </PageTransition>
   );
 }

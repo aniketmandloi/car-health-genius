@@ -53,7 +53,8 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
 
   return (
     <div className="mx-auto w-full mt-10 max-w-md p-6">
-      <h1 className="mb-6 text-center text-3xl font-bold">Create Account</h1>
+      <div className="rounded-2xl border border-border/50 bg-card p-6 dark:bg-white/[0.04] dark:border-white/[0.08]">
+      <h1 className="mb-6 text-center text-2xl font-bold">Create Account</h1>
 
       <form
         onSubmit={(e) => {
@@ -76,7 +77,7 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
                   onChange={(e) => field.handleChange(e.target.value)}
                 />
                 {field.state.meta.errors.map((error) => (
-                  <p key={error?.message} className="text-red-500">
+                  <p key={error?.message} className="text-xs text-destructive">
                     {error?.message}
                   </p>
                 ))}
@@ -99,7 +100,7 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
                   onChange={(e) => field.handleChange(e.target.value)}
                 />
                 {field.state.meta.errors.map((error) => (
-                  <p key={error?.message} className="text-red-500">
+                  <p key={error?.message} className="text-xs text-destructive">
                     {error?.message}
                   </p>
                 ))}
@@ -122,7 +123,7 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
                   onChange={(e) => field.handleChange(e.target.value)}
                 />
                 {field.state.meta.errors.map((error) => (
-                  <p key={error?.message} className="text-red-500">
+                  <p key={error?.message} className="text-xs text-destructive">
                     {error?.message}
                   </p>
                 ))}
@@ -148,10 +149,11 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
         <Button
           variant="link"
           onClick={onSwitchToSignIn}
-          className="text-indigo-600 hover:text-indigo-800"
+          className="text-primary hover:text-primary/80"
         >
           Already have an account? Sign In
         </Button>
+      </div>
       </div>
     </div>
   );
