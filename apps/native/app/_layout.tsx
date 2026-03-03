@@ -4,9 +4,13 @@ import { Stack } from "expo-router";
 import { HeroUINativeProvider } from "heroui-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
+import { Uniwind } from "uniwind";
 
 import { AppThemeProvider } from "@/contexts/app-theme-context";
 import { queryClient } from "@/utils/trpc";
+
+// Force dark mode — app background is #0B1120, all heroui-native tokens must use dark palette
+Uniwind.setTheme("dark");
 
 export const unstable_settings = {
   initialRouteName: "(tabs)",

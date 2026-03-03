@@ -5,7 +5,6 @@ import {
   Input,
   Label,
   Spinner,
-  Surface,
   TextField,
   useToast,
 } from "heroui-native";
@@ -17,8 +16,15 @@ import { authClient } from "@/lib/auth-client";
 import { queryClient } from "@/utils/trpc";
 
 const signInSchema = z.object({
-  email: z.string().trim().min(1, "Email is required").email("Enter a valid email address"),
-  password: z.string().min(1, "Password is required").min(8, "Use at least 8 characters"),
+  email: z
+    .string()
+    .trim()
+    .min(1, "Email is required")
+    .email("Enter a valid email address"),
+  password: z
+    .string()
+    .min(1, "Password is required")
+    .min(8, "Use at least 8 characters"),
 });
 
 function getErrorMessage(error: unknown): string | null {
@@ -87,7 +93,7 @@ function SignIn() {
   });
 
   return (
-    <Surface variant="secondary" className="p-4 rounded-lg">
+    <View className="gap-2">
       <Text className="text-foreground font-medium mb-4">Sign In</Text>
 
       <form.Subscribe
@@ -149,7 +155,11 @@ function SignIn() {
                   )}
                 </form.Field>
 
-                <Button onPress={form.handleSubmit} isDisabled={isSubmitting} className="mt-1">
+                <Button
+                  onPress={form.handleSubmit}
+                  isDisabled={isSubmitting}
+                  className="mt-1"
+                >
                   {isSubmitting ? (
                     <Spinner size="sm" color="default" />
                   ) : (
@@ -161,7 +171,7 @@ function SignIn() {
           );
         }}
       </form.Subscribe>
-    </Surface>
+    </View>
   );
 }
 

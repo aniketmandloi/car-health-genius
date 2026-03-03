@@ -1,32 +1,23 @@
 import { Ionicons } from "@expo/vector-icons";
-import { getNativeFeatureFlags } from "@car-health-genius/env/native-flags";
-import { useQuery } from "@tanstack/react-query";
-import { Button, Card, Chip } from "heroui-native";
+import { Button, Card } from "heroui-native";
+import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text, TouchableOpacity, View } from "react-native";
 
 import { Container } from "@/components/container";
 import { SignIn } from "@/components/sign-in";
 import { SignUp } from "@/components/sign-up";
 import { authClient } from "@/lib/auth-client";
-import { queryClient, trpc } from "@/utils/trpc";
+import { queryClient } from "@/utils/trpc";
 
 const TEAL = "#06B6D4";
-const EMERALD = "#10B981";
 const RED = "#EF4444";
 const SLATE_400 = "#94A3B8";
 
 export default function Home() {
-  const featureFlags = getNativeFeatureFlags();
-  const healthCheck = useQuery(trpc.healthCheck.queryOptions());
-  const isConnected = healthCheck?.data === "OK";
-  const isLoading = healthCheck?.isLoading;
   const { data: session } = authClient.useSession();
   const [authMode, setAuthMode] = useState<"signin" | "signup">("signin");
-  const privateData = useQuery({
-    ...trpc.privateData.queryOptions(),
-    enabled: !!session?.user,
-  });
+  const router = useRouter();
 
   return (
     <Container className="p-6">
@@ -40,90 +31,95 @@ export default function Home() {
       </View>
 
       {session?.user ? (
-        <Card
-          variant="secondary"
-          className="mb-6 p-4 rounded-2xl border border-white/10"
-        >
-          <Text className="text-foreground text-base mb-2">
-            Welcome, <Text className="font-semibold">{session.user.name}</Text>
-          </Text>
-          <Text style={{ color: SLATE_400, fontSize: 13 }} className="mb-4">
-            {session.user.email}
-          </Text>
-          <Pressable
-            style={{ backgroundColor: RED }}
-            className="py-3 px-4 rounded-xl self-start active:opacity-70"
-            onPress={() => {
-              authClient.signOut();
-              queryClient.invalidateQueries();
-            }}
-          >
-            <Text className="text-white font-medium">Sign Out</Text>
-          </Pressable>
-        </Card>
-      ) : null}
-
-      <Card
-        variant="secondary"
-        className="p-6 rounded-2xl border border-white/10"
-      >
-        <View className="flex-row items-center justify-between mb-4">
-          <Card.Title>System Status</Card.Title>
-          <Chip
+        <>
+          <Card
             variant="secondary"
-            color={isConnected ? "success" : "danger"}
-            size="sm"
+            className="mb-6 p-4 rounded-2xl border border-white/10"
           >
-            <Chip.Label>{isConnected ? "LIVE" : "OFFLINE"}</Chip.Label>
-          </Chip>
-        </View>
+            <Text className="text-foreground text-base mb-2">
+              Welcome,{" "}
+              <Text className="font-semibold">{session.user.name}</Text>
+            </Text>
+            <Text style={{ color: SLATE_400, fontSize: 13 }} className="mb-4">
+              {session.user.email}
+            </Text>
+            <Pressable
+              style={{ backgroundColor: RED }}
+              className="py-3 px-4 rounded-xl self-start active:opacity-70"
+              onPress={() => {
+                authClient.signOut();
+                queryClient.invalidateQueries();
+              }}
+            >
+              <Text className="text-white font-medium">Sign Out</Text>
+            </Pressable>
+          </Card>
 
-        <Card className="p-4 rounded-xl">
-          <View className="flex-row items-center">
-            <View
-              style={{ backgroundColor: isConnected ? EMERALD : SLATE_400 }}
-              className="w-3 h-3 rounded-full mr-3"
-            />
-            <View className="flex-1">
-              <Text className="text-foreground font-medium mb-1">
-                tRPC Backend
-              </Text>
-              <Card.Description>
-                {isLoading
-                  ? "Checking connection..."
-                  : isConnected
-                    ? "Connected to API"
-                    : "API Disconnected"}
-              </Card.Description>
-            </View>
-            {isLoading && (
-              <Ionicons name="hourglass-outline" size={20} color={SLATE_400} />
-            )}
-            {!isLoading && isConnected && (
-              <Ionicons name="checkmark-circle" size={20} color={EMERALD} />
-            )}
-            {!isLoading && !isConnected && (
-              <Ionicons name="close-circle" size={20} color={RED} />
-            )}
+          <View className="mt-6 gap-3">
+            {[
+              {
+                icon: "scan-outline",
+                label: "Scan Vehicle",
+                desc: "Connect your OBD adapter and read codes",
+                route: "/(tabs)/scan",
+              },
+              {
+                icon: "car-sport-outline",
+                label: "My Vehicles",
+                desc: "Manage your vehicle profiles",
+                route: "/(tabs)/vehicles",
+              },
+              {
+                icon: "time-outline",
+                label: "View History",
+                desc: "Browse past diagnostics and results",
+                route: "/(tabs)/history",
+              },
+            ].map((item) => (
+              <TouchableOpacity
+                key={item.route}
+                onPress={() => router.push(item.route as never)}
+                activeOpacity={0.7}
+              >
+                <Card
+                  variant="secondary"
+                  className="p-4 rounded-2xl border border-white/10"
+                >
+                  <View className="flex-row items-center gap-3">
+                    <View
+                      style={{
+                        backgroundColor: "rgba(6,182,212,0.12)",
+                        borderRadius: 12,
+                        padding: 10,
+                      }}
+                    >
+                      <Ionicons
+                        name={item.icon as any}
+                        size={22}
+                        color={TEAL}
+                      />
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-foreground font-semibold text-sm">
+                        {item.label}
+                      </Text>
+                      <Text
+                        style={{ color: SLATE_400, fontSize: 12, marginTop: 2 }}
+                      >
+                        {item.desc}
+                      </Text>
+                    </View>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={16}
+                      color={SLATE_400}
+                    />
+                  </View>
+                </Card>
+              </TouchableOpacity>
+            ))}
           </View>
-        </Card>
-
-        <Text style={{ color: SLATE_400, fontSize: 11, marginTop: 12 }}>
-          Flags: free-tier {featureFlags.freeTierEnabled ? "on" : "off"},
-          pro-paywall {featureFlags.proPaywallEnabled ? "on" : "off"}
-        </Text>
-      </Card>
-
-      {session?.user ? (
-        <Card
-          variant="secondary"
-          className="mt-6 p-4 rounded-2xl border border-white/10"
-        >
-          <Card.Title className="mb-3">Private Data</Card.Title>
-          <Card.Description>
-            {privateData.data?.message ?? "No private payload"}
-          </Card.Description>
-        </Card>
+        </>
       ) : (
         <Card
           variant="secondary"

@@ -321,7 +321,7 @@ export default function ScanTab() {
           variant="secondary"
           className="p-4 rounded-2xl border border-white/10"
         >
-          <Card.Title>Vehicle Onboarding</Card.Title>
+          <Card.Title>Set Up Your Vehicle</Card.Title>
           <Card.Description>
             Enter your VIN to create a vehicle profile.
           </Card.Description>
@@ -381,12 +381,18 @@ export default function ScanTab() {
               {onboardingStatus}
             </Text>
             <Text style={{ color: SLATE_400, fontSize: 12 }}>
-              Active vehicle:{" "}
               {activeVehicleId
-                ? `#${activeVehicleId}`
+                ? (() => {
+                    const v = vehicles.data?.find(
+                      (v) => v.id === activeVehicleId,
+                    );
+                    return v
+                      ? `Vehicle: ${v.make} ${v.model} (${v.modelYear})`
+                      : "Vehicle loaded";
+                  })()
                 : vehicles.isLoading
-                  ? "Loading..."
-                  : "None selected. Create a vehicle first."}
+                  ? "Loading your vehicles..."
+                  : "No vehicle selected. Create one above."}
             </Text>
           </View>
         </Card>
@@ -395,21 +401,7 @@ export default function ScanTab() {
           variant="secondary"
           className="p-4 rounded-2xl border border-white/10"
         >
-          <Card.Title>Scan Adapter Mode</Card.Title>
-          <Card.Description>
-            Current mode: {mode}. Use `simulated` for Expo Go, `ble` for dev
-            builds.
-          </Card.Description>
-          <Card.Description>
-            Session: {activeSessionId ? `#${activeSessionId}` : "Not started"}
-          </Card.Description>
-        </Card>
-
-        <Card
-          variant="secondary"
-          className="p-4 rounded-2xl border border-white/10"
-        >
-          <Card.Title>Adapter Driver</Card.Title>
+          <Card.Title>OBD Scanner</Card.Title>
           <View className="mt-2 gap-1">
             <Text style={{ color: SLATE_400, fontSize: 13 }}>
               State:{" "}
@@ -460,7 +452,7 @@ export default function ScanTab() {
                 })
               }
             >
-              Read + Upload DTC
+              Read DTC Codes
             </Button>
             <Button
               variant="secondary"
@@ -472,7 +464,7 @@ export default function ScanTab() {
               }
               onPress={confirmAndClearCodes}
             >
-              Clear DTC
+              Clear Codes
             </Button>
             <Button
               variant="ghost"
@@ -509,9 +501,8 @@ export default function ScanTab() {
                   {entry.vendor} {entry.model}
                 </Text>
                 <Text style={{ color: SLATE_400, fontSize: 11 }}>
-                  {entry.connectionType} | iOS{" "}
-                  {entry.iosSupported ? "yes" : "no"} | Android{" "}
-                  {entry.androidSupported ? "yes" : "no"}
+                  {entry.connectionType} | iOS {entry.iosSupported ? "✓" : "✗"}{" "}
+                  | Android {entry.androidSupported ? "✓" : "✗"}
                 </Text>
               </Card>
             ))}
