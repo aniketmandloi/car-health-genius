@@ -75,7 +75,7 @@ function EventCard({
   );
 
   return (
-    <Card className="p-4 rounded-2xl border border-white/10">
+    <Card className="p-4 rounded-2xl border border-surface-border">
       <View className="gap-2">
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center gap-2">
@@ -183,9 +183,16 @@ export default function ScanResultsScreen() {
             </Text>
           </View>
         ) : recentEvents.length === 0 ? (
-          <Card className="items-center p-6 rounded-2xl border border-white/10">
+          <Card className="items-center p-6 rounded-2xl border border-surface-border">
             <Text className="text-foreground font-medium">No codes found</Text>
-            <Text style={{ color: SLATE_400, fontSize: 12, textAlign: "center", marginTop: 4 }}>
+            <Text
+              style={{
+                color: SLATE_400,
+                fontSize: 12,
+                textAlign: "center",
+                marginTop: 4,
+              }}
+            >
               Your vehicle scan returned no diagnostic codes.
             </Text>
           </Card>

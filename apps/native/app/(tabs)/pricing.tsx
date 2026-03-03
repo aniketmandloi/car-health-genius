@@ -189,7 +189,7 @@ export default function PricingTab() {
           </View>
         ) : null}
 
-        <View className="rounded-2xl border border-white/10 p-4 mt-2">
+        <View className="rounded-2xl border border-surface-border p-4 mt-2">
           <Text style={{ color: SLATE_400, fontSize: 13 }}>{status}</Text>
           {!session?.user ? (
             <Text style={{ color: SLATE_500, fontSize: 12, marginTop: 4 }}>

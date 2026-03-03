@@ -80,7 +80,7 @@ export default function ScanPage() {
                         className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
                           activeVehicleId === v.id
                             ? "border-primary bg-primary text-primary-foreground shadow-[0_0_12px_rgba(6,182,212,0.2)]"
-                            : "border-border bg-card hover:bg-muted dark:bg-white/[0.04] dark:hover:bg-white/[0.08]"
+                            : "border-border/60 bg-card/70 hover:bg-muted/70 dark:border-white/[0.10] dark:bg-white/[0.03] dark:hover:bg-white/[0.07]"
                         }`}
                       >
                         {v.make} {v.model} ({v.modelYear})
@@ -121,7 +121,7 @@ export default function ScanPage() {
                         key={event.id}
                         href={`/results/${event.id}` as never}
                       >
-                        <div className="flex cursor-pointer items-center justify-between rounded-xl border border-border/50 px-4 py-2.5 transition-colors hover:bg-muted/50 dark:bg-white/[0.04] dark:hover:bg-white/[0.08]">
+                        <div className="surface-subtle flex cursor-pointer items-center justify-between px-4 py-2.5 transition-colors hover:bg-muted/65 dark:hover:bg-white/[0.08]">
                           <div className="flex items-center gap-2">
                             <span className="font-mono text-sm font-semibold">
                               {event.dtcCode}
@@ -169,7 +169,7 @@ export default function ScanPage() {
                 {(adapters.data ?? []).map((adapter) => (
                   <div
                     key={adapter.id}
-                    className="rounded-xl border border-border/50 px-4 py-2.5 text-sm dark:bg-white/[0.04]"
+                    className="surface-subtle px-4 py-2.5 text-sm"
                   >
                     <span className="font-medium">
                       {adapter.vendor} {adapter.model}

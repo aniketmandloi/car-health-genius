@@ -107,7 +107,14 @@ function ProLockedCard({ feature }: { feature: string }) {
       <Text style={{ color: VIOLET, fontSize: 14, fontWeight: "700" }}>
         Pro Feature
       </Text>
-      <Text style={{ color: SLATE_400, fontSize: 12, textAlign: "center", marginTop: 4 }}>
+      <Text
+        style={{
+          color: SLATE_400,
+          fontSize: 12,
+          textAlign: "center",
+          marginTop: 4,
+        }}
+      >
         Upgrade to Pro to {feature}.
       </Text>
     </Card>
@@ -279,7 +286,7 @@ export default function ResultsDetailScreen() {
 
         {/* Triage card */}
         {firstRec && (
-          <Card className="p-4 rounded-2xl border border-white/10">
+          <Card className="p-4 rounded-2xl border border-surface-border">
             <View className="flex-row items-center justify-between">
               <Text className="text-foreground text-sm font-semibold">
                 Triage
@@ -315,11 +322,18 @@ export default function ResultsDetailScreen() {
               <Spinner size="lg" />
             </View>
           ) : activeRecs.length === 0 ? (
-            <Card className="items-center p-6 rounded-2xl border border-white/10">
+            <Card className="items-center p-6 rounded-2xl border border-surface-border">
               <Text className="text-foreground font-medium">
                 No analysis yet
               </Text>
-              <Text style={{ color: SLATE_400, fontSize: 12, textAlign: "center", marginTop: 4 }}>
+              <Text
+                style={{
+                  color: SLATE_400,
+                  fontSize: 12,
+                  textAlign: "center",
+                  marginTop: 4,
+                }}
+              >
                 Generate an AI-powered explanation for this code.
               </Text>
               {generateError && (
@@ -346,28 +360,41 @@ export default function ResultsDetailScreen() {
               const limitations = getStringList(rec.details, "limitations");
 
               return (
-                <Card key={rec.id} className="p-4 rounded-2xl border border-white/10">
+                <Card
+                  key={rec.id}
+                  className="p-4 rounded-2xl border border-surface-border"
+                >
                   <View className="gap-3">
                     {/* Title + confidence */}
                     <View className="flex-row items-center justify-between gap-2">
                       <Text className="text-foreground flex-1 font-medium">
                         {rec.title}
                       </Text>
-                      <Text style={{ color: TEAL, fontSize: 12, fontWeight: "600" }}>
+                      <Text
+                        style={{ color: TEAL, fontSize: 12, fontWeight: "600" }}
+                      >
                         {rec.confidence}%
                       </Text>
                     </View>
 
                     {/* Confidence bar */}
-                    <View className="h-1.5 overflow-hidden rounded-full" style={{ backgroundColor: "rgba(255,255,255,0.1)" }}>
+                    <View
+                      className="h-1.5 overflow-hidden rounded-full"
+                      style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+                    >
                       <View
                         className="h-full rounded-full"
-                        style={{ width: `${rec.confidence}%`, backgroundColor: TEAL }}
+                        style={{
+                          width: `${rec.confidence}%`,
+                          backgroundColor: TEAL,
+                        }}
                       />
                     </View>
 
                     {/* Rationale */}
-                    <Text style={{ color: SLATE_400, fontSize: 13 }}>{rec.rationale}</Text>
+                    <Text style={{ color: SLATE_400, fontSize: 13 }}>
+                      {rec.rationale}
+                    </Text>
 
                     {/* Evidence */}
                     {evidence.length > 0 && (
@@ -376,7 +403,10 @@ export default function ResultsDetailScreen() {
                           Evidence
                         </Text>
                         {evidence.map((item, i) => (
-                          <Text key={i} style={{ color: SLATE_400, fontSize: 12 }}>
+                          <Text
+                            key={i}
+                            style={{ color: SLATE_400, fontSize: 12 }}
+                          >
                             · {item}
                           </Text>
                         ))}
@@ -390,7 +420,10 @@ export default function ResultsDetailScreen() {
                           Recommended Steps
                         </Text>
                         {nextSteps.map((step, i) => (
-                          <Text key={i} style={{ color: SLATE_400, fontSize: 12 }}>
+                          <Text
+                            key={i}
+                            style={{ color: SLATE_400, fontSize: 12 }}
+                          >
                             {i + 1}. {step}
                           </Text>
                         ))}
@@ -401,13 +434,26 @@ export default function ResultsDetailScreen() {
                     {limitations.length > 0 && (
                       <View
                         className="rounded-xl p-2"
-                        style={{ borderWidth: 1, borderStyle: "dashed", borderColor: "rgba(255,255,255,0.1)" }}
+                        style={{
+                          borderWidth: 1,
+                          borderStyle: "dashed",
+                          borderColor: "rgba(255,255,255,0.1)",
+                        }}
                       >
-                        <Text style={{ color: SLATE_400, fontSize: 12, fontWeight: "600" }}>
+                        <Text
+                          style={{
+                            color: SLATE_400,
+                            fontSize: 12,
+                            fontWeight: "600",
+                          }}
+                        >
                           Limitations
                         </Text>
                         {limitations.map((item, i) => (
-                          <Text key={i} style={{ color: SLATE_500, fontSize: 12 }}>
+                          <Text
+                            key={i}
+                            style={{ color: SLATE_500, fontSize: 12 }}
+                          >
                             {item}
                           </Text>
                         ))}
@@ -416,9 +462,18 @@ export default function ResultsDetailScreen() {
 
                     <View
                       className="rounded-xl p-3"
-                      style={{ borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" }}
+                      style={{
+                        borderWidth: 1,
+                        borderColor: "rgba(255,255,255,0.1)",
+                      }}
                     >
-                      <Text style={{ color: SLATE_400, fontSize: 12, fontWeight: "600" }}>
+                      <Text
+                        style={{
+                          color: SLATE_400,
+                          fontSize: 12,
+                          fontWeight: "600",
+                        }}
+                      >
                         Was this recommendation helpful?
                       </Text>
                       <View className="mt-2 flex-row gap-2">
@@ -486,7 +541,7 @@ export default function ResultsDetailScreen() {
           ) : isProLocked ? (
             <ProLockedCard feature="see ranked likely causes with confidence scores" />
           ) : likelyCauses.data ? (
-            <Card className="p-4 rounded-2xl border border-white/10">
+            <Card className="p-4 rounded-2xl border border-surface-border">
               <View className="gap-4">
                 {likelyCauses.data.causes.map((cause) => (
                   <View key={cause.rank} className="gap-1.5">
@@ -494,14 +549,22 @@ export default function ResultsDetailScreen() {
                       <Text className="text-foreground flex-1 text-sm font-medium">
                         {cause.rank}. {cause.title}
                       </Text>
-                      <Text style={{ color: TEAL, fontSize: 12, fontWeight: "600" }}>
+                      <Text
+                        style={{ color: TEAL, fontSize: 12, fontWeight: "600" }}
+                      >
                         {cause.confidence}%
                       </Text>
                     </View>
-                    <View className="h-1.5 overflow-hidden rounded-full" style={{ backgroundColor: "rgba(255,255,255,0.1)" }}>
+                    <View
+                      className="h-1.5 overflow-hidden rounded-full"
+                      style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+                    >
                       <View
                         className="h-full rounded-full"
-                        style={{ width: `${cause.confidence}%`, backgroundColor: TEAL }}
+                        style={{
+                          width: `${cause.confidence}%`,
+                          backgroundColor: TEAL,
+                        }}
                       />
                     </View>
                     {cause.evidence.length > 0 && (
@@ -517,9 +580,7 @@ export default function ResultsDetailScreen() {
         </View>
 
         <View className="gap-3">
-          <Text className="text-foreground text-base font-bold">
-            DIY Guide
-          </Text>
+          <Text className="text-foreground text-base font-bold">DIY Guide</Text>
 
           {diyGuide.isLoading ? (
             <View className="items-center py-4">
@@ -528,7 +589,7 @@ export default function ResultsDetailScreen() {
           ) : isDiyProLocked ? (
             <ProLockedCard feature="access structured DIY guides" />
           ) : diyGuide.data?.guide ? (
-            <Card className="p-4 rounded-2xl border border-white/10">
+            <Card className="p-4 rounded-2xl border border-surface-border">
               <View className="gap-2">
                 <Text className="text-foreground text-sm font-semibold">
                   {diyGuide.data.guide.title}
@@ -550,7 +611,10 @@ export default function ResultsDetailScreen() {
                     </Text>
                     {diyGuide.data.guide.safetyWarnings.map(
                       (warning, index) => (
-                        <Text key={index} style={{ color: AMBER, fontSize: 12 }}>
+                        <Text
+                          key={index}
+                          style={{ color: AMBER, fontSize: 12 }}
+                        >
                           • {warning}
                         </Text>
                       ),
@@ -563,7 +627,10 @@ export default function ResultsDetailScreen() {
                       Steps
                     </Text>
                     {diyGuide.data.guide.steps.map((step, index) => (
-                      <Text key={index} style={{ color: SLATE_400, fontSize: 12 }}>
+                      <Text
+                        key={index}
+                        style={{ color: SLATE_400, fontSize: 12 }}
+                      >
                         {index + 1}. {step}
                       </Text>
                     ))}
@@ -596,7 +663,7 @@ export default function ResultsDetailScreen() {
           {isEstimateProLocked ? (
             <ProLockedCard feature="generate cost estimates" />
           ) : (
-            <Card className="p-4 rounded-2xl border border-white/10">
+            <Card className="p-4 rounded-2xl border border-surface-border">
               <View className="gap-2">
                 <Button
                   variant="secondary"
@@ -643,12 +710,18 @@ export default function ResultsDetailScreen() {
                     {/* CMP-003: Estimate disclosure block */}
                     <View
                       className="mt-2 rounded-xl p-3"
-                      style={{ borderWidth: 1, borderStyle: "dashed", borderColor: "rgba(255,255,255,0.1)" }}
+                      style={{
+                        borderWidth: 1,
+                        borderStyle: "dashed",
+                        borderColor: "rgba(255,255,255,0.1)",
+                      }}
                     >
                       <Text className="text-foreground text-xs font-semibold">
                         Estimate Disclosure (CMP-003)
                       </Text>
-                      <Text style={{ color: SLATE_400, fontSize: 11, marginTop: 2 }}>
+                      <Text
+                        style={{ color: SLATE_400, fontSize: 11, marginTop: 2 }}
+                      >
                         Geography basis:{" "}
                         {latestEstimate.disclosure?.geographyBasis ??
                           latestEstimate.region}
@@ -673,7 +746,14 @@ export default function ResultsDetailScreen() {
                           </Text>
                         ),
                       )}
-                      <Text style={{ color: SLATE_500, fontSize: 11, marginTop: 4, fontStyle: "italic" }}>
+                      <Text
+                        style={{
+                          color: SLATE_500,
+                          fontSize: 11,
+                          marginTop: 4,
+                          fontStyle: "italic",
+                        }}
+                      >
                         Estimate is for informational purposes only. Consult a
                         licensed mechanic for an accurate quote.
                       </Text>
@@ -701,7 +781,7 @@ export default function ResultsDetailScreen() {
               <Spinner size="sm" />
             </View>
           ) : negotiationScript.data ? (
-            <Card className="p-4 rounded-2xl border border-white/10">
+            <Card className="p-4 rounded-2xl border border-surface-border">
               <View className="gap-2">
                 <Text className="text-foreground text-sm font-semibold">
                   {negotiationScript.data.headline}
@@ -712,7 +792,10 @@ export default function ResultsDetailScreen() {
                   </Text>
                 ))}
                 {negotiationScript.data.costAnchors.map((anchor, index) => (
-                  <Text key={`anchor-${index}`} style={{ color: SLATE_400, fontSize: 12 }}>
+                  <Text
+                    key={`anchor-${index}`}
+                    style={{ color: SLATE_400, fontSize: 12 }}
+                  >
                     • {anchor}
                   </Text>
                 ))}
@@ -731,7 +814,11 @@ export default function ResultsDetailScreen() {
         {/* Disclaimer */}
         <View
           className="rounded-xl p-3"
-          style={{ borderWidth: 1, borderStyle: "dashed", borderColor: "rgba(255,255,255,0.1)" }}
+          style={{
+            borderWidth: 1,
+            borderStyle: "dashed",
+            borderColor: "rgba(255,255,255,0.1)",
+          }}
         >
           <Text style={{ color: SLATE_400, fontSize: 12, fontWeight: "600" }}>
             Disclaimer (CMP-002)

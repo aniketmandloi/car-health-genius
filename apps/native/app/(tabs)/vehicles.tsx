@@ -145,10 +145,10 @@ function VehicleFormSheet({
   }
 
   const inputClass =
-    "rounded-xl border border-white/10 bg-[#162032] px-3 py-2.5 text-sm text-white";
+    "rounded-xl border border-surface-border bg-surface-input px-3 py-2.5 text-sm text-white";
 
   return (
-    <View className="gap-3 rounded-2xl border border-white/10 bg-[#0F1A2E] p-4">
+    <View className="gap-3 rounded-2xl border border-surface-border bg-surface-panel p-4">
       <Text className="text-foreground text-base font-semibold">
         {vehicleId ? "Edit Vehicle" : "Add Vehicle"}
       </Text>
@@ -328,7 +328,7 @@ export default function VehiclesTab() {
             <Spinner size="lg" />
           </View>
         ) : (vehicles.data?.length ?? 0) === 0 ? (
-          <Card className="items-center p-6 rounded-2xl border border-white/10">
+          <Card className="items-center p-6 rounded-2xl border border-surface-border">
             <Ionicons name="car-outline" size={40} color={SLATE_500} />
             <Text className="text-foreground mt-3 text-base font-medium">
               No vehicles yet
@@ -349,7 +349,7 @@ export default function VehiclesTab() {
             {vehicles.data!.map((v) => (
               <Card
                 key={v.id}
-                className="p-4 rounded-2xl border border-white/10"
+                className="p-4 rounded-2xl border border-surface-border"
               >
                 <View className="flex-row items-start justify-between gap-2">
                   <View className="flex-1 gap-1">
@@ -391,7 +391,7 @@ export default function VehiclesTab() {
                             },
                           })
                         }
-                        className="rounded-lg border border-white/10 px-2.5 py-1"
+                        className="rounded-lg border border-surface-border px-2.5 py-1"
                       >
                         <Text className="text-foreground text-xs">Edit</Text>
                       </TouchableOpacity>

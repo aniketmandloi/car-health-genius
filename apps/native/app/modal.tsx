@@ -18,7 +18,7 @@ function Modal() {
       <View className="flex-1 justify-center items-center p-4">
         <Card
           variant="secondary"
-          className="p-5 w-full max-w-sm rounded-2xl border border-white/10"
+          className="p-5 w-full max-w-sm rounded-2xl border border-surface-border"
         >
           <View className="items-center">
             <View

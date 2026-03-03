@@ -3,11 +3,11 @@ import { Tabs } from "expo-router";
 
 import { ThemeToggle } from "@/components/theme-toggle";
 
-const DARK_BG = "#0B1120";
+const DARK_BG = "#081323";
 const TEAL = "#06B6D4";
 const SLATE_400 = "#94A3B8";
 const SLATE_50 = "#F1F5F9";
-const BORDER_SUBTLE = "rgba(255,255,255,0.08)";
+const BORDER_SUBTLE = "rgba(255,255,255,0.12)";
 
 export default function TabLayout() {
   return (
@@ -17,6 +17,7 @@ export default function TabLayout() {
         headerStyle: {
           backgroundColor: DARK_BG,
         },
+        headerShadowVisible: false,
         headerTintColor: SLATE_50,
         headerTitleStyle: {
           color: SLATE_50,
@@ -30,6 +31,13 @@ export default function TabLayout() {
           elevation: 0,
           shadowColor: "transparent",
           shadowOpacity: 0,
+          height: 64,
+          paddingTop: 6,
+          paddingBottom: 8,
+        },
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: "600",
         },
         tabBarActiveTintColor: TEAL,
         tabBarInactiveTintColor: SLATE_400,

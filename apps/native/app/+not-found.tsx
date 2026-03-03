@@ -14,7 +14,7 @@ export default function NotFoundScreen() {
         <View className="flex-1 justify-center items-center p-4">
           <Card
             variant="secondary"
-            className="items-center p-6 max-w-sm rounded-2xl border border-white/10"
+            className="items-center p-6 max-w-sm rounded-2xl border border-surface-border"
           >
             <Text className="text-4xl mb-3">🤔</Text>
             <Text className="text-foreground font-medium text-lg mb-1">

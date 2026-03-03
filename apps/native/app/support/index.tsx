@@ -39,7 +39,10 @@ function getStatusColor(status: string): string {
 function IssueStatusBadge({ status }: { status: string }) {
   const color = getStatusColor(status);
   return (
-    <View style={{ backgroundColor: `${color}20` }} className="rounded-full px-2 py-0.5">
+    <View
+      style={{ backgroundColor: `${color}20` }}
+      className="rounded-full px-2 py-0.5"
+    >
       <Text style={{ color, fontSize: 11, fontWeight: "600" }}>
         {status.replace("_", " ")}
       </Text>
@@ -87,7 +90,7 @@ export default function SupportScreen() {
   }
 
   const inputClass =
-    "rounded-xl border border-white/10 bg-[#162032] px-3 py-2.5 text-sm text-white";
+    "rounded-xl border border-surface-border bg-surface-input px-3 py-2.5 text-sm text-white";
 
   return (
     <Container>
@@ -129,13 +132,13 @@ export default function SupportScreen() {
         )}
 
         {/* New Issue Form */}
-        <Card className="p-4 gap-3 rounded-2xl border border-white/10">
-          <Text className="text-foreground font-bold text-base">
-            New Issue
-          </Text>
+        <Card className="p-4 gap-3 rounded-2xl border border-surface-border">
+          <Text className="text-foreground font-bold text-base">New Issue</Text>
 
           <View>
-            <Text style={{ color: SLATE_400, fontSize: 12, marginBottom: 4 }}>Summary *</Text>
+            <Text style={{ color: SLATE_400, fontSize: 12, marginBottom: 4 }}>
+              Summary *
+            </Text>
             <TextInput
               value={summary}
               onChangeText={setSummary}
@@ -147,7 +150,9 @@ export default function SupportScreen() {
           </View>
 
           <View>
-            <Text style={{ color: SLATE_400, fontSize: 12, marginBottom: 4 }}>Details (optional)</Text>
+            <Text style={{ color: SLATE_400, fontSize: 12, marginBottom: 4 }}>
+              Details (optional)
+            </Text>
             <TextInput
               value={details}
               onChangeText={setDetails}
@@ -163,7 +168,14 @@ export default function SupportScreen() {
 
           {/* Diagnostic Bundle */}
           <View className="flex-row items-center justify-between">
-            <Text style={{ color: SLATE_400, fontSize: 13, flex: 1, marginRight: 8 }}>
+            <Text
+              style={{
+                color: SLATE_400,
+                fontSize: 13,
+                flex: 1,
+                marginRight: 8,
+              }}
+            >
               Attach diagnostic data
             </Text>
             <Switch
@@ -180,7 +192,11 @@ export default function SupportScreen() {
             <TouchableOpacity
               onPress={() => setConsentBundle((v) => !v)}
               className="flex-row items-start gap-2 rounded-xl p-3"
-              style={{ borderWidth: 1, borderColor: "rgba(245,158,11,0.3)", backgroundColor: "rgba(245,158,11,0.05)" }}
+              style={{
+                borderWidth: 1,
+                borderColor: "rgba(245,158,11,0.3)",
+                backgroundColor: "rgba(245,158,11,0.05)",
+              }}
             >
               <View
                 style={{
@@ -224,20 +240,23 @@ export default function SupportScreen() {
         </Card>
 
         {/* Existing Issues */}
-        <Text className="text-foreground font-bold text-base">
-          My Issues
-        </Text>
+        <Text className="text-foreground font-bold text-base">My Issues</Text>
 
         {issuesQuery.isLoading ? (
           <View className="items-center py-8">
             <Spinner />
           </View>
         ) : (issuesQuery.data?.length ?? 0) === 0 ? (
-          <Text style={{ color: SLATE_400, fontSize: 13 }}>No issues submitted yet.</Text>
+          <Text style={{ color: SLATE_400, fontSize: 13 }}>
+            No issues submitted yet.
+          </Text>
         ) : (
           <View className="gap-2">
             {issuesQuery.data!.map((issue) => (
-              <Card key={issue.id} className="p-3 rounded-2xl border border-white/10">
+              <Card
+                key={issue.id}
+                className="p-3 rounded-2xl border border-surface-border"
+              >
                 <View className="flex-row items-start justify-between gap-2">
                   <View className="flex-1">
                     <Text className="text-foreground text-sm font-medium">
@@ -251,7 +270,9 @@ export default function SupportScreen() {
                         {issue.issueDetails}
                       </Text>
                     )}
-                    <Text style={{ color: SLATE_500, fontSize: 11, marginTop: 4 }}>
+                    <Text
+                      style={{ color: SLATE_500, fontSize: 11, marginTop: 4 }}
+                    >
                       {new Date(issue.createdAt).toLocaleDateString()}
                     </Text>
                   </View>

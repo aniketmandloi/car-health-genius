@@ -71,27 +71,43 @@ export default function DiyGuideScreen() {
         </View>
 
         {!guide ? (
-          <Card className="items-center p-8 rounded-2xl border border-white/10">
+          <Card className="items-center p-8 rounded-2xl border border-surface-border">
             <Text className="text-foreground font-medium">
               No DIY guide available
             </Text>
-            <Text style={{ color: SLATE_400, fontSize: 12, textAlign: "center", marginTop: 4 }}>
+            <Text
+              style={{
+                color: SLATE_400,
+                fontSize: 12,
+                textAlign: "center",
+                marginTop: 4,
+              }}
+            >
               A guide hasn&apos;t been published for this fault code yet.
             </Text>
           </Card>
         ) : (
           <>
             {/* Overview Card */}
-            <Card className="p-4 rounded-2xl border border-white/10">
+            <Card className="p-4 rounded-2xl border border-surface-border">
               <Text className="text-foreground font-bold text-base">
                 {guide.title}
               </Text>
-              <Text style={{ color: SLATE_500, fontFamily: "monospace", fontSize: 12, marginTop: 2 }}>
+              <Text
+                style={{
+                  color: SLATE_500,
+                  fontFamily: "monospace",
+                  fontSize: 12,
+                  marginTop: 2,
+                }}
+              >
                 {guide.dtcCode}
               </Text>
               <View className="flex-row gap-3 mt-2 items-center">
                 <View
-                  style={{ backgroundColor: `${difficultyColor(guide.difficulty)}20` }}
+                  style={{
+                    backgroundColor: `${difficultyColor(guide.difficulty)}20`,
+                  }}
                   className="rounded-full px-2 py-0.5"
                 >
                   <Text
@@ -116,11 +132,21 @@ export default function DiyGuideScreen() {
                 className="p-4 rounded-2xl"
                 style={{ borderWidth: 1, borderColor: "rgba(245,158,11,0.3)" }}
               >
-                <Text style={{ color: AMBER, fontSize: 14, fontWeight: "700", marginBottom: 8 }}>
+                <Text
+                  style={{
+                    color: AMBER,
+                    fontSize: 14,
+                    fontWeight: "700",
+                    marginBottom: 8,
+                  }}
+                >
                   Safety Warnings
                 </Text>
                 {guide.safetyWarnings.map((warning, idx) => (
-                  <Text key={idx} style={{ color: SLATE_400, fontSize: 12, marginBottom: 4 }}>
+                  <Text
+                    key={idx}
+                    style={{ color: SLATE_400, fontSize: 12, marginBottom: 4 }}
+                  >
                     • {warning}
                   </Text>
                 ))}
@@ -130,12 +156,19 @@ export default function DiyGuideScreen() {
             {/* Tools & Parts */}
             <View className="flex-row gap-3">
               {guide.tools.length > 0 && (
-                <Card className="flex-1 p-4 rounded-2xl border border-white/10">
+                <Card className="flex-1 p-4 rounded-2xl border border-surface-border">
                   <Text className="text-foreground font-semibold text-xs mb-2">
                     Tools Required
                   </Text>
                   {guide.tools.map((tool, idx) => (
-                    <Text key={idx} style={{ color: SLATE_400, fontSize: 12, marginBottom: 3 }}>
+                    <Text
+                      key={idx}
+                      style={{
+                        color: SLATE_400,
+                        fontSize: 12,
+                        marginBottom: 3,
+                      }}
+                    >
                       {tool}
                     </Text>
                   ))}
@@ -143,12 +176,19 @@ export default function DiyGuideScreen() {
               )}
 
               {guide.parts.length > 0 && (
-                <Card className="flex-1 p-4 rounded-2xl border border-white/10">
+                <Card className="flex-1 p-4 rounded-2xl border border-surface-border">
                   <Text className="text-foreground font-semibold text-xs mb-2">
                     Parts Needed
                   </Text>
                   {guide.parts.map((part, idx) => (
-                    <Text key={idx} style={{ color: SLATE_400, fontSize: 12, marginBottom: 3 }}>
+                    <Text
+                      key={idx}
+                      style={{
+                        color: SLATE_400,
+                        fontSize: 12,
+                        marginBottom: 3,
+                      }}
+                    >
                       {part}
                     </Text>
                   ))}
@@ -158,7 +198,7 @@ export default function DiyGuideScreen() {
 
             {/* Steps */}
             {guide.steps.length > 0 && (
-              <Card className="p-4 rounded-2xl border border-white/10">
+              <Card className="p-4 rounded-2xl border border-surface-border">
                 <Text className="text-foreground font-bold text-sm mb-3">
                   Step-by-Step Instructions
                 </Text>
@@ -172,7 +212,14 @@ export default function DiyGuideScreen() {
                         {idx + 1}
                       </Text>
                     </View>
-                    <Text style={{ color: SLATE_400, fontSize: 12, flex: 1, lineHeight: 18 }}>
+                    <Text
+                      style={{
+                        color: SLATE_400,
+                        fontSize: 12,
+                        flex: 1,
+                        lineHeight: 18,
+                      }}
+                    >
                       {step}
                     </Text>
                   </View>
@@ -181,7 +228,9 @@ export default function DiyGuideScreen() {
             )}
 
             {/* Disclaimer */}
-            <Text style={{ color: SLATE_500, fontSize: 11, fontStyle: "italic" }}>
+            <Text
+              style={{ color: SLATE_500, fontSize: 11, fontStyle: "italic" }}
+            >
               This guide is for informational purposes only. If unsure about any
               step, consult a licensed mechanic. Improper repairs can cause
               vehicle damage or safety hazards.

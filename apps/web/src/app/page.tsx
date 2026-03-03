@@ -58,23 +58,23 @@ const steps = [
 
 export default function Home() {
   return (
-    <div className="relative overflow-hidden">
+    <div className="relative overflow-hidden pb-8">
       {/* ── Animated gradient orbs ── */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-1/2 -left-1/4 h-[800px] w-[800px] rounded-full bg-cyan-500/10 blur-[120px] animate-pulse" />
-        <div className="absolute -bottom-1/2 -right-1/4 h-[600px] w-[600px] rounded-full bg-violet-500/10 blur-[120px] animate-pulse [animation-delay:2s]" />
+        <div className="mesh-orb absolute -top-1/2 -left-1/4 h-[800px] w-[800px] rounded-full bg-cyan-500/10 blur-[120px]" />
+        <div className="mesh-orb-delay absolute -bottom-1/2 -right-1/4 h-[600px] w-[600px] rounded-full bg-violet-500/10 blur-[120px]" />
       </div>
 
       {/* ── Hero ── */}
-      <section className="relative flex min-h-[calc(100svh-3.5rem)] flex-col items-center justify-center px-4 text-center">
+      <section className="relative flex min-h-[calc(100svh-3.75rem)] flex-col items-center justify-center px-4 pt-12 text-center">
         <motion.div
           variants={staggerContainer}
           initial="hidden"
           animate="show"
-          className="mx-auto max-w-3xl space-y-6"
+          className="mx-auto max-w-3xl space-y-7"
         >
           <motion.div variants={fadeUp}>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/12 px-3 py-1 text-xs font-semibold text-primary shadow-[0_0_0_1px_rgba(6,182,212,0.14)]">
               <Zap className="size-3" />
               AI-Powered Diagnostics
             </span>
@@ -112,11 +112,7 @@ export default function Home() {
               </Button>
             </Link>
             <Link href={"/pricing" as never}>
-              <Button
-                variant="outline"
-                size="lg"
-                className="gap-2 dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10"
-              >
+              <Button variant="outline" size="lg" className="gap-2">
                 View Plans
               </Button>
             </Link>
@@ -148,7 +144,7 @@ export default function Home() {
               <motion.div
                 key={feature.title}
                 variants={fadeUp}
-                className="group rounded-2xl border border-border/50 bg-card p-6 backdrop-blur-[16px] transition-all duration-200 hover:shadow-[0_0_24px_rgba(6,182,212,0.12)] hover:-translate-y-0.5 dark:bg-white/[0.04] dark:border-white/[0.08]"
+                className="surface-card surface-card-hover group p-6"
               >
                 <div className="mb-4 flex size-10 items-center justify-center rounded-xl bg-primary/10">
                   <feature.icon className="size-5 text-primary" />
@@ -191,7 +187,7 @@ export default function Home() {
                 variants={fadeUp}
                 className="relative flex flex-col items-center text-center"
               >
-                <div className="relative z-10 mb-4 flex size-14 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10">
+                <div className="relative z-10 mb-4 flex size-14 items-center justify-center rounded-2xl border border-primary/25 bg-primary/12 shadow-[0_0_0_1px_rgba(6,182,212,0.14)]">
                   <step.icon className="size-6 text-primary" />
                 </div>
                 <span className="mb-1 text-xs font-medium text-primary">
@@ -216,7 +212,7 @@ export default function Home() {
           transition={{ duration: 0.5 }}
           className="mx-auto max-w-3xl"
         >
-          <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 p-8 text-center backdrop-blur-[16px] dark:from-primary/10 dark:to-primary/5 md:p-12">
+          <div className="surface-card relative overflow-hidden border-primary/20 bg-gradient-to-br from-primary/6 to-primary/12 p-8 text-center md:p-12">
             <Car className="mx-auto mb-4 size-10 text-primary" />
             <h2 className="mb-3 text-xl font-bold sm:text-2xl">
               Ready to take control of your car&apos;s health?

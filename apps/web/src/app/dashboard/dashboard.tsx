@@ -3,7 +3,14 @@
 import { motion } from "motion/react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { Car, TrendingUp, Wrench, DollarSign, ArrowRight, Crown } from "lucide-react";
+import {
+  Car,
+  TrendingUp,
+  Wrench,
+  DollarSign,
+  ArrowRight,
+  Crown,
+} from "lucide-react";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -13,7 +20,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge, getSeverityVariant, getPriorityVariant } from "@/components/ui/badge";
+import {
+  Badge,
+  getSeverityVariant,
+  getPriorityVariant,
+} from "@/components/ui/badge";
 import { ProgressRing } from "@/components/ui/progress-ring";
 import { PageTransition } from "@/components/page-transition";
 import { staggerContainer, fadeUp } from "@/lib/animation-variants";
@@ -111,7 +122,7 @@ function MaintenanceSummary({
         <div
           key={item.id}
           className={cn(
-            "flex items-center justify-between rounded-xl border border-border/50 px-4 py-3 dark:bg-white/[0.03]",
+            "surface-subtle flex items-center justify-between px-4 py-3",
             item.status === "overdue"
               ? "border-l-2 border-l-red-500"
               : "border-l-2 border-l-amber-500",
@@ -162,7 +173,7 @@ function MaintenancePredictionsSection({
       {topItems.map((item) => (
         <div
           key={`${vehicleId}-${item.serviceType}`}
-          className="flex items-center justify-between rounded-xl border border-border/50 px-4 py-3 dark:bg-white/[0.03]"
+          className="surface-subtle flex items-center justify-between px-4 py-3"
         >
           <div>
             <p className="text-sm font-medium">{item.serviceType}</p>
@@ -278,9 +289,7 @@ export default function Dashboard({
                   <p className="font-semibold">
                     {hasProSubscription ? "Pro Plan" : "Free Plan"}
                   </p>
-                  {hasProSubscription && (
-                    <Badge variant="pro">Active</Badge>
-                  )}
+                  {hasProSubscription && <Badge variant="pro">Active</Badge>}
                 </div>
                 <p className="text-sm text-muted-foreground">
                   {hasProSubscription

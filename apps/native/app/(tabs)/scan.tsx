@@ -319,7 +319,7 @@ export default function ScanTab() {
       <View className="gap-4">
         <Card
           variant="secondary"
-          className="p-4 rounded-2xl border border-white/10"
+          className="p-4 rounded-2xl border border-surface-border"
         >
           <Card.Title>Set Up Your Vehicle</Card.Title>
           <Card.Description>
@@ -399,7 +399,7 @@ export default function ScanTab() {
 
         <Card
           variant="secondary"
-          className="p-4 rounded-2xl border border-white/10"
+          className="p-4 rounded-2xl border border-surface-border"
         >
           <Card.Title>OBD Scanner</Card.Title>
           <View className="mt-2 gap-1">
@@ -482,7 +482,7 @@ export default function ScanTab() {
 
         <Card
           variant="secondary"
-          className="p-4 rounded-2xl border border-white/10"
+          className="p-4 rounded-2xl border border-surface-border"
         >
           <Card.Title>Compatible Adapters</Card.Title>
           <Text style={{ color: SLATE_400, fontSize: 13, marginTop: 4 }}>
@@ -495,7 +495,7 @@ export default function ScanTab() {
             {(adapters.data ?? []).map((entry) => (
               <Card
                 key={entry.id}
-                className="p-3 rounded-xl border border-white/10"
+                className="p-3 rounded-xl border border-surface-border"
               >
                 <Text className="text-foreground text-sm font-semibold">
                   {entry.vendor} {entry.model}

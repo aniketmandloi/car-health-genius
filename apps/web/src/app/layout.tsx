@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Manrope, JetBrains_Mono } from "next/font/google";
 
 import "../index.css";
 import Header from "@/components/header";
 import Providers from "@/components/providers";
 
-const inter = Inter({
+const manrope = Manrope({
   variable: "--font-sans",
   subsets: ["latin"],
 });
@@ -29,11 +29,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}>
+      <body
+        className={`${manrope.variable} ${jetbrainsMono.variable} antialiased selection:bg-primary/20`}
+      >
         <Providers>
-          <div className="relative min-h-svh bg-background dark:bg-gradient-to-br dark:from-[#0B1120] dark:to-[#162032]">
+          <div className="relative min-h-svh overflow-hidden bg-background dark:bg-gradient-to-br dark:from-[#081323] dark:via-[#0D1B2F] dark:to-[#162032]">
+            <div className="pointer-events-none absolute inset-0 overflow-hidden">
+              <div className="mesh-orb absolute -top-56 -left-36 h-[28rem] w-[28rem] rounded-full bg-primary/10 blur-[120px]" />
+              <div className="mesh-orb-delay absolute top-[32%] -right-40 h-[24rem] w-[24rem] rounded-full bg-secondary/10 blur-[120px]" />
+            </div>
             <Header />
-            <main>{children}</main>
+            <main className="relative z-10">{children}</main>
           </div>
         </Providers>
       </body>

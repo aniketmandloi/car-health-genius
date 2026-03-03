@@ -34,7 +34,7 @@ export default function Home() {
         <>
           <Card
             variant="secondary"
-            className="mb-6 p-4 rounded-2xl border border-white/10"
+            className="mb-6 p-4 rounded-2xl border border-surface-border"
           >
             <Text className="text-foreground text-base mb-2">
               Welcome,{" "}
@@ -83,7 +83,7 @@ export default function Home() {
               >
                 <Card
                   variant="secondary"
-                  className="p-4 rounded-2xl border border-white/10"
+                  className="p-4 rounded-2xl border border-surface-border"
                 >
                   <View className="flex-row items-center gap-3">
                     <View
@@ -123,7 +123,7 @@ export default function Home() {
       ) : (
         <Card
           variant="secondary"
-          className="mt-6 p-4 rounded-2xl border border-white/10"
+          className="mt-6 p-4 rounded-2xl border border-surface-border"
         >
           <Card.Title className="mb-3">Get Started</Card.Title>
           <View className="flex-row gap-2 mb-3">

@@ -106,7 +106,7 @@ export default function HistoryTab() {
               <Spinner size="sm" />
             </View>
           ) : (vehicles.data?.length ?? 0) === 0 ? (
-            <Card className="p-4 rounded-2xl border border-white/10">
+            <Card className="p-4 rounded-2xl border border-surface-border">
               <Text style={{ color: SLATE_400, fontSize: 13 }}>
                 No vehicles found. Add a vehicle in the Vehicles tab.
               </Text>
@@ -157,7 +157,7 @@ export default function HistoryTab() {
             </TouchableOpacity>
 
             {showFilters && (
-              <View className="gap-2 rounded-xl border border-white/10 p-3">
+              <View className="gap-2 rounded-xl border border-surface-border p-3">
                 <Text className="text-foreground text-xs font-medium">
                   Event Type
                 </Text>
@@ -205,7 +205,7 @@ export default function HistoryTab() {
             </Text>
           </View>
         ) : diagnosticEvents.length === 0 ? (
-          <Card className="items-center py-10 p-4 rounded-2xl border border-white/10">
+          <Card className="items-center py-10 p-4 rounded-2xl border border-surface-border">
             <Ionicons name="time-outline" size={40} color={SLATE_400} />
             <Text className="text-foreground mt-3 font-medium">
               No scan history
@@ -233,7 +233,7 @@ export default function HistoryTab() {
               return (
                 <Card
                   key={event.id}
-                  className="p-3 rounded-2xl border border-white/10"
+                  className="p-3 rounded-2xl border border-surface-border"
                 >
                   <View className="flex-row items-start justify-between gap-2">
                     <View className="flex-1 gap-1">
