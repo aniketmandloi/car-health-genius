@@ -48,18 +48,15 @@ export default function ScanPage() {
               OBD scanning requires the mobile app
             </p>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              Download the Car Health Genius app on iOS or Android to connect your
-              OBD adapter and scan your vehicle. View your scan results below.
+              Download the Car Health Genius app on iOS or Android to connect
+              your OBD adapter and scan your vehicle. View your scan results
+              below.
             </p>
           </div>
         </div>
 
         {/* Vehicle selector */}
-        <motion.div
-          variants={staggerContainer}
-          initial="hidden"
-          animate="show"
-        >
+        <motion.div variants={staggerContainer} initial="hidden" animate="show">
           <motion.div variants={fadeUp}>
             <Card>
               <CardHeader>
@@ -95,7 +92,10 @@ export default function ScanPage() {
                 {activeVehicleId === null ? (
                   <p className="text-sm text-muted-foreground">
                     No vehicles found.{" "}
-                    <Link href="/vehicles" className="text-primary hover:underline">
+                    <Link
+                      href="/vehicles"
+                      className="text-primary hover:underline"
+                    >
                       Add a vehicle
                     </Link>{" "}
                     to get started.
@@ -103,19 +103,25 @@ export default function ScanPage() {
                 ) : events.isLoading ? (
                   <div className="space-y-2">
                     {[1, 2, 3].map((i) => (
-                      <div key={i} className="h-12 animate-pulse rounded-xl bg-muted" />
+                      <div
+                        key={i}
+                        className="h-12 animate-pulse rounded-xl bg-muted"
+                      />
                     ))}
                   </div>
                 ) : (events.data?.length ?? 0) === 0 ? (
                   <p className="text-sm text-muted-foreground">
-                    No scan results yet for this vehicle. Use the mobile app to run
-                    your first scan.
+                    No scan results yet for this vehicle. Use the mobile app to
+                    run your first scan.
                   </p>
                 ) : (
                   <div className="space-y-2">
                     {events.data!.map((event) => (
-                      <Link key={event.id} href={`/results/${event.id}` as never}>
-                        <div className="flex cursor-pointer items-center justify-between rounded-xl border border-border/50 px-4 py-2.5 transition-colors hover:bg-muted/50 dark:bg-white/[0.02] dark:hover:bg-white/[0.05]">
+                      <Link
+                        key={event.id}
+                        href={`/results/${event.id}` as never}
+                      >
+                        <div className="flex cursor-pointer items-center justify-between rounded-xl border border-border/50 px-4 py-2.5 transition-colors hover:bg-muted/50 dark:bg-white/[0.04] dark:hover:bg-white/[0.08]">
                           <div className="flex items-center gap-2">
                             <span className="font-mono text-sm font-semibold">
                               {event.dtcCode}
@@ -156,12 +162,14 @@ export default function ScanPage() {
               </CardHeader>
               <CardContent className="grid gap-2">
                 {adapters.isLoading && (
-                  <p className="text-sm text-muted-foreground">Loading adapters...</p>
+                  <p className="text-sm text-muted-foreground">
+                    Loading adapters...
+                  </p>
                 )}
                 {(adapters.data ?? []).map((adapter) => (
                   <div
                     key={adapter.id}
-                    className="rounded-xl border border-border/50 px-4 py-2.5 text-sm dark:bg-white/[0.02]"
+                    className="rounded-xl border border-border/50 px-4 py-2.5 text-sm dark:bg-white/[0.04]"
                   >
                     <span className="font-medium">
                       {adapter.vendor} {adapter.model}

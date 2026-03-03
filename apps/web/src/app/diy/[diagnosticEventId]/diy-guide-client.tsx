@@ -1,7 +1,9 @@
 "use client";
 
+import { motion } from "motion/react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import { AlertTriangle, Wrench, Package } from "lucide-react";
 
 import {
   Card,
@@ -11,6 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { staggerContainer, fadeUp } from "@/lib/animation-variants";
 import { trpc } from "@/utils/trpc";
 
 function getDifficultyVariant(difficulty: string) {
@@ -91,18 +94,16 @@ export function DiyGuideClient({
                 <Badge variant={getDifficultyVariant(guide.difficulty)}>
                   {guide.difficulty}
                 </Badge>
-                <Badge variant="default">
-                  ~{guide.estimatedMinutes} min
-                </Badge>
+                <Badge variant="default">~{guide.estimatedMinutes} min</Badge>
               </div>
             </CardHeader>
           </Card>
 
           {/* Safety Warnings */}
           {guide.safetyWarnings.length > 0 && (
-            <Card className="border-orange-300 dark:border-orange-700">
+            <Card className="border-warning/30">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base text-orange-700 dark:text-orange-400">
+                <CardTitle className="text-base text-warning">
                   Safety Warnings
                 </CardTitle>
               </CardHeader>
@@ -110,7 +111,7 @@ export function DiyGuideClient({
                 <ul className="space-y-1.5">
                   {guide.safetyWarnings.map((warning, idx) => (
                     <li key={idx} className="flex items-start gap-2 text-sm">
-                      <span className="mt-0.5 shrink-0 text-orange-500">⚠</span>
+                      <AlertTriangle className="mt-0.5 size-3.5 shrink-0 text-warning" />
                       <span>{warning}</span>
                     </li>
                   ))}
@@ -130,7 +131,7 @@ export function DiyGuideClient({
                   <ul className="space-y-1">
                     {guide.tools.map((tool, idx) => (
                       <li key={idx} className="flex items-center gap-2 text-sm">
-                        <span className="text-muted-foreground">🔧</span>
+                        <Wrench className="size-3.5 shrink-0 text-muted-foreground" />
                         {tool}
                       </li>
                     ))}
@@ -148,7 +149,7 @@ export function DiyGuideClient({
                   <ul className="space-y-1">
                     {guide.parts.map((part, idx) => (
                       <li key={idx} className="flex items-center gap-2 text-sm">
-                        <span className="text-muted-foreground">📦</span>
+                        <Package className="size-3.5 shrink-0 text-muted-foreground" />
                         {part}
                       </li>
                     ))}
@@ -167,16 +168,25 @@ export function DiyGuideClient({
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ol className="space-y-4">
+                <motion.ol
+                  variants={staggerContainer}
+                  initial="hidden"
+                  animate="show"
+                  className="space-y-4"
+                >
                   {guide.steps.map((step, idx) => (
-                    <li key={idx} className="flex items-start gap-3">
+                    <motion.li
+                      key={idx}
+                      variants={fadeUp}
+                      className="flex items-start gap-3"
+                    >
                       <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
                         {idx + 1}
                       </span>
                       <p className="pt-0.5 text-sm leading-relaxed">{step}</p>
-                    </li>
+                    </motion.li>
                   ))}
-                </ol>
+                </motion.ol>
               </CardContent>
             </Card>
           )}

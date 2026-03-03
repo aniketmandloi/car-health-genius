@@ -40,7 +40,10 @@ export default function Home() {
       </View>
 
       {session?.user ? (
-        <Card variant="secondary" className="mb-6 p-4 rounded-2xl border border-white/10">
+        <Card
+          variant="secondary"
+          className="mb-6 p-4 rounded-2xl border border-white/10"
+        >
           <Text className="text-foreground text-base mb-2">
             Welcome, <Text className="font-semibold">{session.user.name}</Text>
           </Text>
@@ -60,10 +63,17 @@ export default function Home() {
         </Card>
       ) : null}
 
-      <Card variant="secondary" className="p-6 rounded-2xl border border-white/10">
+      <Card
+        variant="secondary"
+        className="p-6 rounded-2xl border border-white/10"
+      >
         <View className="flex-row items-center justify-between mb-4">
           <Card.Title>System Status</Card.Title>
-          <Chip variant="secondary" color={isConnected ? "success" : "danger"} size="sm">
+          <Chip
+            variant="secondary"
+            color={isConnected ? "success" : "danger"}
+            size="sm"
+          >
             <Chip.Label>{isConnected ? "LIVE" : "OFFLINE"}</Chip.Label>
           </Chip>
         </View>
@@ -75,7 +85,9 @@ export default function Home() {
               className="w-3 h-3 rounded-full mr-3"
             />
             <View className="flex-1">
-              <Text className="text-foreground font-medium mb-1">tRPC Backend</Text>
+              <Text className="text-foreground font-medium mb-1">
+                tRPC Backend
+              </Text>
               <Card.Description>
                 {isLoading
                   ? "Checking connection..."
@@ -84,30 +96,55 @@ export default function Home() {
                     : "API Disconnected"}
               </Card.Description>
             </View>
-            {isLoading && <Ionicons name="hourglass-outline" size={20} color={SLATE_400} />}
-            {!isLoading && isConnected && <Ionicons name="checkmark-circle" size={20} color={EMERALD} />}
-            {!isLoading && !isConnected && <Ionicons name="close-circle" size={20} color={RED} />}
+            {isLoading && (
+              <Ionicons name="hourglass-outline" size={20} color={SLATE_400} />
+            )}
+            {!isLoading && isConnected && (
+              <Ionicons name="checkmark-circle" size={20} color={EMERALD} />
+            )}
+            {!isLoading && !isConnected && (
+              <Ionicons name="close-circle" size={20} color={RED} />
+            )}
           </View>
         </Card>
 
         <Text style={{ color: SLATE_400, fontSize: 11, marginTop: 12 }}>
-          Flags: free-tier {featureFlags.freeTierEnabled ? "on" : "off"}, pro-paywall{" "}
-          {featureFlags.proPaywallEnabled ? "on" : "off"}
+          Flags: free-tier {featureFlags.freeTierEnabled ? "on" : "off"},
+          pro-paywall {featureFlags.proPaywallEnabled ? "on" : "off"}
         </Text>
       </Card>
 
       {session?.user ? (
-        <Card variant="secondary" className="mt-6 p-4 rounded-2xl border border-white/10">
+        <Card
+          variant="secondary"
+          className="mt-6 p-4 rounded-2xl border border-white/10"
+        >
           <Card.Title className="mb-3">Private Data</Card.Title>
-          <Card.Description>{privateData.data?.message ?? "No private payload"}</Card.Description>
+          <Card.Description>
+            {privateData.data?.message ?? "No private payload"}
+          </Card.Description>
         </Card>
       ) : (
-        <Card variant="secondary" className="mt-6 p-4 rounded-2xl border border-white/10">
+        <Card
+          variant="secondary"
+          className="mt-6 p-4 rounded-2xl border border-white/10"
+        >
           <Card.Title className="mb-3">Get Started</Card.Title>
           <View className="flex-row gap-2 mb-3">
             <Button
               variant={authMode === "signin" ? "primary" : "secondary"}
               className="flex-1"
+              style={
+                authMode === "signin"
+                  ? {
+                      shadowColor: "#06B6D4",
+                      shadowOpacity: 0.3,
+                      shadowRadius: 12,
+                      shadowOffset: { width: 0, height: 0 },
+                      elevation: 6,
+                    }
+                  : undefined
+              }
               onPress={() => setAuthMode("signin")}
             >
               Sign In
@@ -115,6 +152,17 @@ export default function Home() {
             <Button
               variant={authMode === "signup" ? "primary" : "secondary"}
               className="flex-1"
+              style={
+                authMode === "signup"
+                  ? {
+                      shadowColor: "#06B6D4",
+                      shadowOpacity: 0.3,
+                      shadowRadius: 12,
+                      shadowOffset: { width: 0, height: 0 },
+                      elevation: 6,
+                    }
+                  : undefined
+              }
               onPress={() => setAuthMode("signup")}
             >
               Create Account

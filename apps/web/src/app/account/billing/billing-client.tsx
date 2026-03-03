@@ -5,6 +5,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { queryClient, trpc } from "@/utils/trpc";
 
@@ -17,17 +18,17 @@ function formatDate(iso: string | null) {
   });
 }
 
-function statusBadgeClass(status: string) {
+function getSubscriptionStatusVariant(status: string) {
   switch (status) {
     case "active":
-      return "bg-green-100 text-green-700";
+      return "resolved" as const;
     case "canceled":
     case "cancelled":
-      return "bg-gray-100 text-gray-500";
+      return "cleared" as const;
     case "past_due":
-      return "bg-red-100 text-red-700";
+      return "critical" as const;
     default:
-      return "bg-amber-100 text-amber-700";
+      return "medium" as const;
   }
 }
 
@@ -68,11 +69,9 @@ export default function BillingClient() {
                   {entitlements.data?.plan ?? "Free"}
                 </span>
                 {sub && (
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusBadgeClass(sub.status)}`}
-                  >
+                  <Badge variant={getSubscriptionStatusVariant(sub.status)}>
                     {sub.status}
-                  </span>
+                  </Badge>
                 )}
               </div>
 
@@ -100,7 +99,12 @@ export default function BillingClient() {
                 <div className="flex gap-2">
                   <Button
                     size="sm"
-                    onClick={() => checkoutMutation.mutate({ plan: "monthly", successUrl: `${window.location.origin}/success?plan=monthly&checkout_id={CHECKOUT_ID}` })}
+                    onClick={() =>
+                      checkoutMutation.mutate({
+                        plan: "monthly",
+                        successUrl: `${window.location.origin}/success?plan=monthly&checkout_id={CHECKOUT_ID}`,
+                      })
+                    }
                     disabled={checkoutMutation.isPending}
                   >
                     Upgrade to Pro (Monthly)
@@ -108,7 +112,12 @@ export default function BillingClient() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => checkoutMutation.mutate({ plan: "annual", successUrl: `${window.location.origin}/success?plan=annual&checkout_id={CHECKOUT_ID}` })}
+                    onClick={() =>
+                      checkoutMutation.mutate({
+                        plan: "annual",
+                        successUrl: `${window.location.origin}/success?plan=annual&checkout_id={CHECKOUT_ID}`,
+                      })
+                    }
                     disabled={checkoutMutation.isPending}
                   >
                     Annual (Save 20%)
@@ -141,17 +150,17 @@ export default function BillingClient() {
           </CardHeader>
           <CardContent className="space-y-1 text-sm">
             <div className="flex items-center gap-2">
-              <span
-                className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+              <Badge
+                variant={
                   supportPriority.data.priorityTier === "priority"
-                    ? "bg-purple-100 text-purple-700"
-                    : "bg-gray-100 text-gray-600"
-                }`}
+                    ? "pro"
+                    : "ghost"
+                }
               >
                 {supportPriority.data.priorityTier === "priority"
                   ? "Priority Support"
                   : "Standard Support"}
-              </span>
+              </Badge>
             </div>
             <p className="text-xs text-muted-foreground">
               {supportPriority.data.priorityReason}
@@ -182,7 +191,9 @@ export default function BillingClient() {
                   key={f.featureKey}
                   className="flex items-center gap-2 text-xs"
                 >
-                  <span className="text-green-600">✓</span>
+                  <span className="text-emerald-500 dark:text-emerald-400">
+                    ✓
+                  </span>
                   <span className="font-mono">{f.featureKey}</span>
                   <span className="text-muted-foreground">({f.source})</span>
                 </li>

@@ -31,7 +31,7 @@ export default async function AccountPage() {
         </p>
       </div>
 
-      <Card>
+      <Card className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
         <CardHeader>
           <CardTitle className="text-base">Profile</CardTitle>
         </CardHeader>
@@ -47,7 +47,7 @@ export default async function AccountPage() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 delay-100">
         <CardHeader>
           <CardTitle className="text-base">Subscription</CardTitle>
         </CardHeader>
@@ -65,7 +65,7 @@ export default async function AccountPage() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 delay-200">
         <CardHeader>
           <CardTitle className="text-base">Navigation</CardTitle>
         </CardHeader>
@@ -86,7 +86,9 @@ export default async function AccountPage() {
       </Card>
 
       {/* Data Management — SEC-005 */}
-      <DataManagementSection />
+      <div className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 delay-300">
+        <DataManagementSection />
+      </div>
     </div>
   );
 }

@@ -22,8 +22,19 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge, getSeverityVariant, getTriageVariant } from "@/components/ui/badge";
+import {
+  Badge,
+  getSeverityVariant,
+  getTriageVariant,
+} from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageTransition } from "@/components/page-transition";
 import { staggerContainer, fadeUp } from "@/lib/animation-variants";
@@ -77,7 +88,7 @@ const TRIAGE_LABELS: Record<string, string> = {
 function ProLockOverlay({ message }: { message: string }) {
   return (
     <Card className="relative overflow-hidden">
-      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
+      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/80 backdrop-blur-[16px]">
         <Lock className="mb-2 size-5 text-muted-foreground" />
         <p className="font-semibold">Pro Feature</p>
         <p className="mt-1 text-sm text-muted-foreground text-center max-w-xs">
@@ -168,7 +179,10 @@ function RecommendationCard({
             <p className="mb-1 text-xs font-semibold">Evidence</p>
             <ul className="space-y-0.5">
               {evidence.map((item, i) => (
-                <li key={i} className="flex gap-1.5 text-xs text-muted-foreground">
+                <li
+                  key={i}
+                  className="flex gap-1.5 text-xs text-muted-foreground"
+                >
                   <span className="mt-0.5 text-primary">·</span>
                   {item}
                 </li>
@@ -182,7 +196,10 @@ function RecommendationCard({
             <p className="mb-1 text-xs font-semibold">Recommended Steps</p>
             <ol className="space-y-0.5">
               {nextSteps.map((step, i) => (
-                <li key={i} className="flex gap-1.5 text-xs text-muted-foreground">
+                <li
+                  key={i}
+                  className="flex gap-1.5 text-xs text-muted-foreground"
+                >
                   <span className="shrink-0 font-medium text-foreground">
                     {i + 1}.
                   </span>
@@ -334,17 +351,23 @@ function RepairOutcomeSection({
                 <label className="mb-1 block text-xs font-medium">
                   Outcome Status
                 </label>
-                <select
+                <Select
                   value={outcomeStatus}
-                  onChange={(e) => setOutcomeStatus(e.target.value)}
-                  className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm dark:bg-input/30"
+                  onValueChange={(val) => {
+                    if (val !== null) setOutcomeStatus(val);
+                  }}
                 >
-                  {OUTCOME_STATUS_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="h-10 w-full rounded-lg">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {OUTCOME_STATUS_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <label className="mb-1 block text-xs font-medium">
@@ -563,7 +586,10 @@ export default function ResultsDetail({
         {/* Back nav */}
         <Link
           href="/dashboard"
-          className={cn(buttonVariants({ variant: "outline", size: "sm" }), "gap-1.5")}
+          className={cn(
+            buttonVariants({ variant: "outline", size: "sm" }),
+            "gap-1.5",
+          )}
         >
           <ArrowLeft className="size-3.5" />
           Dashboard
@@ -594,7 +620,10 @@ export default function ResultsDetail({
 
         {/* Tabs Layout */}
         <Tabs defaultValue="analysis">
-          <TabsList variant="line" className="w-full justify-start overflow-x-auto">
+          <TabsList
+            variant="line"
+            className="w-full justify-start overflow-x-auto"
+          >
             <TabsTrigger value="analysis" className="gap-1.5">
               <Brain className="size-3.5" />
               Analysis
@@ -622,7 +651,10 @@ export default function ResultsDetail({
             {recommendations.isLoading ? (
               <div className="space-y-2">
                 {[1, 2].map((i) => (
-                  <div key={i} className="h-32 animate-pulse rounded-2xl bg-muted" />
+                  <div
+                    key={i}
+                    className="h-32 animate-pulse rounded-2xl bg-muted"
+                  />
                 ))}
               </div>
             ) : activeRecs.length === 0 ? (
@@ -771,20 +803,30 @@ export default function ResultsDetail({
                     </p>
                   </div>
                   <div>
-                    <p className="mb-1 text-xs font-semibold">Safety Warnings</p>
+                    <p className="mb-1 text-xs font-semibold">
+                      Safety Warnings
+                    </p>
                     <ul className="space-y-1">
-                      {diyGuide.data.guide.safetyWarnings.map((warning, index) => (
-                        <li key={index} className="text-xs text-muted-foreground">
-                          · {warning}
-                        </li>
-                      ))}
+                      {diyGuide.data.guide.safetyWarnings.map(
+                        (warning, index) => (
+                          <li
+                            key={index}
+                            className="text-xs text-muted-foreground"
+                          >
+                            · {warning}
+                          </li>
+                        ),
+                      )}
                     </ul>
                   </div>
                   <div>
                     <p className="mb-1 text-xs font-semibold">Steps</p>
                     <ol className="space-y-1">
                       {diyGuide.data.guide.steps.map((step, index) => (
-                        <li key={index} className="text-xs text-muted-foreground">
+                        <li
+                          key={index}
+                          className="text-xs text-muted-foreground"
+                        >
                           {index + 1}. {step}
                         </li>
                       ))}
@@ -819,7 +861,9 @@ export default function ResultsDetail({
                       </label>
                       <Input
                         value={estimateRegion}
-                        onChange={(event) => setEstimateRegion(event.target.value)}
+                        onChange={(event) =>
+                          setEstimateRegion(event.target.value)
+                        }
                       />
                     </div>
                     <Button
@@ -856,12 +900,14 @@ export default function ResultsDetail({
                           ).toFixed(0)}
                         </p>
                         <p>
-                          Labor: ${(latestEstimate.laborLowCents / 100).toFixed(0)}{" "}
-                          – ${(latestEstimate.laborHighCents / 100).toFixed(0)}
+                          Labor: $
+                          {(latestEstimate.laborLowCents / 100).toFixed(0)} – $
+                          {(latestEstimate.laborHighCents / 100).toFixed(0)}
                         </p>
                         <p>
-                          Parts: ${(latestEstimate.partsLowCents / 100).toFixed(0)}{" "}
-                          – ${(latestEstimate.partsHighCents / 100).toFixed(0)}
+                          Parts: $
+                          {(latestEstimate.partsLowCents / 100).toFixed(0)} – $
+                          {(latestEstimate.partsHighCents / 100).toFixed(0)}
                         </p>
                         <p>Region: {latestEstimate.region}</p>
                       </div>
@@ -890,10 +936,10 @@ export default function ResultsDetail({
                           </div>
                         )}
                         <p className="mt-1 italic">
-                          This estimate is for informational purposes only and may
-                          vary based on actual parts, labor rates, and vehicle
-                          condition. Consult a licensed mechanic for an accurate
-                          diagnosis and quote.
+                          This estimate is for informational purposes only and
+                          may vary based on actual parts, labor rates, and
+                          vehicle condition. Consult a licensed mechanic for an
+                          accurate diagnosis and quote.
                         </p>
                       </div>
                     </div>
@@ -918,9 +964,13 @@ export default function ResultsDetail({
               ) : negotiationScript.data ? (
                 <Card>
                   <CardContent className="space-y-3 py-4">
-                    <p className="font-medium">{negotiationScript.data.headline}</p>
+                    <p className="font-medium">
+                      {negotiationScript.data.headline}
+                    </p>
                     <div>
-                      <p className="mb-1 text-xs font-semibold">Questions to Ask</p>
+                      <p className="mb-1 text-xs font-semibold">
+                        Questions to Ask
+                      </p>
                       <ol className="space-y-1">
                         {negotiationScript.data.keyQuestions.map(
                           (question, index) => (
@@ -937,14 +987,16 @@ export default function ResultsDetail({
                     <div>
                       <p className="mb-1 text-xs font-semibold">Cost Anchors</p>
                       <ul className="space-y-1">
-                        {negotiationScript.data.costAnchors.map((anchor, index) => (
-                          <li
-                            key={index}
-                            className="text-xs text-muted-foreground"
-                          >
-                            · {anchor}
-                          </li>
-                        ))}
+                        {negotiationScript.data.costAnchors.map(
+                          (anchor, index) => (
+                            <li
+                              key={index}
+                              className="text-xs text-muted-foreground"
+                            >
+                              · {anchor}
+                            </li>
+                          ),
+                        )}
                       </ul>
                     </div>
                     <p className="text-xs text-muted-foreground">

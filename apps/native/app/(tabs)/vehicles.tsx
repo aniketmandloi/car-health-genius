@@ -21,11 +21,16 @@ const RED = "#EF4444";
 
 function gradeColor(grade: string): string {
   switch (grade) {
-    case "A": return "#10B981";
-    case "B": return "#06B6D4";
-    case "C": return "#F59E0B";
-    case "D": return "#F97316";
-    default:  return "#EF4444";
+    case "A":
+      return "#10B981";
+    case "B":
+      return "#06B6D4";
+    case "C":
+      return "#F59E0B";
+    case "D":
+      return "#F97316";
+    default:
+      return "#EF4444";
   }
 }
 
@@ -126,7 +131,9 @@ function VehicleFormSheet({
       model: form.model.trim(),
       modelYear: year,
       vin: form.vin.trim() || undefined,
-      mileage: form.mileage.trim() ? parseInt(form.mileage.trim(), 10) : undefined,
+      mileage: form.mileage.trim()
+        ? parseInt(form.mileage.trim(), 10)
+        : undefined,
       engine: form.engine.trim() || undefined,
     };
 
@@ -193,7 +200,9 @@ function VehicleFormSheet({
       </View>
 
       <View className="gap-2">
-        <Text style={{ color: SLATE_400, fontSize: 12 }}>Mileage (optional)</Text>
+        <Text style={{ color: SLATE_400, fontSize: 12 }}>
+          Mileage (optional)
+        </Text>
         <TextInput
           value={form.mileage}
           onChangeText={(t) => setForm((f) => ({ ...f, mileage: t }))}
@@ -205,7 +214,9 @@ function VehicleFormSheet({
       </View>
 
       <View className="gap-2">
-        <Text style={{ color: SLATE_400, fontSize: 12 }}>Engine (optional)</Text>
+        <Text style={{ color: SLATE_400, fontSize: 12 }}>
+          Engine (optional)
+        </Text>
         <TextInput
           value={form.engine}
           onChangeText={(t) => setForm((f) => ({ ...f, engine: t }))}
@@ -276,7 +287,14 @@ export default function VehiclesTab() {
           {!showForm && !editTarget && (
             <TouchableOpacity
               onPress={() => setShowForm(true)}
-              style={{ backgroundColor: TEAL }}
+              style={{
+                backgroundColor: TEAL,
+                shadowColor: "#06B6D4",
+                shadowOpacity: 0.3,
+                shadowRadius: 12,
+                shadowOffset: { width: 0, height: 0 },
+                elevation: 6,
+              }}
               className="flex-row items-center gap-1 rounded-full px-3 py-1.5"
             >
               <Ionicons name="add" size={14} color="white" />
@@ -315,14 +333,24 @@ export default function VehiclesTab() {
             <Text className="text-foreground mt-3 text-base font-medium">
               No vehicles yet
             </Text>
-            <Text style={{ color: SLATE_400, fontSize: 12, textAlign: "center", marginTop: 4 }}>
+            <Text
+              style={{
+                color: SLATE_400,
+                fontSize: 12,
+                textAlign: "center",
+                marginTop: 4,
+              }}
+            >
               Add your first vehicle to start scanning for issues.
             </Text>
           </Card>
         ) : (
           <View className="gap-3">
             {vehicles.data!.map((v) => (
-              <Card key={v.id} className="p-4 rounded-2xl border border-white/10">
+              <Card
+                key={v.id}
+                className="p-4 rounded-2xl border border-white/10"
+              >
                 <View className="flex-row items-start justify-between gap-2">
                   <View className="flex-1 gap-1">
                     <Text className="text-foreground font-bold text-base">
@@ -334,7 +362,13 @@ export default function VehiclesTab() {
                       {v.engine ? ` · ${v.engine}` : ""}
                     </Text>
                     {v.vin && (
-                      <Text style={{ color: SLATE_500, fontSize: 11, fontFamily: "monospace" }}>
+                      <Text
+                        style={{
+                          color: SLATE_500,
+                          fontSize: 11,
+                          fontFamily: "monospace",
+                        }}
+                      >
                         {v.vin}
                       </Text>
                     )}
@@ -363,7 +397,10 @@ export default function VehiclesTab() {
                       </TouchableOpacity>
                       <TouchableOpacity
                         onPress={() =>
-                          handleDelete(v.id, `${v.make} ${v.model} (${v.modelYear})`)
+                          handleDelete(
+                            v.id,
+                            `${v.make} ${v.model} (${v.modelYear})`,
+                          )
                         }
                         style={{ borderColor: "rgba(239,68,68,0.3)" }}
                         className="rounded-lg border px-2.5 py-1"

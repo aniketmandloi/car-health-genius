@@ -3,19 +3,13 @@ import { useQuery } from "@tanstack/react-query";
 import { Button, Card, Chip, Spinner } from "heroui-native";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
-import {
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 import { Container } from "@/components/container";
 import { trpc } from "@/utils/trpc";
 
 const TEAL = "#06B6D4";
 const SLATE_400 = "#94A3B8";
-const SLATE_500 = "#64748B";
 
 function getSeverityColor(
   severity: string,
@@ -156,8 +150,8 @@ export default function HistoryTab() {
               onPress={() => setShowFilters(!showFilters)}
               className="flex-row items-center gap-1"
             >
-              <Ionicons name="filter-outline" size={14} color={SLATE_500} />
-              <Text style={{ color: SLATE_500, fontSize: 12 }}>
+              <Ionicons name="filter-outline" size={14} color={SLATE_400} />
+              <Text style={{ color: SLATE_400, fontSize: 12 }}>
                 {showFilters ? "Hide Filters" : "Filters"}
               </Text>
             </TouchableOpacity>
@@ -186,7 +180,10 @@ export default function HistoryTab() {
                       <Text
                         style={{
                           fontSize: 12,
-                          color: eventTypeFilter === opt.value ? "#FFFFFF" : "#F1F5F9",
+                          color:
+                            eventTypeFilter === opt.value
+                              ? "#FFFFFF"
+                              : "#F1F5F9",
                         }}
                       >
                         {opt.label}
@@ -209,11 +206,18 @@ export default function HistoryTab() {
           </View>
         ) : diagnosticEvents.length === 0 ? (
           <Card className="items-center py-10 p-4 rounded-2xl border border-white/10">
-            <Ionicons name="time-outline" size={40} color={SLATE_500} />
+            <Ionicons name="time-outline" size={40} color={SLATE_400} />
             <Text className="text-foreground mt-3 font-medium">
               No scan history
             </Text>
-            <Text style={{ color: SLATE_400, fontSize: 12, textAlign: "center", marginTop: 4 }}>
+            <Text
+              style={{
+                color: SLATE_400,
+                fontSize: 12,
+                textAlign: "center",
+                marginTop: 4,
+              }}
+            >
               Connect your OBD adapter in the Scan tab to record your first
               diagnostic.
             </Text>
@@ -227,7 +231,10 @@ export default function HistoryTab() {
             {diagnosticEvents.map((event) => {
               const timelineRef = getTimelineEventForDiagnostic(event.id);
               return (
-                <Card key={event.id} className="p-3 rounded-2xl border border-white/10">
+                <Card
+                  key={event.id}
+                  className="p-3 rounded-2xl border border-white/10"
+                >
                   <View className="flex-row items-start justify-between gap-2">
                     <View className="flex-1 gap-1">
                       <View className="flex-row items-center gap-2">

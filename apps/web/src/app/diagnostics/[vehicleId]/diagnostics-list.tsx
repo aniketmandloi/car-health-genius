@@ -16,6 +16,13 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge, getSeverityVariant } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { PageTransition } from "@/components/page-transition";
 import { staggerContainer, fadeUp } from "@/lib/animation-variants";
 import { cn } from "@/lib/utils";
@@ -79,7 +86,10 @@ export default function DiagnosticsList({ vehicleId }: { vehicleId: number }) {
           </div>
           <Link
             href="/dashboard"
-            className={cn(buttonVariants({ variant: "outline", size: "sm" }), "gap-1.5")}
+            className={cn(
+              buttonVariants({ variant: "outline", size: "sm" }),
+              "gap-1.5",
+            )}
           >
             <ArrowLeft className="size-3.5" />
             Dashboard
@@ -89,7 +99,7 @@ export default function DiagnosticsList({ vehicleId }: { vehicleId: number }) {
         {/* Recalls Warning */}
         {!recalls.isLoading && recallCount > 0 && (
           <div className="rounded-2xl border border-warning/20 bg-warning/5 px-4 py-3">
-            <p className="text-sm font-semibold text-amber-700 dark:text-amber-400">
+            <p className="text-sm font-semibold text-warning">
               {recallCount} Active Recall{recallCount !== 1 ? "s" : ""}
             </p>
             <p className="mt-0.5 text-xs text-muted-foreground">
@@ -103,17 +113,26 @@ export default function DiagnosticsList({ vehicleId }: { vehicleId: number }) {
         <section>
           <h2 className="mb-3 text-base font-semibold">Timeline Filters</h2>
           <div className="flex flex-wrap items-center gap-2">
-            <select
-              value={eventType}
-              onChange={(e) => setEventType(e.target.value)}
-              className="h-10 rounded-lg border border-input bg-background px-3 text-sm dark:bg-input/30"
+            <Select
+              value={eventType === "" ? "__all__" : eventType}
+              onValueChange={(val) =>
+                setEventType(val === "__all__" || val === null ? "" : val)
+              }
             >
-              {EVENT_TYPE_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="h-10 w-[160px] rounded-lg">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {EVENT_TYPE_OPTIONS.map((opt) => (
+                  <SelectItem
+                    key={opt.value}
+                    value={opt.value === "" ? "__all__" : opt.value}
+                  >
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Input
               type="date"
               value={fromDate}
@@ -145,7 +164,8 @@ export default function DiagnosticsList({ vehicleId }: { vehicleId: number }) {
           {(fromDate || toDate || eventType) && !timeline.isLoading && (
             <p className="mt-2 text-xs text-muted-foreground">
               {timeline.data?.events.length ?? 0} timeline event
-              {timeline.data?.events.length !== 1 ? "s" : ""} match your filters.
+              {timeline.data?.events.length !== 1 ? "s" : ""} match your
+              filters.
             </p>
           )}
         </section>
@@ -157,7 +177,10 @@ export default function DiagnosticsList({ vehicleId }: { vehicleId: number }) {
           {events.isLoading ? (
             <div className="space-y-2">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-16 animate-pulse rounded-2xl bg-muted" />
+                <div
+                  key={i}
+                  className="h-16 animate-pulse rounded-2xl bg-muted"
+                />
               ))}
             </div>
           ) : (events.data?.length ?? 0) === 0 ? (

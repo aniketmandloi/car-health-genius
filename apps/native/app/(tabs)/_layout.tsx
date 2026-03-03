@@ -5,7 +5,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 
 const DARK_BG = "#0B1120";
 const TEAL = "#06B6D4";
-const SLATE_500 = "#64748B";
+const SLATE_400 = "#94A3B8";
 const SLATE_50 = "#F1F5F9";
 const BORDER_SUBTLE = "rgba(255,255,255,0.08)";
 
@@ -32,7 +32,7 @@ export default function TabLayout() {
           shadowOpacity: 0,
         },
         tabBarActiveTintColor: TEAL,
-        tabBarInactiveTintColor: SLATE_500,
+        tabBarInactiveTintColor: SLATE_400,
       }}
     >
       <Tabs.Screen

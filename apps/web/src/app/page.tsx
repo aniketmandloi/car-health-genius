@@ -103,7 +103,10 @@ export default function Home() {
             className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center"
           >
             <Link href={"/login" as never}>
-              <Button size="lg" className="gap-2 shadow-[0_0_24px_rgba(6,182,212,0.25)]">
+              <Button
+                size="lg"
+                className="gap-2 shadow-[0_0_24px_rgba(6,182,212,0.25)]"
+              >
                 Get Started
                 <ArrowRight className="size-4" />
               </Button>
@@ -145,12 +148,14 @@ export default function Home() {
               <motion.div
                 key={feature.title}
                 variants={fadeUp}
-                className="group rounded-2xl border border-border/50 bg-card p-6 transition-all duration-200 hover:shadow-[0_0_24px_rgba(6,182,212,0.12)] hover:-translate-y-0.5 dark:bg-white/[0.04] dark:border-white/[0.08]"
+                className="group rounded-2xl border border-border/50 bg-card p-6 backdrop-blur-[16px] transition-all duration-200 hover:shadow-[0_0_24px_rgba(6,182,212,0.12)] hover:-translate-y-0.5 dark:bg-white/[0.04] dark:border-white/[0.08]"
               >
                 <div className="mb-4 flex size-10 items-center justify-center rounded-xl bg-primary/10">
                   <feature.icon className="size-5 text-primary" />
                 </div>
-                <h3 className="mb-2 text-base font-semibold">{feature.title}</h3>
+                <h3 className="mb-2 text-base font-semibold">
+                  {feature.title}
+                </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   {feature.description}
                 </p>
@@ -170,9 +175,7 @@ export default function Home() {
           className="mx-auto max-w-4xl"
         >
           <motion.div variants={fadeUp} className="mb-12 text-center">
-            <h2 className="text-2xl font-bold sm:text-3xl">
-              How it works
-            </h2>
+            <h2 className="text-2xl font-bold sm:text-3xl">How it works</h2>
             <p className="mt-3 text-muted-foreground">
               Three simple steps to understand your vehicle
             </p>
@@ -213,16 +216,20 @@ export default function Home() {
           transition={{ duration: 0.5 }}
           className="mx-auto max-w-3xl"
         >
-          <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 p-8 text-center dark:from-primary/10 dark:to-primary/5 md:p-12">
+          <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 p-8 text-center backdrop-blur-[16px] dark:from-primary/10 dark:to-primary/5 md:p-12">
             <Car className="mx-auto mb-4 size-10 text-primary" />
             <h2 className="mb-3 text-xl font-bold sm:text-2xl">
               Ready to take control of your car&apos;s health?
             </h2>
             <p className="mb-6 text-muted-foreground">
-              Join thousands of car owners saving money and avoiding surprise repairs.
+              Join thousands of car owners saving money and avoiding surprise
+              repairs.
             </p>
             <Link href={"/login" as never}>
-              <Button size="lg" className="gap-2 shadow-[0_0_24px_rgba(6,182,212,0.25)]">
+              <Button
+                size="lg"
+                className="gap-2 shadow-[0_0_24px_rgba(6,182,212,0.25)]"
+              >
                 Start For Free
                 <ArrowRight className="size-4" />
               </Button>

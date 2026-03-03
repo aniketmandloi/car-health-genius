@@ -7,6 +7,7 @@ import { Crown, Headphones } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Badge, getStatusVariant } from "@/components/ui/badge";
 import { PageTransition } from "@/components/page-transition";
 import { queryClient, trpc } from "@/utils/trpc";
@@ -79,8 +80,8 @@ export function SupportClient() {
             <span className="font-semibold text-foreground capitalize">
               {priorityQuery.data.priorityTier}
             </span>{" "}
-            · SLA target: {priorityQuery.data.slaTargetMinutes} min
-            · {priorityQuery.data.priorityReason}
+            · SLA target: {priorityQuery.data.slaTargetMinutes} min ·{" "}
+            {priorityQuery.data.priorityReason}
           </div>
         )}
 
@@ -103,43 +104,42 @@ export function SupportClient() {
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-sm font-medium">Details (optional)</label>
+                <label className="text-sm font-medium">
+                  Details (optional)
+                </label>
                 <textarea
                   maxLength={4000}
                   value={details}
                   onChange={(e) => setDetails(e.target.value)}
                   placeholder="Provide additional context, steps to reproduce, etc."
                   rows={4}
-                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm dark:bg-input/30"
+                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm dark:bg-input/30 placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring transition-colors"
                 />
               </div>
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={includeBundle}
-                    onChange={(e) => {
-                      setIncludeBundle(e.target.checked);
-                      if (!e.target.checked) setConsentBundle(false);
+                    onCheckedChange={(checked) => {
+                      setIncludeBundle(!!checked);
+                      if (!checked) setConsentBundle(false);
                     }}
-                    className="rounded"
                   />
                   Attach recent diagnostic data to help debug the issue
                 </label>
                 {includeBundle && (
                   <label className="flex items-start gap-2 rounded-xl border border-warning/30 bg-warning/5 p-3 text-xs">
-                    <input
-                      type="checkbox"
+                    <Checkbox
                       required={includeBundle}
                       checked={consentBundle}
-                      onChange={(e) => setConsentBundle(e.target.checked)}
-                      className="mt-0.5 shrink-0 rounded"
+                      onCheckedChange={(checked) => setConsentBundle(!!checked)}
+                      className="mt-0.5 shrink-0"
                     />
                     <span>
                       I consent to sharing my recent diagnostic event data (DTC
                       codes, severity, timestamps) with the support team to help
-                      resolve my issue. No personal identifiers beyond my user ID
-                      will be included.
+                      resolve my issue. No personal identifiers beyond my user
+                      ID will be included.
                     </span>
                   </label>
                 )}

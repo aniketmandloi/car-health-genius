@@ -83,11 +83,11 @@ export default function PricingTab() {
         {/* Header */}
         <View className="mb-2">
           <Text className="text-foreground text-2xl font-bold">
-            Upgrade to{" "}
-            <Text style={{ color: TEAL }}>Pro</Text>
+            Upgrade to <Text style={{ color: TEAL }}>Pro</Text>
           </Text>
           <Text style={{ color: SLATE_400, fontSize: 14, marginTop: 4 }}>
-            Unlock likely causes, advanced diagnostics, and maintenance intelligence.
+            Unlock likely causes, advanced diagnostics, and maintenance
+            intelligence.
           </Text>
         </View>
 
@@ -112,13 +112,22 @@ export default function PricingTab() {
           </View>
           <View className="flex-row items-end gap-1 mb-1">
             <Text className="text-foreground text-3xl font-bold">$9.99</Text>
-            <Text style={{ color: SLATE_400, fontSize: 14, marginBottom: 4 }}>/ month</Text>
+            <Text style={{ color: SLATE_400, fontSize: 14, marginBottom: 4 }}>
+              / month
+            </Text>
           </View>
           <Text style={{ color: SLATE_400, fontSize: 13 }}>
             Full diagnostic intelligence. Cancel anytime.
           </Text>
           <Button
             className="mt-4"
+            style={{
+              shadowColor: "#06B6D4",
+              shadowOpacity: 0.3,
+              shadowRadius: 12,
+              shadowOffset: { width: 0, height: 0 },
+              elevation: 6,
+            }}
             onPress={() => startCheckout("monthly")}
             isDisabled={createCheckoutSession.isPending}
           >
@@ -147,13 +156,22 @@ export default function PricingTab() {
           </View>
           <View className="flex-row items-end gap-1 mb-1">
             <Text className="text-foreground text-3xl font-bold">$79</Text>
-            <Text style={{ color: SLATE_400, fontSize: 14, marginBottom: 4 }}>/ year</Text>
+            <Text style={{ color: SLATE_400, fontSize: 14, marginBottom: 4 }}>
+              / year
+            </Text>
           </View>
           <Text style={{ color: SLATE_400, fontSize: 13 }}>
             Save 34% vs monthly. Priority access to new features.
           </Text>
           <Button
             className="mt-4"
+            style={{
+              shadowColor: "#06B6D4",
+              shadowOpacity: 0.3,
+              shadowRadius: 12,
+              shadowOffset: { width: 0, height: 0 },
+              elevation: 6,
+            }}
             onPress={() => startCheckout("annual")}
             isDisabled={createCheckoutSession.isPending}
           >
@@ -165,7 +183,9 @@ export default function PricingTab() {
         {createCheckoutSession.isPending ? (
           <View className="flex-row items-center gap-2 mt-2">
             <Spinner size="sm" />
-            <Text style={{ color: SLATE_400, fontSize: 13 }}>Starting checkout...</Text>
+            <Text style={{ color: SLATE_400, fontSize: 13 }}>
+              Starting checkout...
+            </Text>
           </View>
         ) : null}
 
