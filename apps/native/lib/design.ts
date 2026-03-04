@@ -14,35 +14,35 @@ type ElevationStyle = Pick<
 export const ELEVATION = {
   sm: {
     shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: Platform.OS === "ios" ? 0.08 : 0,
-    shadowRadius: 4,
+    shadowRadius: 8,
     elevation: 2,
   } satisfies ElevationStyle,
 
   md: {
     shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: Platform.OS === "ios" ? 0.12 : 0,
-    shadowRadius: 10,
-    elevation: 5,
+    shadowRadius: 16,
+    elevation: 6,
   } satisfies ElevationStyle,
 
   lg: {
     shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: Platform.OS === "ios" ? 0.2 : 0,
-    shadowRadius: 18,
-    elevation: 9,
+    shadowOffset: { width: 0, height: 14 },
+    shadowOpacity: Platform.OS === "ios" ? 0.18 : 0,
+    shadowRadius: 24,
+    elevation: 10,
   } satisfies ElevationStyle,
 
   glow(color: string): ElevationStyle {
     return {
       shadowColor: color,
       shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: Platform.OS === "ios" ? 0.36 : 0,
-      shadowRadius: 14,
-      elevation: 7,
+      shadowOpacity: Platform.OS === "ios" ? 0.22 : 0,
+      shadowRadius: 20,
+      elevation: 6,
     };
   },
 };
@@ -61,13 +61,13 @@ type TypoStyle = {
 };
 
 export const TYPO = {
-  h1: { fontSize: 32, fontWeight: "800", lineHeight: 38 } satisfies TypoStyle,
-  h2: { fontSize: 22, fontWeight: "700", lineHeight: 28 } satisfies TypoStyle,
-  h3: { fontSize: 17, fontWeight: "700", lineHeight: 23 } satisfies TypoStyle,
-  body: { fontSize: 15, fontWeight: "400", lineHeight: 22 } satisfies TypoStyle,
+  h1: { fontSize: 34, fontWeight: "800", lineHeight: 40 } satisfies TypoStyle,
+  h2: { fontSize: 24, fontWeight: "700", lineHeight: 30 } satisfies TypoStyle,
+  h3: { fontSize: 18, fontWeight: "700", lineHeight: 24 } satisfies TypoStyle,
+  body: { fontSize: 16, fontWeight: "400", lineHeight: 24 } satisfies TypoStyle,
   caption: {
     fontSize: 12,
-    fontWeight: "400",
+    fontWeight: "500",
     lineHeight: 16,
   } satisfies TypoStyle,
   micro: {
@@ -80,10 +80,10 @@ export const TYPO = {
 // ─── Radius Presets ─────────────────────────────────────────────────────────
 
 export const RADIUS = {
-  sm: 10,
-  md: 14,
-  lg: 20,
-  xl: 28,
+  sm: 12,
+  md: 16,
+  lg: 24,
+  xl: 32,
   full: 9999,
 } as const;
 
@@ -94,7 +94,7 @@ export const SPACING = {
   sm: 8,
   md: 12,
   lg: 16,
-  xl: 20,
-  "2xl": 24,
-  "3xl": 32,
+  xl: 24,
+  "2xl": 28,
+  "3xl": 36,
 } as const;

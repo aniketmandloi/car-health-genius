@@ -2,39 +2,38 @@
 @import "uniwind";
 
 /*
- * Custom theme overrides — Automotive Glassmorphic palette
- * Matches web app design system (Car Health Genius)
+ * Native token baseline tuned to Coinbase-like palette and density.
  */
 
 :root {
-  --surface-base: #f3f8fc;
+  --surface-base: #f7f9fc;
   --surface-panel: #ffffff;
-  --surface-input: #edf3f9;
-  --surface-border: rgba(15, 23, 42, 0.12);
+  --surface-input: #eef1f5;
+  --surface-border: rgba(15, 23, 42, 0.08);
   --surface-elevated: #ffffff;
-  --surface-recessed: #e8eff6;
-  --text-muted: #475569;
-  --text-subtle: #64748b;
-  --foreground: #0f172a;
+  --surface-recessed: #f2f5fa;
+  --text-muted: #586172;
+  --text-subtle: #7c8594;
+  --foreground: #0a0b0d;
 }
 
 .dark {
-  --surface-base: #081323;
-  --surface-panel: #0f1a2e;
-  --surface-input: #162032;
-  --surface-border: rgba(255, 255, 255, 0.12);
-  --surface-elevated: #152238;
-  --surface-recessed: #0a1225;
-  --text-muted: #94a3b8;
-  --text-subtle: #64748b;
-  --foreground: #f1f5f9;
+  --surface-base: #090b0e;
+  --surface-panel: #12151b;
+  --surface-input: #1a1f27;
+  --surface-border: rgba(162, 174, 198, 0.24);
+  --surface-elevated: #141a23;
+  --surface-recessed: #0e131b;
+  --text-muted: #b4bece;
+  --text-subtle: #8b97aa;
+  --foreground: #f4f7ff;
 }
 
 @theme inline {
   --color-foreground: var(--foreground);
-  --color-brand-teal: #06b6d4;
-  --color-brand-teal-light: #22d3ee;
-  --color-brand-violet: #8b5cf6;
+  --color-brand-teal: #0052ff;
+  --color-brand-teal-light: #2d66f6;
+  --color-brand-violet: #4c8dff;
 
   --color-surface-base: var(--surface-base);
   --color-surface-panel: var(--surface-panel);

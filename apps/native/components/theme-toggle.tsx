@@ -20,14 +20,14 @@ export function ThemeToggle() {
     >
       <View
         style={{
-          width: 34,
-          height: 34,
-          borderRadius: 17,
+          width: 36,
+          height: 36,
+          borderRadius: 18,
           alignItems: "center",
           justifyContent: "center",
           borderWidth: 1,
           borderColor: colors.border,
-          backgroundColor: colors.input,
+          backgroundColor: colors.panel,
         }}
       >
         {isLight ? (

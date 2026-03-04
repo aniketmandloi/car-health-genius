@@ -14,23 +14,6 @@ import { useAppTheme } from "@/contexts/app-theme-context";
 import { TYPO } from "@/lib/design";
 import { trpc } from "@/utils/trpc";
 
-function difficultyColor(difficulty: string): string {
-  switch (difficulty.toLowerCase()) {
-    case "beginner":
-    case "easy":
-      return "#10B981";
-    case "intermediate":
-    case "medium":
-    case "moderate":
-      return "#F59E0B";
-    case "advanced":
-    case "hard":
-      return "#EF4444";
-    default:
-      return "#64748B";
-  }
-}
-
 export default function DiyGuideScreen() {
   const { diagnosticEventId: rawId } = useLocalSearchParams<{
     diagnosticEventId: string;
@@ -44,7 +27,7 @@ export default function DiyGuideScreen() {
 
   if (guideQuery.isLoading) {
     return (
-      <Container className="p-4">
+      <Container className="px-4 pb-8 pt-2">
         <View className="gap-4">
           <SkeletonCard />
           <SkeletonCard />
@@ -56,7 +39,7 @@ export default function DiyGuideScreen() {
   const guide = guideQuery.data?.guide;
 
   return (
-    <Container className="p-4">
+    <Container className="px-4 pb-8 pt-2">
       <View className="gap-4">
         <Animated.View entering={FadeInDown.duration(300)}>
           <Text style={{ ...TYPO.h1, color: colors.text }}>
@@ -92,9 +75,9 @@ export default function DiyGuideScreen() {
                 <Text
                   style={{
                     color: colors.textSubtle,
-                    fontFamily: "monospace",
                     fontSize: 12,
                     marginTop: 4,
+                    fontWeight: "600",
                   }}
                 >
                   {guide.dtcCode}
@@ -248,7 +231,7 @@ export default function DiyGuideScreen() {
                           >
                             <Text
                               style={{
-                                color: "#FFFFFF",
+                                color: colors.textOnPrimary,
                                 fontSize: 11,
                                 fontWeight: "700",
                               }}

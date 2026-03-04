@@ -96,7 +96,7 @@ export function SignUp() {
   });
 
   return (
-    <View className="gap-3">
+    <View className="gap-4">
       <form.Subscribe
         selector={(state) => ({
           isSubmitting: state.isSubmitting,
@@ -112,9 +112,9 @@ export function SignUp() {
                 <View
                   style={{
                     borderWidth: 1,
-                    borderColor: `${colors.danger}55`,
-                    backgroundColor: `${colors.danger}14`,
-                    borderRadius: 12,
+                    borderColor: `${colors.danger}44`,
+                    backgroundColor: `${colors.danger}10`,
+                    borderRadius: 14,
                     paddingHorizontal: 12,
                     paddingVertical: 10,
                   }}
@@ -192,10 +192,14 @@ export function SignUp() {
                   onPress={form.handleSubmit}
                   isDisabled={isSubmitting}
                   isLoading={isSubmitting}
-                  style={{ marginTop: 4 }}
+                  style={{ marginTop: 8 }}
                 >
                   Create Account
                 </Button>
+
+                <Text style={{ color: colors.textSubtle, fontSize: 12, marginTop: 3 }}>
+                  Create your account to save vehicle history, scans, and repair insights.
+                </Text>
               </View>
             </>
           );

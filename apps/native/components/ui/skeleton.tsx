@@ -93,7 +93,7 @@ export function SkeletonCard() {
         borderWidth: 1,
         borderRadius: RADIUS.lg,
         padding: 16,
-        gap: 12,
+        gap: 14,
       }}
     >
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>

@@ -1,7 +1,6 @@
 import { cn } from "@/lib/cn";
 import { type PropsWithChildren } from "react";
 import {
-  StyleSheet,
   RefreshControl,
   ScrollView,
   View,
@@ -44,51 +43,13 @@ export function Container({
       className={cn("flex-1", className)}
       style={[
         {
-          backgroundColor: colors.background,
+          backgroundColor: variant === "plain" ? colors.panel : colors.background,
           paddingBottom: insets.bottom,
         },
         style,
       ]}
       {...props}
     >
-      {variant === "default" && (
-        <View pointerEvents="none" style={StyleSheet.absoluteFillObject}>
-          <View
-            style={{
-              position: "absolute",
-              left: -130,
-              top: -170,
-              width: 360,
-              height: 360,
-              borderRadius: 180,
-              backgroundColor: colors.auraPrimary,
-            }}
-          />
-          <View
-            style={{
-              position: "absolute",
-              right: -120,
-              top: 120,
-              width: 300,
-              height: 300,
-              borderRadius: 150,
-              backgroundColor: colors.auraSecondary,
-            }}
-          />
-          <View
-            style={{
-              position: "absolute",
-              right: 32,
-              bottom: 52,
-              width: 170,
-              height: 170,
-              borderRadius: 85,
-              borderWidth: 1,
-              borderColor: colors.border,
-            }}
-          />
-        </View>
-      )}
       {header}
       {isScrollable ? (
         <ScrollView

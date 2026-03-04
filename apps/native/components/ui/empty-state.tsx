@@ -25,18 +25,18 @@ export function EmptyState({
     <View
       style={{
         alignItems: "center",
-        borderRadius: 22,
+        borderRadius: 24,
         borderWidth: 1,
         borderColor: colors.border,
         backgroundColor: colors.panel,
         paddingHorizontal: 24,
-        paddingVertical: 28,
+        paddingVertical: 30,
       }}
     >
       <View
         style={{
-          width: 66,
-          height: 66,
+          width: 70,
+          height: 70,
           borderRadius: 999,
           alignItems: "center",
           justifyContent: "center",
@@ -50,8 +50,8 @@ export function EmptyState({
       <Text
         style={{
           color: colors.text,
-          fontSize: 18,
-          fontWeight: "800",
+          fontSize: 20,
+          fontWeight: "700",
           marginTop: 15,
           textAlign: "center",
         }}

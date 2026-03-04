@@ -62,11 +62,11 @@ function ConnectionIndicator({ state }: { state: AdapterConnectionState }) {
     <View className="items-center gap-3 py-4">
       <View
         style={{
-          width: 72,
-          height: 72,
-          borderRadius: 36,
+          width: 68,
+          height: 68,
+          borderRadius: 34,
           backgroundColor: `${color}18`,
-          borderWidth: 3,
+          borderWidth: 2,
           borderColor: color,
           alignItems: "center",
           justifyContent: "center",
@@ -357,7 +357,7 @@ export default function ScanTab() {
   const activeVehicle = vehicles.data?.find((v) => v.id === activeVehicleId);
 
   return (
-    <Container className="p-6">
+    <Container className="px-4 pb-8 pt-2">
       <View className="gap-5">
         {/* Connection Status Hero */}
         <Animated.View entering={FadeInDown.duration(400).delay(50)}>
@@ -381,8 +381,10 @@ export default function ScanTab() {
             style={{
               flexDirection: "row",
               alignItems: "center",
-              backgroundColor: colors.input,
-              borderRadius: 12,
+              backgroundColor: colors.surfaceRecessed,
+              borderRadius: 14,
+              borderWidth: 1,
+              borderColor: colors.border,
               paddingHorizontal: 14,
               paddingVertical: 10,
             }}

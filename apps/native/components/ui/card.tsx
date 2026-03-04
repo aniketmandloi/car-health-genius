@@ -30,11 +30,11 @@ function CardHeader({
     <View className="mb-3 flex-row items-center gap-3">
       {icon}
       <View className="flex-1">
-        <Text style={{ color: colors.text, fontSize: 15, fontWeight: "700" }}>
+        <Text style={{ color: colors.text, fontSize: 16, fontWeight: "700" }}>
           {title}
         </Text>
         {subtitle ? (
-          <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: 2 }}>
+          <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: 3 }}>
             {subtitle}
           </Text>
         ) : null}
@@ -51,7 +51,10 @@ function CardTitle({
   const { colors } = useAppTheme();
 
   return (
-    <Text className={cn(className)} style={{ color: colors.text, fontSize: 16, fontWeight: "700" }}>
+    <Text
+      className={cn(className)}
+      style={{ color: colors.text, fontSize: 17, fontWeight: "700" }}
+    >
       {children}
     </Text>
   );
@@ -84,7 +87,7 @@ function Card({
     switch (variant) {
       case "elevated":
         return {
-          backgroundColor: colors.surfaceElevated,
+          backgroundColor: colors.panel,
           borderWidth: 1,
           borderColor: colors.border,
           ...ELEVATION.md,
@@ -97,11 +100,9 @@ function Card({
         };
       case "accent":
         return {
-          backgroundColor: isDark ? colors.surfaceElevated : colors.panel,
+          backgroundColor: isDark ? colors.surfaceElevated : `${colors.primary}08`,
           borderWidth: 1,
-          borderColor: `${colors.primary}66`,
-          borderTopWidth: 2,
-          borderTopColor: colors.primary,
+          borderColor: `${colors.primary}3C`,
           ...ELEVATION.sm,
         };
       case "recessed":
@@ -116,8 +117,8 @@ function Card({
           backgroundColor: colors.panel,
           borderWidth: 1,
           borderColor: colors.border,
-          ...(Platform.OS === "ios" ? ELEVATION.sm : {}),
-          ...(Platform.OS === "android" ? { elevation: 2 } : {}),
+          ...(Platform.OS === "ios" ? ELEVATION.sm : null),
+          ...(Platform.OS === "android" ? { elevation: 1 } : null),
         };
     }
   })();

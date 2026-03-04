@@ -1,74 +1,31 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { Platform, Pressable, Text, View } from "react-native";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useAppTheme } from "@/contexts/app-theme-context";
-import { ELEVATION } from "@/lib/design";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type TabBarProps = any;
 
 const TAB_CONFIG: Record<
   string,
-  { icon: keyof typeof Ionicons.glyphMap; label: string }
+  {
+    icon: keyof typeof Ionicons.glyphMap;
+    activeIcon: keyof typeof Ionicons.glyphMap;
+    label: string;
+  }
 > = {
-  index: { icon: "home", label: "Home" },
-  history: { icon: "time-outline", label: "History" },
-  scan: { icon: "scan-outline", label: "Scan" },
-  vehicles: { icon: "car-outline", label: "Vehicles" },
-  pricing: { icon: "diamond-outline", label: "Pro" },
+  index: { icon: "home-outline", activeIcon: "home", label: "Home" },
+  history: { icon: "list-outline", activeIcon: "list", label: "History" },
+  scan: {
+    icon: "speedometer-outline",
+    activeIcon: "speedometer",
+    label: "Scan",
+  },
+  vehicles: { icon: "car-sport-outline", activeIcon: "car-sport", label: "Vehicles" },
+  pricing: { icon: "star-outline", activeIcon: "star", label: "Pro" },
 };
-
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-
-function ScanButton({ onPress, focused }: { onPress: () => void; focused: boolean }) {
-  const { colors } = useAppTheme();
-  const scale = useSharedValue(1);
-
-  const animStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
-  return (
-    <AnimatedPressable
-      onPress={() => {
-        if (Platform.OS === "ios" || Platform.OS === "android") {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-        }
-        onPress();
-      }}
-      onPressIn={() => {
-        scale.value = withSpring(0.93, { damping: 16, stiffness: 320 });
-      }}
-      onPressOut={() => {
-        scale.value = withSpring(1, { damping: 16, stiffness: 320 });
-      }}
-      style={[
-        animStyle,
-        {
-          width: 62,
-          height: 62,
-          borderRadius: 31,
-          alignItems: "center",
-          justifyContent: "center",
-          marginTop: -30,
-          backgroundColor: focused ? colors.primaryPressed : colors.primary,
-          borderWidth: 3,
-          borderColor: "rgba(255,255,255,0.86)",
-          ...ELEVATION.glow(colors.primary),
-        },
-      ]}
-    >
-      <Ionicons name="scan-outline" size={28} color="#FFFFFF" />
-    </AnimatedPressable>
-  );
-}
 
 export function CustomTabBar({
   state,
@@ -82,24 +39,20 @@ export function CustomTabBar({
   return (
     <View
       style={{
-        paddingHorizontal: 12,
-        paddingTop: 8,
-        paddingBottom: insets.bottom > 0 ? insets.bottom - 2 : 8,
-        backgroundColor: "transparent",
+        paddingHorizontal: 8,
+        paddingTop: 6,
+        paddingBottom: insets.bottom > 0 ? insets.bottom + 4 : 10,
+        backgroundColor: colors.tabBar,
+        borderTopWidth: 1,
+        borderTopColor: colors.tabBarBorder,
       }}
     >
       <View
         style={{
           flexDirection: "row",
           alignItems: "center",
-          borderRadius: 28,
-          borderWidth: 1,
-          borderColor: colors.tabBarBorder,
-          backgroundColor: colors.tabBar,
-          paddingHorizontal: 8,
-          paddingTop: 10,
-          paddingBottom: 10,
-          ...ELEVATION.lg,
+          paddingHorizontal: 4,
+          paddingVertical: 6,
         }}
       >
         {orderedRoutes.map((routeName) => {
@@ -113,7 +66,6 @@ export function CustomTabBar({
           if (!config) return null;
 
           const isFocused = state.index === routeIndex;
-          const isScan = routeName === "scan";
 
           function onPress() {
             if (Platform.OS === "ios" || Platform.OS === "android") {
@@ -129,24 +81,6 @@ export function CustomTabBar({
             }
           }
 
-          if (isScan) {
-            return (
-              <View key={routeName} style={{ flex: 1, alignItems: "center" }}>
-                <ScanButton onPress={onPress} focused={isFocused} />
-                <Text
-                  style={{
-                    fontSize: 10,
-                    fontWeight: "700",
-                    color: isFocused ? colors.tabActive : colors.tabInactive,
-                    marginTop: 3,
-                  }}
-                >
-                  {config.label}
-                </Text>
-              </View>
-            );
-          }
-
           return (
             <Pressable
               key={routeName}
@@ -155,32 +89,35 @@ export function CustomTabBar({
                 flex: 1,
                 alignItems: "center",
                 justifyContent: "center",
-                paddingVertical: 2,
-                gap: 3,
+                gap: 4,
+                paddingVertical: 4,
               }}
             >
-              <Ionicons
-                name={config.icon}
-                size={21}
-                color={isFocused ? colors.tabActive : colors.tabInactive}
-              />
+              <View
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: isFocused ? colors.primarySoft : "transparent",
+                }}
+              >
+                <Ionicons
+                  name={isFocused ? config.activeIcon : config.icon}
+                  size={18}
+                  color={isFocused ? colors.tabActive : colors.tabInactive}
+                />
+              </View>
               <Text
                 style={{
-                  fontSize: 10,
+                  fontSize: 11,
                   fontWeight: isFocused ? "700" : "600",
                   color: isFocused ? colors.tabActive : colors.tabInactive,
                 }}
               >
                 {config.label}
               </Text>
-              <View
-                style={{
-                  width: 4,
-                  height: 4,
-                  borderRadius: 2,
-                  backgroundColor: isFocused ? colors.tabActive : "transparent",
-                }}
-              />
             </Pressable>
           );
         })}

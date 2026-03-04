@@ -34,7 +34,7 @@ function getSeverityDotColor(severity: string, colors: any): string {
     case "critical":
       return colors.danger;
     case "high":
-      return "#F97316";
+      return colors.danger;
     case "medium":
       return colors.warning;
     case "low":
@@ -123,7 +123,7 @@ export default function HistoryTab() {
       refreshing={events.isFetching}
       onRefresh={activeVehicleId ? handleRefresh : undefined}
     >
-      <View className="p-4 gap-4">
+      <View style={{ paddingHorizontal: 16, paddingTop: 8, gap: 14 }}>
         {/* Vehicle Selector */}
         {vehicles.isLoading ? null : (vehicles.data?.length ?? 0) === 0 ? (
           <Card variant="default">
@@ -144,12 +144,12 @@ export default function HistoryTab() {
                   key={v.id}
                   onPress={() => setSelectedVehicleId(v.id)}
                   style={{
-                    backgroundColor: isActive ? colors.primary : "transparent",
+                    backgroundColor: isActive ? colors.primary : colors.surfaceRecessed,
                     borderColor: isActive ? colors.primary : colors.border,
                     borderWidth: 1,
                     borderRadius: 999,
                     paddingHorizontal: 14,
-                    paddingVertical: 7,
+                    paddingVertical: 8,
                   }}
                 >
                   <Text
@@ -183,12 +183,12 @@ export default function HistoryTab() {
                   style={{
                     backgroundColor: isActive
                       ? colors.primarySoft
-                      : "transparent",
+                      : colors.surfaceRecessed,
                     borderColor: isActive ? colors.primary : colors.border,
                     borderWidth: 1,
                     borderRadius: 999,
                     paddingHorizontal: 12,
-                    paddingVertical: 5,
+                    paddingVertical: 6,
                   }}
                 >
                   <Text
@@ -271,7 +271,6 @@ export default function HistoryTab() {
                           <View className="flex-row items-center gap-2">
                             <Text
                               style={{
-                                fontFamily: "monospace",
                                 fontSize: 14,
                                 fontWeight: "700",
                                 color: colors.text,

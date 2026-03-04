@@ -25,10 +25,10 @@ function StackLayout() {
           headerTitleStyle: {
             color: colors.headerText,
             fontWeight: "700",
-            fontSize: 16,
+            fontSize: 17,
           },
           headerTintColor: colors.headerText,
-          headerShadowVisible: true,
+          headerShadowVisible: false,
           contentStyle: { backgroundColor: colors.background },
         }}
       >

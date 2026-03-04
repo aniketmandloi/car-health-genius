@@ -15,21 +15,6 @@ import { useAppTheme } from "@/contexts/app-theme-context";
 import { ELEVATION } from "@/lib/design";
 import { queryClient, trpc } from "@/utils/trpc";
 
-function gradeColor(grade: string): string {
-  switch (grade) {
-    case "A":
-      return "#10B981";
-    case "B":
-      return "#06B6D4";
-    case "C":
-      return "#F59E0B";
-    case "D":
-      return "#F97316";
-    default:
-      return "#EF4444";
-  }
-}
-
 function VehicleHealthBadge({ vehicleId }: { vehicleId: number }) {
   const healthScore = useQuery(
     trpc.maintenance.getHealthScore.queryOptions({ vehicleId }),
@@ -266,7 +251,7 @@ export default function VehiclesTab() {
       refreshing={vehicles.isFetching}
       onRefresh={handleRefresh}
     >
-      <View className="p-4 gap-4">
+      <View style={{ paddingHorizontal: 16, paddingTop: 8, gap: 14 }}>
         {showForm && (
           <VehicleFormSheet
             onDone={() => setShowForm(false)}
@@ -341,7 +326,7 @@ export default function VehiclesTab() {
                           style={{
                             color: colors.textSubtle,
                             fontSize: 11,
-                            fontFamily: "monospace",
+                            fontWeight: "600",
                             marginTop: 2,
                           }}
                         >
@@ -368,7 +353,9 @@ export default function VehiclesTab() {
                           width: 36,
                           height: 36,
                           borderRadius: 18,
-                          backgroundColor: colors.input,
+                          backgroundColor: colors.surfaceRecessed,
+                          borderWidth: 1,
+                          borderColor: colors.border,
                           alignItems: "center",
                           justifyContent: "center",
                         }}
@@ -418,16 +405,18 @@ export default function VehiclesTab() {
             position: "absolute",
             bottom: 24,
             right: 20,
-            width: 52,
-            height: 52,
-            borderRadius: 26,
+            width: 56,
+            height: 56,
+            borderRadius: 28,
             backgroundColor: colors.primary,
+            borderWidth: 1,
+            borderColor: colors.primaryPressed,
             alignItems: "center",
             justifyContent: "center",
-            ...ELEVATION.glow(colors.primary),
+            ...ELEVATION.sm,
           }}
         >
-          <Ionicons name="add" size={26} color="#FFFFFF" />
+          <Ionicons name="add" size={26} color={colors.textOnPrimary} />
         </Pressable>
       )}
     </Container>

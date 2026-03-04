@@ -3,21 +3,21 @@
     "scheme": "car-health-genius",
     "userInterfaceStyle": "automatic",
     "orientation": "default",
-    "icon": "./assets/images/logo.png",
+    "icon": "./assets/images/icon.png",
     "splash": {
-      "image": "./assets/images/logo.png",
+      "image": "./assets/images/icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#081323"
+      "backgroundColor": "#0052FF"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/logo.png",
-        "backgroundColor": "#081323"
+        "foregroundImage": "./assets/images/icon.png",
+        "backgroundColor": "#0052FF"
       }
     },
     "web": {
       "bundler": "metro",
-      "favicon": "./assets/images/logo.png"
+      "favicon": "./assets/images/icon.png"
     },
     "name": "Car Health Genius",
     "slug": "car-health-genius",

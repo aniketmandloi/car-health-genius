@@ -49,7 +49,6 @@ function EventCard({
     occurredAt: string;
     source: string;
   };
-  vehicleId: number;
 }) {
   const router = useRouter();
   const { colors } = useAppTheme();
@@ -101,7 +100,6 @@ function EventCard({
           <View className="flex-row items-center gap-2">
             <Text
               style={{
-                fontFamily: "monospace",
                 fontSize: 16,
                 fontWeight: "700",
                 color: colors.text,
@@ -181,7 +179,7 @@ export default function ScanResultsScreen() {
   const recentEvents = (events.data ?? []).slice(0, 10);
 
   return (
-    <Container className="p-4">
+    <Container className="px-4 pb-8 pt-2">
       <View className="gap-4">
         {/* Summary */}
         {!events.isLoading && recentEvents.length > 0 && (
@@ -189,7 +187,7 @@ export default function ScanResultsScreen() {
             <Card variant="accent">
               <View className="flex-row items-center gap-3">
                 <Ionicons
-                  name="alert-circle-outline"
+                  name="alert-circle"
                   size={24}
                   color={colors.primary}
                 />
@@ -242,7 +240,6 @@ export default function ScanResultsScreen() {
               >
                 <EventCard
                   event={event}
-                  vehicleId={activeVehicle?.id ?? vehicleId}
                 />
               </Animated.View>
             ))}

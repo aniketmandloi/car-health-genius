@@ -35,27 +35,27 @@ function Chip({
 
   const colorMap: Record<ChipColor, { bg: string; text: string; border: string }> = {
     success: {
-      bg: `${colors.success}1A`,
+      bg: `${colors.success}14`,
       text: colors.success,
-      border: `${colors.success}4A`,
+      border: `${colors.success}3C`,
     },
     warning: {
-      bg: `${colors.warning}1A`,
+      bg: `${colors.warning}14`,
       text: colors.warning,
-      border: `${colors.warning}4A`,
+      border: `${colors.warning}3C`,
     },
     danger: {
-      bg: `${colors.danger}1A`,
+      bg: `${colors.danger}14`,
       text: colors.danger,
-      border: `${colors.danger}4A`,
+      border: `${colors.danger}3C`,
     },
     info: {
-      bg: `${colors.info}1A`,
+      bg: `${colors.info}14`,
       text: colors.info,
-      border: `${colors.info}4A`,
+      border: `${colors.info}3C`,
     },
     default: {
-      bg: colors.input,
+      bg: colors.surfaceRecessed,
       text: colors.textMuted,
       border: colors.border,
     },
@@ -71,8 +71,8 @@ function Chip({
         borderColor: border,
         borderWidth: 1,
         borderRadius: 999,
-        paddingHorizontal: isSmall ? 8 : 10,
-        paddingVertical: isSmall ? 3 : 5,
+        paddingHorizontal: isSmall ? 9 : 11,
+        paddingVertical: isSmall ? 4 : 6,
         alignSelf: "flex-start",
         flexDirection: "row",
         alignItems: "center",
@@ -94,7 +94,7 @@ function Chip({
           color: text,
           fontSize: isSmall ? 11 : 12,
           fontWeight: "700",
-          textTransform: "capitalize",
+          letterSpacing: 0.2,
         }}
       >
         {getTextContent(children)}

@@ -16,7 +16,7 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { useAppTheme } from "@/contexts/app-theme-context";
-import { ELEVATION, RADIUS } from "@/lib/design";
+import { ELEVATION } from "@/lib/design";
 
 type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "outline";
 type ButtonSize = "xs" | "sm" | "md" | "lg";
@@ -62,23 +62,23 @@ function Button({
     ButtonSize,
     { minHeight: number; px: number; py: number; fontSize: number; iconSize: number }
   > = {
-    xs: { minHeight: 30, px: 10, py: 4, fontSize: 12, iconSize: 14 },
-    sm: { minHeight: 38, px: 14, py: 8, fontSize: 13, iconSize: 16 },
-    md: { minHeight: 46, px: 18, py: 11, fontSize: 15, iconSize: 18 },
-    lg: { minHeight: 54, px: 22, py: 14, fontSize: 16, iconSize: 20 },
+    xs: { minHeight: 32, px: 12, py: 5, fontSize: 12, iconSize: 14 },
+    sm: { minHeight: 40, px: 15, py: 9, fontSize: 13, iconSize: 16 },
+    md: { minHeight: 48, px: 20, py: 12, fontSize: 15, iconSize: 18 },
+    lg: { minHeight: 54, px: 24, py: 14, fontSize: 16, iconSize: 20 },
   };
 
   const variantStyles: Record<ButtonVariant, ViewStyle> = {
     primary: {
       backgroundColor: colors.primary,
       borderWidth: 1,
-      borderColor: `${colors.primaryPressed}CC`,
-      ...ELEVATION.glow(colors.primary),
+      borderColor: colors.primaryPressed,
+      ...ELEVATION.sm,
     },
     secondary: {
-      backgroundColor: colors.panel,
+      backgroundColor: colors.primarySoft,
       borderWidth: 1,
-      borderColor: colors.borderStrong,
+      borderColor: `${colors.primary}33`,
     },
     ghost: {
       backgroundColor: "transparent",
@@ -92,13 +92,13 @@ function Button({
     outline: {
       backgroundColor: "transparent",
       borderWidth: 1,
-      borderColor: colors.borderStrong,
+      borderColor: colors.border,
     },
   };
 
   const textColor: Record<ButtonVariant, string> = {
     primary: colors.textOnPrimary,
-    secondary: colors.text,
+    secondary: colors.primary,
     ghost: colors.textMuted,
     danger: colors.textOnPrimary,
     outline: colors.text,
@@ -151,7 +151,7 @@ function Button({
           minHeight: s.minHeight,
           paddingHorizontal: s.px,
           paddingVertical: s.py,
-          borderRadius: RADIUS.md,
+          borderRadius: 999,
           alignItems: "center",
           justifyContent: "center",
           flexDirection: "row",

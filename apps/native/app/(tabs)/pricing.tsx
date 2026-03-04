@@ -86,12 +86,12 @@ export default function PricingTab() {
   }
 
   return (
-    <Container className="p-6">
+    <Container className="px-4 pb-8 pt-2">
       <View className="gap-5">
         {/* Header */}
         <Animated.View entering={FadeInDown.duration(400).delay(50)}>
           <Text style={{ ...TYPO.h1, color: colors.text }}>
-            Upgrade to <Text style={{ color: colors.primary }}>Pro</Text>
+            Go <Text style={{ color: colors.primary }}>Pro</Text>
           </Text>
           <Text
             style={{
@@ -101,7 +101,7 @@ export default function PricingTab() {
               lineHeight: 20,
             }}
           >
-            Unlock advanced diagnostics and maintenance intelligence.
+            Unlock advanced diagnostics, richer reports, and faster support.
           </Text>
         </Animated.View>
 
@@ -152,7 +152,7 @@ export default function PricingTab() {
                 Annual Pro
               </Text>
               <Chip color="success" dot>
-                BEST VALUE
+                MOST POPULAR
               </Chip>
             </View>
             <View className="flex-row items-end gap-1 mb-1">
@@ -176,7 +176,7 @@ export default function PricingTab() {
               </Text>
             </View>
             <Text style={{ color: colors.success, fontSize: 13, fontWeight: "600" }}>
-              Save 34% vs monthly
+              Save 34% vs monthly pricing
             </Text>
             <Text
               style={{
@@ -193,7 +193,7 @@ export default function PricingTab() {
               isDisabled={createCheckoutSession.isPending}
               isLoading={createCheckoutSession.isPending}
             >
-              Choose Annual
+              Start Annual
             </Button>
           </Card>
         </Animated.View>
@@ -241,7 +241,7 @@ export default function PricingTab() {
               onPress={() => startCheckout("monthly")}
               isDisabled={createCheckoutSession.isPending}
             >
-              Choose Monthly
+              Start Monthly
             </Button>
           </Card>
         </Animated.View>

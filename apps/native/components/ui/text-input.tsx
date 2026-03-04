@@ -8,7 +8,6 @@ import {
 } from "react-native";
 
 import { useAppTheme } from "@/contexts/app-theme-context";
-import { RADIUS } from "@/lib/design";
 
 type AppTextInputProps = Omit<RNTextInputProps, "style"> & {
   label?: string;
@@ -35,7 +34,7 @@ export const AppTextInput = forwardRef<RNTextInput, AppTextInputProps>(
     return (
       <View className={containerClassName} style={{ gap: 7 }}>
         {label ? (
-          <Text style={{ color: colors.textMuted, fontSize: 12, fontWeight: "700" }}>
+          <Text style={{ color: colors.textMuted, fontSize: 12, fontWeight: "600" }}>
             {label}
           </Text>
         ) : null}
@@ -47,12 +46,12 @@ export const AppTextInput = forwardRef<RNTextInput, AppTextInputProps>(
             backgroundColor: colors.input,
             borderColor,
             borderWidth: focused ? 1.5 : 1,
-            borderRadius: RADIUS.md,
+            borderRadius: 14,
             paddingHorizontal: 14,
-            minHeight: inputProps.multiline ? 100 : 48,
+            minHeight: inputProps.multiline ? 108 : 50,
             shadowColor: colors.primary,
-            shadowOpacity: focused ? 0.14 : 0,
-            shadowRadius: focused ? 10 : 0,
+            shadowOpacity: focused ? 0.12 : 0,
+            shadowRadius: focused ? 14 : 0,
             shadowOffset: { width: 0, height: 0 },
           }}
         >
@@ -80,7 +79,7 @@ export const AppTextInput = forwardRef<RNTextInput, AppTextInputProps>(
             style={{
               flex: 1,
               color: colors.text,
-              fontSize: 15,
+              fontSize: 16,
               fontWeight: "500",
               paddingVertical: inputProps.multiline ? 12 : 10,
               ...(inputProps.multiline

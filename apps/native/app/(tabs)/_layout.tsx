@@ -15,13 +15,13 @@ export default function TabLayout() {
         headerStyle: {
           backgroundColor: colors.header,
         },
-        headerShadowVisible: true,
+        headerShadowVisible: false,
         headerTintColor: colors.headerText,
-        headerTitleAlign: "center",
+        headerTitleAlign: "left",
         headerTitleStyle: {
           color: colors.headerText,
           fontWeight: "700",
-          fontSize: 17,
+          fontSize: 20,
         },
         headerRight: () => <ThemeToggle />,
         headerRightContainerStyle: {

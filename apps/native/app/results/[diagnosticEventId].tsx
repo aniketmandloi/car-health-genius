@@ -99,7 +99,7 @@ function ProLockedCard({ feature }: { feature: string }) {
   return (
     <Card variant="outlined" style={{ borderColor: `${colors.secondary}33` }}>
       <View className="items-center gap-2 py-2">
-        <Ionicons name="lock-closed" size={22} color={colors.secondary} />
+        <Ionicons name="lock-closed-outline" size={22} color={colors.secondary} />
         <Text
           style={{ color: colors.secondary, fontSize: 14, fontWeight: "700" }}
         >
@@ -247,7 +247,7 @@ export default function ResultsDetailScreen() {
   }
 
   return (
-    <Container className="p-4">
+    <Container className="px-4 pb-8 pt-2">
       <View className="gap-5">
         {/* Header */}
         <Animated.View entering={FadeInDown.duration(300)}>
@@ -256,7 +256,6 @@ export default function ResultsDetailScreen() {
               <>
                 <Text
                   style={{
-                    fontFamily: "monospace",
                     fontSize: 22,
                     fontWeight: "800",
                     color: colors.text,
@@ -272,7 +271,6 @@ export default function ResultsDetailScreen() {
             ) : (
               <Text
                 style={{
-                  fontFamily: "monospace",
                   fontSize: 22,
                   fontWeight: "800",
                   color: colors.text,
@@ -575,7 +573,7 @@ export default function ResultsDetailScreen() {
 
         {/* Likely Causes */}
         <Animated.View entering={FadeInDown.duration(300).delay(150)}>
-          <SectionHeader title="Likely Causes" icon="search-outline" />
+          <SectionHeader title="Likely Causes" icon="analytics-outline" />
 
           {likelyCauses.isLoading ? (
             <SkeletonCard />
@@ -638,7 +636,7 @@ export default function ResultsDetailScreen() {
 
         {/* DIY Guide */}
         <Animated.View entering={FadeInDown.duration(300).delay(200)}>
-          <SectionHeader title="DIY Guide" icon="construct-outline" />
+          <SectionHeader title="DIY Guide" icon="construct" />
 
           {diyGuide.isLoading ? (
             <SkeletonCard />
@@ -731,7 +729,7 @@ export default function ResultsDetailScreen() {
 
         {/* Cost Estimate */}
         <Animated.View entering={FadeInDown.duration(300).delay(250)}>
-          <SectionHeader title="Cost Estimate" icon="cash-outline" />
+          <SectionHeader title="Cost Estimate" icon="cash" />
 
           {isEstimateProLocked ? (
             <ProLockedCard feature="generate cost estimates" />

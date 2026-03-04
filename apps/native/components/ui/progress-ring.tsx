@@ -13,15 +13,15 @@ type ProgressRingProps = {
 function gradeColor(grade: string): string {
   switch (grade) {
     case "A":
-      return "#21C58D";
+      return "#119D66";
     case "B":
-      return "#18B1D8";
+      return "#2D66F6";
     case "C":
-      return "#F3A93E";
+      return "#D18A22";
     case "D":
-      return "#F68242";
+      return "#D36D2C";
     default:
-      return "#EB5A6C";
+      return "#D2445D";
   }
 }
 

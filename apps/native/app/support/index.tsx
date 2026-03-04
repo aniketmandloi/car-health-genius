@@ -93,8 +93,9 @@ export default function SupportScreen() {
     <Container
       refreshing={issuesQuery.isFetching}
       onRefresh={handleRefresh}
+      className="px-4 pb-8 pt-2"
     >
-      <View className="p-4 gap-5">
+      <View className="gap-5">
         {/* Header */}
         <Animated.View entering={FadeInDown.duration(300)}>
           <View className="flex-row items-start justify-between">
@@ -103,7 +104,7 @@ export default function SupportScreen() {
               <Text
                 style={{
                   color: colors.textMuted,
-                  fontSize: 12,
+                  fontSize: 13,
                   marginTop: 4,
                 }}
               >
@@ -121,10 +122,10 @@ export default function SupportScreen() {
         {/* SLA info */}
         {priorityQuery.data && (
           <Animated.View entering={FadeInDown.duration(300).delay(50)}>
-            <Card variant="recessed">
+            <Card variant="default">
               <View className="flex-row items-center gap-2">
                 <Ionicons
-                  name="shield-checkmark-outline"
+                  name="shield-checkmark"
                   size={16}
                   color={colors.primary}
                 />
@@ -143,7 +144,7 @@ export default function SupportScreen() {
         {/* New Issue Form */}
         <Animated.View entering={FadeInDown.duration(300).delay(100)}>
           <Card variant="outlined">
-            <SectionHeader title="New Issue" icon="create-outline" />
+            <SectionHeader title="New Issue" icon="create" />
 
             <View className="gap-3">
               <AppTextInput
@@ -182,7 +183,7 @@ export default function SupportScreen() {
                     setIncludeBundle(v);
                     if (!v) setConsentBundle(false);
                   }}
-                  trackColor={{ true: colors.primary }}
+                  trackColor={{ true: colors.primary, false: colors.track }}
                 />
               </View>
 
@@ -192,8 +193,8 @@ export default function SupportScreen() {
                   className="flex-row items-start gap-2 rounded-xl p-3"
                   style={{
                     borderWidth: 1,
-                    borderColor: `${colors.warning}66`,
-                    backgroundColor: `${colors.warning}14`,
+                    borderColor: `${colors.warning}44`,
+                    backgroundColor: `${colors.warning}12`,
                   }}
                 >
                   <View
@@ -249,7 +250,7 @@ export default function SupportScreen() {
 
         {/* Existing Issues */}
         <Animated.View entering={FadeInDown.duration(300).delay(150)}>
-          <SectionHeader title="My Issues" icon="list-outline" />
+          <SectionHeader title="My Issues" icon="list" />
 
           {issuesQuery.isLoading ? (
             <SkeletonCard />
