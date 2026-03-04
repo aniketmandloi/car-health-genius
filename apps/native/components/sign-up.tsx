@@ -1,18 +1,14 @@
 import { useForm } from "@tanstack/react-form";
 import { useRef } from "react";
 import Toast from "react-native-toast-message";
-import {
-  ActivityIndicator,
-  Pressable,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Text, TextInput, View } from "react-native";
 import z from "zod";
 
 import { useAppTheme } from "@/contexts/app-theme-context";
 import { authClient } from "@/lib/auth-client";
 import { queryClient } from "@/utils/trpc";
+import { AppTextInput } from "@/components/ui/text-input";
+import { Button } from "@/components/ui/button";
 
 const signUpSchema = z.object({
   name: z
@@ -101,13 +97,6 @@ export function SignUp() {
 
   return (
     <View className="gap-3">
-      <Text className="text-foreground text-lg font-semibold">
-        Create Account
-      </Text>
-      <Text style={{ color: colors.textMuted, fontSize: 13 }}>
-        Build your garage profile and unlock personalized diagnostics.
-      </Text>
-
       <form.Subscribe
         selector={(state) => ({
           isSubmitting: state.isSubmitting,
@@ -139,157 +128,74 @@ export function SignUp() {
               <View className="gap-3">
                 <form.Field name="name">
                   {(field) => (
-                    <View className="gap-1.5">
-                      <Text
-                        style={{
-                          color: colors.textMuted,
-                          fontSize: 12,
-                          fontWeight: "600",
-                        }}
-                      >
-                        Name
-                      </Text>
-                      <TextInput
-                        value={field.state.value}
-                        onBlur={field.handleBlur}
-                        onChangeText={field.handleChange}
-                        placeholder="John Doe"
-                        placeholderTextColor={colors.textSubtle}
-                        autoComplete="name"
-                        textContentType="name"
-                        returnKeyType="next"
-                        blurOnSubmit={false}
-                        onSubmitEditing={() => {
-                          emailInputRef.current?.focus();
-                        }}
-                        style={{
-                          backgroundColor: colors.input,
-                          borderColor: colors.border,
-                          borderWidth: 1,
-                          borderRadius: 12,
-                          color: colors.text,
-                          fontSize: 15,
-                          paddingHorizontal: 14,
-                          paddingVertical: 12,
-                        }}
-                      />
-                    </View>
+                    <AppTextInput
+                      label="Name"
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChangeText={field.handleChange}
+                      placeholder="John Doe"
+                      autoComplete="name"
+                      textContentType="name"
+                      returnKeyType="next"
+                      blurOnSubmit={false}
+                      onSubmitEditing={() => {
+                        emailInputRef.current?.focus();
+                      }}
+                      leftIcon="person-outline"
+                    />
                   )}
                 </form.Field>
 
                 <form.Field name="email">
                   {(field) => (
-                    <View className="gap-1.5">
-                      <Text
-                        style={{
-                          color: colors.textMuted,
-                          fontSize: 12,
-                          fontWeight: "600",
-                        }}
-                      >
-                        Email
-                      </Text>
-                      <TextInput
-                        ref={emailInputRef}
-                        value={field.state.value}
-                        onBlur={field.handleBlur}
-                        onChangeText={field.handleChange}
-                        placeholder="email@example.com"
-                        placeholderTextColor={colors.textSubtle}
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                        autoComplete="email"
-                        textContentType="emailAddress"
-                        returnKeyType="next"
-                        blurOnSubmit={false}
-                        onSubmitEditing={() => {
-                          passwordInputRef.current?.focus();
-                        }}
-                        style={{
-                          backgroundColor: colors.input,
-                          borderColor: colors.border,
-                          borderWidth: 1,
-                          borderRadius: 12,
-                          color: colors.text,
-                          fontSize: 15,
-                          paddingHorizontal: 14,
-                          paddingVertical: 12,
-                        }}
-                      />
-                    </View>
+                    <AppTextInput
+                      ref={emailInputRef}
+                      label="Email"
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChangeText={field.handleChange}
+                      placeholder="email@example.com"
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      autoComplete="email"
+                      textContentType="emailAddress"
+                      returnKeyType="next"
+                      blurOnSubmit={false}
+                      onSubmitEditing={() => {
+                        passwordInputRef.current?.focus();
+                      }}
+                      leftIcon="mail-outline"
+                    />
                   )}
                 </form.Field>
 
                 <form.Field name="password">
                   {(field) => (
-                    <View className="gap-1.5">
-                      <Text
-                        style={{
-                          color: colors.textMuted,
-                          fontSize: 12,
-                          fontWeight: "600",
-                        }}
-                      >
-                        Password
-                      </Text>
-                      <TextInput
-                        ref={passwordInputRef}
-                        value={field.state.value}
-                        onBlur={field.handleBlur}
-                        onChangeText={field.handleChange}
-                        placeholder="••••••••"
-                        placeholderTextColor={colors.textSubtle}
-                        secureTextEntry
-                        autoComplete="new-password"
-                        textContentType="newPassword"
-                        returnKeyType="go"
-                        onSubmitEditing={form.handleSubmit}
-                        style={{
-                          backgroundColor: colors.input,
-                          borderColor: colors.border,
-                          borderWidth: 1,
-                          borderRadius: 12,
-                          color: colors.text,
-                          fontSize: 15,
-                          paddingHorizontal: 14,
-                          paddingVertical: 12,
-                        }}
-                      />
-                    </View>
+                    <AppTextInput
+                      ref={passwordInputRef}
+                      label="Password"
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChangeText={field.handleChange}
+                      placeholder="••••••••"
+                      secureTextEntry
+                      autoComplete="new-password"
+                      textContentType="newPassword"
+                      returnKeyType="go"
+                      onSubmitEditing={form.handleSubmit}
+                      leftIcon="lock-closed-outline"
+                    />
                   )}
                 </form.Field>
 
-                <Pressable
+                <Button
                   onPress={form.handleSubmit}
-                  disabled={isSubmitting}
-                  style={({ pressed }) => ({
-                    marginTop: 4,
-                    borderRadius: 12,
-                    backgroundColor: colors.primary,
-                    opacity: isSubmitting ? 0.7 : pressed ? 0.9 : 1,
-                    paddingVertical: 12,
-                    alignItems: "center",
-                    shadowColor: colors.primary,
-                    shadowOpacity: 0.28,
-                    shadowRadius: 12,
-                    shadowOffset: { width: 0, height: 0 },
-                    elevation: 6,
-                  })}
+                  isDisabled={isSubmitting}
+                  isLoading={isSubmitting}
+                  style={{ marginTop: 4 }}
                 >
-                  {isSubmitting ? (
-                    <ActivityIndicator color={colors.textOnPrimary} />
-                  ) : (
-                    <Text
-                      style={{
-                        color: colors.textOnPrimary,
-                        fontSize: 15,
-                        fontWeight: "700",
-                      }}
-                    >
-                      Create Account
-                    </Text>
-                  )}
-                </Pressable>
+                  Create Account
+                </Button>
               </View>
             </>
           );

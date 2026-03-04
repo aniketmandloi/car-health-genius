@@ -1,15 +1,19 @@
+import { Ionicons } from "@expo/vector-icons";
 import { env } from "@car-health-genius/env/native";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import * as Network from "expo-network";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { Alert, Text, TextInput, View } from "react-native";
+import { Alert, Pressable, Text, View } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { Container } from "@/components/container";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Spinner } from "@/components/ui/spinner";
+import { SectionHeader } from "@/components/ui/section-header";
+import { AppTextInput } from "@/components/ui/text-input";
 import { useAppTheme } from "@/contexts/app-theme-context";
+import { TYPO } from "@/lib/design";
 import { createAdapterDriver } from "@/src/modules/adapter";
 import type {
   AdapterConnectionState,
@@ -39,6 +43,52 @@ function createUploadId() {
   return `upl_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
 }
 
+function ConnectionIndicator({ state }: { state: AdapterConnectionState }) {
+  const { colors } = useAppTheme();
+  const colorMap: Record<AdapterConnectionState, string> = {
+    disconnected: colors.textSubtle,
+    connecting: colors.warning,
+    connected: colors.success,
+  };
+  const color = colorMap[state] ?? colors.textSubtle;
+  const label =
+    state === "connected"
+      ? "Connected"
+      : state === "connecting"
+        ? "Connecting..."
+        : "Not Connected";
+
+  return (
+    <View className="items-center gap-3 py-4">
+      <View
+        style={{
+          width: 72,
+          height: 72,
+          borderRadius: 36,
+          backgroundColor: `${color}18`,
+          borderWidth: 3,
+          borderColor: color,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Ionicons
+          name={
+            state === "connected"
+              ? "checkmark"
+              : state === "connecting"
+                ? "sync-outline"
+                : "bluetooth-outline"
+          }
+          size={30}
+          color={color}
+        />
+      </View>
+      <Text style={{ color, fontSize: 14, fontWeight: "600" }}>{label}</Text>
+    </View>
+  );
+}
+
 export default function ScanTab() {
   const mode = env.EXPO_PUBLIC_ADAPTER_MODE;
   const driver = useMemo(() => createAdapterDriver({ mode }), [mode]);
@@ -59,6 +109,7 @@ export default function ScanTab() {
   const [busy, setBusy] = useState(false);
   const [activeVehicleId, setActiveVehicleId] = useState<number | null>(null);
   const [activeSessionId, setActiveSessionId] = useState<number | null>(null);
+  const [showAdapters, setShowAdapters] = useState(false);
 
   const adapters = useQuery(
     trpc.diagnostics.listCompatibleAdapters.queryOptions(),
@@ -303,205 +354,228 @@ export default function ScanTab() {
     setStatus("Disconnected");
   }
 
-  const inputStyle = {
-    backgroundColor: colors.input,
-    borderColor: colors.border,
-    borderWidth: 1,
-    borderRadius: 12,
-    color: colors.text,
-    fontSize: 14,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  };
+  const activeVehicle = vehicles.data?.find((v) => v.id === activeVehicleId);
 
   return (
     <Container className="p-6">
-      <View className="gap-4">
-        <Card className="p-4 rounded-2xl border border-surface-border">
-          <Card.Title>Set Up Your Vehicle</Card.Title>
-          <Card.Description>
-            Enter your VIN to create a vehicle profile.
-          </Card.Description>
-          <View className="mt-3 gap-2">
-            <TextInput
-              value={vinInput}
-              onChangeText={setVinInput}
-              placeholder="VIN (17 chars)"
-              placeholderTextColor={colors.textSubtle}
-              autoCapitalize="characters"
-              autoCorrect={false}
-              style={inputStyle}
+      <View className="gap-5">
+        {/* Connection Status Hero */}
+        <Animated.View entering={FadeInDown.duration(400).delay(50)}>
+          <Card variant="elevated">
+            <ConnectionIndicator state={driverState} />
+            <Text
+              style={{
+                color: colors.textMuted,
+                fontSize: 12,
+                textAlign: "center",
+              }}
+            >
+              {status}
+            </Text>
+          </Card>
+        </Animated.View>
+
+        {/* Active Vehicle Bar */}
+        <Animated.View entering={FadeInDown.duration(400).delay(100)}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              backgroundColor: colors.input,
+              borderRadius: 12,
+              paddingHorizontal: 14,
+              paddingVertical: 10,
+            }}
+          >
+            <Ionicons
+              name="car-outline"
+              size={18}
+              color={colors.primary}
+              style={{ marginRight: 8 }}
             />
-            <View className="flex-row gap-2">
-              <TextInput
-                value={countryCode}
-                onChangeText={(value) => setCountryCode(value.toUpperCase())}
-                placeholder="Country (US)"
-                placeholderTextColor={colors.textSubtle}
-                autoCapitalize="characters"
-                style={[inputStyle, { flex: 1 }]}
-              />
-              <TextInput
-                value={stateCode}
-                onChangeText={(value) => setStateCode(value.toUpperCase())}
-                placeholder="State (CA)"
-                placeholderTextColor={colors.textSubtle}
-                autoCapitalize="characters"
-                style={[inputStyle, { flex: 1 }]}
-              />
+            <Text
+              style={{ color: colors.text, fontSize: 13, fontWeight: "500", flex: 1 }}
+            >
+              {activeVehicle
+                ? `${activeVehicle.make} ${activeVehicle.model} (${activeVehicle.modelYear})`
+                : vehicles.isLoading
+                  ? "Loading vehicles..."
+                  : "No vehicle selected"}
+            </Text>
+          </View>
+        </Animated.View>
+
+        {/* Main Action */}
+        <Animated.View entering={FadeInDown.duration(400).delay(150)}>
+          <Button
+            variant="primary"
+            size="lg"
+            icon="bluetooth-outline"
+            isDisabled={busy || driverState === "connected"}
+            isLoading={busy && driverState !== "connected"}
+            onPress={() =>
+              run(async () => {
+                setStatus("Connecting...");
+                await connectAndStartSession();
+              })
+            }
+          >
+            Connect & Start Scan
+          </Button>
+        </Animated.View>
+
+        {/* Secondary Actions */}
+        {driverState === "connected" && (
+          <Animated.View entering={FadeInDown.duration(300)}>
+            <View className="flex-row gap-3">
+              <Button
+                variant="secondary"
+                size="md"
+                icon="reader-outline"
+                isDisabled={busy || !activeSessionId}
+                isLoading={busy}
+                onPress={() => run(readAndUpload)}
+                style={{ flex: 1 }}
+              >
+                Read DTCs
+              </Button>
+              <Button
+                variant="outline"
+                size="md"
+                icon="trash-outline"
+                isDisabled={
+                  busy ||
+                  !readResult ||
+                  readResult.dtcCodes.length === 0
+                }
+                onPress={confirmAndClearCodes}
+                style={{ flex: 1 }}
+              >
+                Clear
+              </Button>
             </View>
             <Button
-              isDisabled={
-                createFromVin.isPending || vinInput.trim().length !== 17
-              }
-              onPress={() =>
-                createFromVin.mutate({
-                  vin: vinInput,
-                  countryCode,
-                  stateCode: stateCode.trim() ? stateCode : undefined,
-                })
-              }
-            >
-              {createFromVin.isPending ? (
-                <Spinner size="sm" />
-              ) : (
-                "Create From VIN"
-              )}
-            </Button>
-            <Text style={{ color: colors.textMuted, fontSize: 12 }}>
-              {onboardingStatus}
-            </Text>
-            <Text style={{ color: colors.textMuted, fontSize: 12 }}>
-              {activeVehicleId
-                ? (() => {
-                    const v = vehicles.data?.find(
-                      (v) => v.id === activeVehicleId,
-                    );
-                    return v
-                      ? `Vehicle: ${v.make} ${v.model} (${v.modelYear})`
-                      : "Vehicle loaded";
-                  })()
-                : vehicles.isLoading
-                  ? "Loading your vehicles..."
-                  : "No vehicle selected. Create one above."}
-            </Text>
-          </View>
-        </Card>
-
-        <Card className="p-4 rounded-2xl border border-surface-border">
-          <Card.Title>OBD Scanner</Card.Title>
-          <View className="mt-2 gap-1">
-            <Text style={{ color: colors.textMuted, fontSize: 13 }}>
-              State:{" "}
-              <Text
-                style={{
-                  color:
-                    driverState === "connected"
-                      ? colors.success
-                      : colors.textMuted,
-                }}
-              >
-                {driverState}
-              </Text>
-            </Text>
-            <Text style={{ color: colors.textMuted, fontSize: 13 }}>
-              Status: {status}
-            </Text>
-          </View>
-
-          <View className="mt-3 flex-row flex-wrap gap-2">
-            <Button
-              isDisabled={busy || driverState === "connected"}
-              style={{
-                shadowColor: colors.primary,
-                shadowOpacity: 0.3,
-                shadowRadius: 12,
-                shadowOffset: { width: 0, height: 0 },
-                elevation: 6,
-              }}
-              onPress={() =>
-                run(async () => {
-                  setStatus("Connecting...");
-                  await connectAndStartSession();
-                })
-              }
-            >
-              {busy && driverState !== "connected" ? (
-                <Spinner size="sm" />
-              ) : (
-                "Connect"
-              )}
-            </Button>
-            <Button
-              variant="secondary"
-              isDisabled={
-                busy || driverState !== "connected" || !activeSessionId
-              }
-              onPress={() =>
-                run(async () => {
-                  await readAndUpload();
-                })
-              }
-            >
-              Read DTC Codes
-            </Button>
-            <Button
-              variant="secondary"
-              isDisabled={
-                busy ||
-                driverState !== "connected" ||
-                !readResult ||
-                readResult.dtcCodes.length === 0
-              }
-              onPress={confirmAndClearCodes}
-            >
-              Clear Codes
-            </Button>
-            <Button
               variant="ghost"
-              isDisabled={busy || driverState === "disconnected"}
-              onPress={() =>
-                run(async () => {
-                  await disconnectAndFinishSession();
-                })
-              }
+              size="sm"
+              icon="power-outline"
+              isDisabled={busy}
+              onPress={() => run(disconnectAndFinishSession)}
+              style={{ marginTop: 8 }}
             >
               Disconnect
             </Button>
-          </View>
-        </Card>
+          </Animated.View>
+        )}
 
-        <Card className="p-4 rounded-2xl border border-surface-border">
-          <Card.Title>Compatible Adapters</Card.Title>
-          <Text style={{ color: colors.textMuted, fontSize: 13, marginTop: 4 }}>
-            {adapters.isLoading
-              ? "Loading adapter list..."
-              : `${adapters.data?.length ?? 0} active adapter(s) available`}
-          </Text>
-
-          <View className="mt-3 gap-2">
-            {(adapters.data ?? []).map((entry) => (
-              <Card
-                key={entry.id}
-                className="p-3 rounded-xl border border-surface-border"
+        {/* Vehicle Setup */}
+        <Animated.View entering={FadeInDown.duration(400).delay(250)}>
+          <Card variant="default">
+            <SectionHeader
+              title="Set Up Your Vehicle"
+              subtitle="Enter your VIN to create a profile"
+              icon="build-outline"
+            />
+            <View className="gap-3">
+              <AppTextInput
+                value={vinInput}
+                onChangeText={setVinInput}
+                placeholder="VIN (17 chars)"
+                autoCapitalize="characters"
+                autoCorrect={false}
+                leftIcon="barcode-outline"
+              />
+              <View className="flex-row gap-3">
+                <AppTextInput
+                  value={countryCode}
+                  onChangeText={(value) => setCountryCode(value.toUpperCase())}
+                  placeholder="Country (US)"
+                  autoCapitalize="characters"
+                  containerClassName="flex-1"
+                />
+                <AppTextInput
+                  value={stateCode}
+                  onChangeText={(value) => setStateCode(value.toUpperCase())}
+                  placeholder="State (CA)"
+                  autoCapitalize="characters"
+                  containerClassName="flex-1"
+                />
+              </View>
+              <Button
+                variant="secondary"
+                isDisabled={
+                  createFromVin.isPending || vinInput.trim().length !== 17
+                }
+                isLoading={createFromVin.isPending}
+                onPress={() =>
+                  createFromVin.mutate({
+                    vin: vinInput,
+                    countryCode,
+                    stateCode: stateCode.trim() ? stateCode : undefined,
+                  })
+                }
               >
-                <Text className="text-foreground text-sm font-semibold">
-                  {entry.vendor} {entry.model}
-                </Text>
-                <Text style={{ color: colors.textMuted, fontSize: 11 }}>
-                  {entry.connectionType} | iOS {entry.iosSupported ? "✓" : "✗"}{" "}
-                  | Android {entry.androidSupported ? "✓" : "✗"}
-                </Text>
-              </Card>
-            ))}
-
-            {!adapters.isLoading && (adapters.data?.length ?? 0) === 0 ? (
+                Create From VIN
+              </Button>
               <Text style={{ color: colors.textMuted, fontSize: 12 }}>
-                No active adapters configured yet.
+                {onboardingStatus}
               </Text>
-            ) : null}
-          </View>
-        </Card>
+            </View>
+          </Card>
+        </Animated.View>
+
+        {/* Compatible Adapters */}
+        <Animated.View entering={FadeInDown.duration(400).delay(300)}>
+          <Pressable onPress={() => setShowAdapters(!showAdapters)}>
+            <View className="flex-row items-center justify-between py-2">
+              <Text
+                style={{
+                  color: colors.textMuted,
+                  fontSize: 13,
+                  fontWeight: "600",
+                }}
+              >
+                Compatible Adapters ({adapters.data?.length ?? 0})
+              </Text>
+              <Ionicons
+                name={showAdapters ? "chevron-up" : "chevron-down"}
+                size={16}
+                color={colors.textMuted}
+              />
+            </View>
+          </Pressable>
+
+          {showAdapters && (
+            <View className="gap-2">
+              {(adapters.data ?? []).map((entry) => (
+                <Card key={entry.id} variant="recessed" noPadding>
+                  <View style={{ padding: 12 }}>
+                    <Text
+                      style={{
+                        color: colors.text,
+                        fontSize: 13,
+                        fontWeight: "600",
+                      }}
+                    >
+                      {entry.vendor} {entry.model}
+                    </Text>
+                    <Text
+                      style={{ color: colors.textMuted, fontSize: 11 }}
+                    >
+                      {entry.connectionType} | iOS{" "}
+                      {entry.iosSupported ? "✓" : "✗"} | Android{" "}
+                      {entry.androidSupported ? "✓" : "✗"}
+                    </Text>
+                  </View>
+                </Card>
+              ))}
+              {!adapters.isLoading && (adapters.data?.length ?? 0) === 0 ? (
+                <Text style={{ color: colors.textMuted, fontSize: 12 }}>
+                  No active adapters configured yet.
+                </Text>
+              ) : null}
+            </View>
+          )}
+        </Animated.View>
       </View>
     </Container>
   );

@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { Link, Stack } from "expo-router";
 import { Text, View } from "react-native";
 
@@ -14,9 +15,32 @@ export default function NotFoundScreen() {
       <Stack.Screen options={{ title: "Not Found" }} />
       <Container>
         <View className="flex-1 justify-center items-center p-4">
-          <Card className="items-center p-6 max-w-sm rounded-2xl border border-surface-border">
-            <Text className="text-4xl mb-3">🤔</Text>
-            <Text className="text-foreground font-medium text-lg mb-1">
+          <Card variant="elevated" className="items-center max-w-sm rounded-2xl">
+            <View
+              style={{
+                backgroundColor: colors.primarySoft,
+                borderRadius: 999,
+                width: 56,
+                height: 56,
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: 12,
+              }}
+            >
+              <Ionicons
+                name="help-circle-outline"
+                size={28}
+                color={colors.primary}
+              />
+            </View>
+            <Text
+              style={{
+                color: colors.text,
+                fontWeight: "600",
+                fontSize: 18,
+                marginBottom: 4,
+              }}
+            >
               Page Not Found
             </Text>
             <Text

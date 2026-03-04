@@ -11,6 +11,8 @@
   --surface-panel: #ffffff;
   --surface-input: #edf3f9;
   --surface-border: rgba(15, 23, 42, 0.12);
+  --surface-elevated: #ffffff;
+  --surface-recessed: #e8eff6;
   --text-muted: #475569;
   --text-subtle: #64748b;
   --foreground: #0f172a;
@@ -21,6 +23,8 @@
   --surface-panel: #0f1a2e;
   --surface-input: #162032;
   --surface-border: rgba(255, 255, 255, 0.12);
+  --surface-elevated: #152238;
+  --surface-recessed: #0a1225;
   --text-muted: #94a3b8;
   --text-subtle: #64748b;
   --foreground: #f1f5f9;
@@ -36,6 +40,8 @@
   --color-surface-panel: var(--surface-panel);
   --color-surface-input: var(--surface-input);
   --color-surface-border: var(--surface-border);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-surface-recessed: var(--surface-recessed);
   --color-text-muted: var(--text-muted);
   --color-text-subtle: var(--text-subtle);
 

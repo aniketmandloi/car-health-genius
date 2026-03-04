@@ -1,16 +1,28 @@
+import { Ionicons } from "@expo/vector-icons";
 import { env } from "@car-health-genius/env/native";
 import { useMutation } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Linking, Text, View } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { Container } from "@/components/container";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Chip } from "@/components/ui/chip";
 import { useAppTheme } from "@/contexts/app-theme-context";
+import { TYPO } from "@/lib/design";
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/utils/trpc";
 
 type Plan = "monthly" | "annual";
+
+const FEATURES = [
+  "AI-powered diagnostics",
+  "Likely causes with confidence",
+  "Step-by-step DIY guides",
+  "Cost estimates & negotiation",
+  "Priority support",
+];
 
 export default function PricingTab() {
   const { colors } = useAppTheme();
@@ -75,123 +87,168 @@ export default function PricingTab() {
 
   return (
     <Container className="p-6">
-      <View className="gap-4">
+      <View className="gap-5">
         {/* Header */}
-        <View className="mb-2">
-          <Text className="text-foreground text-2xl font-bold">
+        <Animated.View entering={FadeInDown.duration(400).delay(50)}>
+          <Text style={{ ...TYPO.h1, color: colors.text }}>
             Upgrade to <Text style={{ color: colors.primary }}>Pro</Text>
           </Text>
-          <Text style={{ color: colors.textMuted, fontSize: 14, marginTop: 4 }}>
-            Unlock likely causes, advanced diagnostics, and maintenance
-            intelligence.
+          <Text
+            style={{
+              color: colors.textMuted,
+              fontSize: 14,
+              marginTop: 6,
+              lineHeight: 20,
+            }}
+          >
+            Unlock advanced diagnostics and maintenance intelligence.
           </Text>
-        </View>
+        </Animated.View>
 
-        {/* Monthly Plan */}
-        <Card
-          className="p-5 rounded-2xl"
-          style={{ borderWidth: 1, borderColor: `${colors.primary}40` }}
-        >
-          <View className="flex-row items-center justify-between mb-2">
-            <Text className="text-foreground text-lg font-bold">
-              Monthly Pro
-            </Text>
-            <View
-              style={{ backgroundColor: colors.primarySoft }}
-              className="rounded-full px-2.5 py-0.5"
-            >
+        {/* Feature Checklist */}
+        <Animated.View entering={FadeInDown.duration(400).delay(100)}>
+          <Card variant="default">
+            {FEATURES.map((feat, i) => (
+              <View
+                key={feat}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 10,
+                  paddingVertical: 6,
+                  borderBottomWidth: i < FEATURES.length - 1 ? 1 : 0,
+                  borderBottomColor: colors.border,
+                }}
+              >
+                <Ionicons
+                  name="checkmark-circle"
+                  size={18}
+                  color={colors.primary}
+                />
+                <Text
+                  style={{
+                    color: colors.text,
+                    fontSize: 14,
+                  }}
+                >
+                  {feat}
+                </Text>
+              </View>
+            ))}
+          </Card>
+        </Animated.View>
+
+        {/* Annual Plan — promoted */}
+        <Animated.View entering={FadeInDown.duration(400).delay(200)}>
+          <Card variant="accent">
+            <View className="flex-row items-center justify-between mb-2">
               <Text
                 style={{
-                  color: colors.primary,
-                  fontSize: 11,
+                  color: colors.text,
+                  fontSize: 18,
+                  fontWeight: "700",
+                }}
+              >
+                Annual Pro
+              </Text>
+              <Chip color="success" dot>
+                BEST VALUE
+              </Chip>
+            </View>
+            <View className="flex-row items-end gap-1 mb-1">
+              <Text
+                style={{
+                  color: colors.text,
+                  fontSize: 32,
+                  fontWeight: "800",
+                }}
+              >
+                $79
+              </Text>
+              <Text
+                style={{
+                  color: colors.textMuted,
+                  fontSize: 14,
+                  marginBottom: 6,
+                }}
+              >
+                / year
+              </Text>
+            </View>
+            <Text style={{ color: colors.success, fontSize: 13, fontWeight: "600" }}>
+              Save 34% vs monthly
+            </Text>
+            <Text
+              style={{
+                color: colors.textMuted,
+                fontSize: 13,
+                marginTop: 2,
+              }}
+            >
+              Priority access to new features.
+            </Text>
+            <Button
+              style={{ marginTop: 14 }}
+              onPress={() => startCheckout("annual")}
+              isDisabled={createCheckoutSession.isPending}
+              isLoading={createCheckoutSession.isPending}
+            >
+              Choose Annual
+            </Button>
+          </Card>
+        </Animated.View>
+
+        {/* Monthly Plan — subdued */}
+        <Animated.View entering={FadeInDown.duration(400).delay(300)}>
+          <Card variant="outlined">
+            <View className="flex-row items-center justify-between mb-2">
+              <Text
+                style={{
+                  color: colors.text,
+                  fontSize: 16,
                   fontWeight: "600",
                 }}
               >
-                Monthly
+                Monthly Pro
               </Text>
             </View>
-          </View>
-          <View className="flex-row items-end gap-1 mb-1">
-            <Text className="text-foreground text-3xl font-bold">$9.99</Text>
-            <Text
-              style={{ color: colors.textMuted, fontSize: 14, marginBottom: 4 }}
-            >
-              / month
-            </Text>
-          </View>
-          <Text style={{ color: colors.textMuted, fontSize: 13 }}>
-            Full diagnostic intelligence. Cancel anytime.
-          </Text>
-          <Button
-            className="mt-4"
-            style={{
-              shadowColor: colors.primary,
-              shadowOpacity: 0.3,
-              shadowRadius: 12,
-              shadowOffset: { width: 0, height: 0 },
-              elevation: 6,
-            }}
-            onPress={() => startCheckout("monthly")}
-            isDisabled={createCheckoutSession.isPending}
-          >
-            Choose Monthly
-          </Button>
-        </Card>
-
-        {/* Annual Plan */}
-        <Card
-          className="p-5 rounded-2xl"
-          style={{ borderWidth: 1, borderColor: `${colors.secondary}40` }}
-        >
-          <View className="flex-row items-center justify-between mb-2">
-            <Text className="text-foreground text-lg font-bold">
-              Annual Pro
-            </Text>
-            <View
-              style={{ backgroundColor: `${colors.secondary}26` }}
-              className="rounded-full px-2.5 py-0.5"
-            >
+            <View className="flex-row items-end gap-1 mb-1">
               <Text
                 style={{
-                  color: colors.secondary,
-                  fontSize: 11,
-                  fontWeight: "600",
+                  color: colors.text,
+                  fontSize: 26,
+                  fontWeight: "700",
                 }}
               >
-                Best Value
+                $9.99
+              </Text>
+              <Text
+                style={{
+                  color: colors.textMuted,
+                  fontSize: 14,
+                  marginBottom: 4,
+                }}
+              >
+                / month
               </Text>
             </View>
-          </View>
-          <View className="flex-row items-end gap-1 mb-1">
-            <Text className="text-foreground text-3xl font-bold">$79</Text>
-            <Text
-              style={{ color: colors.textMuted, fontSize: 14, marginBottom: 4 }}
-            >
-              / year
+            <Text style={{ color: colors.textMuted, fontSize: 13 }}>
+              Full diagnostic intelligence. Cancel anytime.
             </Text>
-          </View>
-          <Text style={{ color: colors.textMuted, fontSize: 13 }}>
-            Save 34% vs monthly. Priority access to new features.
-          </Text>
-          <Button
-            className="mt-4"
-            style={{
-              shadowColor: colors.primary,
-              shadowOpacity: 0.3,
-              shadowRadius: 12,
-              shadowOffset: { width: 0, height: 0 },
-              elevation: 6,
-            }}
-            onPress={() => startCheckout("annual")}
-            isDisabled={createCheckoutSession.isPending}
-          >
-            Choose Annual
-          </Button>
-        </Card>
+            <Button
+              variant="outline"
+              style={{ marginTop: 14 }}
+              onPress={() => startCheckout("monthly")}
+              isDisabled={createCheckoutSession.isPending}
+            >
+              Choose Monthly
+            </Button>
+          </Card>
+        </Animated.View>
 
         {/* Status */}
         {createCheckoutSession.isPending ? (
-          <View className="flex-row items-center gap-2 mt-2">
+          <View className="flex-row items-center gap-2">
             <ActivityIndicator size="small" color={colors.primary} />
             <Text style={{ color: colors.textMuted, fontSize: 13 }}>
               Starting checkout...
@@ -199,7 +256,7 @@ export default function PricingTab() {
           </View>
         ) : null}
 
-        <View className="rounded-2xl border border-surface-border p-4 mt-2">
+        <Card variant="recessed">
           <Text style={{ color: colors.textMuted, fontSize: 13 }}>
             {status}
           </Text>
@@ -210,7 +267,7 @@ export default function PricingTab() {
               Sign in from Home tab before starting checkout.
             </Text>
           ) : null}
-        </View>
+        </Card>
       </View>
     </Container>
   );

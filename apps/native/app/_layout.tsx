@@ -1,5 +1,6 @@
 import "@/global.css";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { StatusBar } from "expo-status-bar";
 import { Stack } from "expo-router";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
@@ -13,29 +14,39 @@ export const unstable_settings = {
 };
 
 function StackLayout() {
-  const { colors } = useAppTheme();
+  const { colors, isDark } = useAppTheme();
 
   return (
-    <Stack
-      screenOptions={{
-        headerStyle: { backgroundColor: colors.background },
-        headerTitleStyle: { color: colors.text, fontWeight: "700" },
-        headerTintColor: colors.text,
-        headerShadowVisible: false,
-        contentStyle: { backgroundColor: colors.background },
-      }}
-    >
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen
-        name="modal"
-        options={{ title: "Modal", presentation: "modal" }}
-      />
-      <Stack.Screen name="scan-results" options={{ title: "Scan Results" }} />
-      <Stack.Screen
-        name="results/[diagnosticEventId]"
-        options={{ title: "Diagnostic Detail" }}
-      />
-    </Stack>
+    <>
+      <StatusBar style={isDark ? "light" : "dark"} backgroundColor={colors.header} />
+      <Stack
+        screenOptions={{
+          headerStyle: { backgroundColor: colors.header },
+          headerTitleStyle: {
+            color: colors.headerText,
+            fontWeight: "700",
+            fontSize: 16,
+          },
+          headerTintColor: colors.headerText,
+          headerShadowVisible: true,
+          contentStyle: { backgroundColor: colors.background },
+        }}
+      >
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="modal"
+          options={{ title: "Modal", presentation: "modal" }}
+        />
+        <Stack.Screen
+          name="scan-results"
+          options={{ title: "Scan Results" }}
+        />
+        <Stack.Screen
+          name="results/[diagnosticEventId]"
+          options={{ title: "Diagnostic Detail" }}
+        />
+      </Stack>
+    </>
   );
 }
 

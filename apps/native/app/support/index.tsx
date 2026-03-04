@@ -1,42 +1,48 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useState } from "react";
-import {
-  ScrollView,
-  Switch,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { useCallback, useState } from "react";
+import { Switch, Text, TouchableOpacity, View } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { Container } from "@/components/container";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Spinner } from "@/components/ui/spinner";
+import { Chip } from "@/components/ui/chip";
+import { SectionHeader } from "@/components/ui/section-header";
+import { AppTextInput } from "@/components/ui/text-input";
+import { SkeletonCard } from "@/components/ui/skeleton";
 import { useAppTheme } from "@/contexts/app-theme-context";
+import { TYPO } from "@/lib/design";
 import { queryClient, trpc } from "@/utils/trpc";
 
 function IssueStatusBadge({ status }: { status: string }) {
-  const { colors } = useAppTheme();
   const color =
     status === "resolved"
-      ? colors.success
+      ? "success"
       : status === "in_progress"
-        ? colors.warning
+        ? "warning"
         : status === "closed"
-          ? colors.textSubtle
-          : colors.info;
+          ? "default"
+          : "info";
 
   return (
-    <View
-      style={{ backgroundColor: `${color}20` }}
-      className="rounded-full px-2 py-0.5"
-    >
-      <Text style={{ color, fontSize: 11, fontWeight: "600" }}>
-        {status.replace("_", " ")}
-      </Text>
-    </View>
+    <Chip color={color} size="sm" dot>
+      {status.replace("_", " ")}
+    </Chip>
   );
+}
+
+function statusBorderColor(status: string, colors: any): string {
+  switch (status) {
+    case "resolved":
+      return colors.success;
+    case "in_progress":
+      return colors.warning;
+    case "closed":
+      return colors.textSubtle;
+    default:
+      return colors.info;
+  }
 }
 
 export default function SupportScreen() {
@@ -79,224 +85,240 @@ export default function SupportScreen() {
     });
   }
 
-  const inputClass =
-    "rounded-xl border border-surface-border bg-surface-input px-3 py-2.5 text-sm text-foreground";
+  const handleRefresh = useCallback(() => {
+    issuesQuery.refetch();
+  }, [issuesQuery]);
 
   return (
-    <Container>
-      <ScrollView contentContainerClassName="p-4 gap-4">
+    <Container
+      refreshing={issuesQuery.isFetching}
+      onRefresh={handleRefresh}
+    >
+      <View className="p-4 gap-5">
         {/* Header */}
-        <View className="flex-row items-start justify-between">
-          <View>
-            <Text className="text-foreground text-2xl font-bold">Support</Text>
-            <Text
-              style={{ color: colors.textMuted, fontSize: 12, marginTop: 4 }}
-            >
-              Submit and track support requests.
-            </Text>
-          </View>
-          {isPriorityUser && (
-            <View
-              style={{ backgroundColor: colors.primarySoft }}
-              className="rounded-full px-3 py-1"
-            >
+        <Animated.View entering={FadeInDown.duration(300)}>
+          <View className="flex-row items-start justify-between">
+            <View>
+              <Text style={{ ...TYPO.h1, color: colors.text }}>Support</Text>
               <Text
                 style={{
-                  color: colors.primary,
+                  color: colors.textMuted,
                   fontSize: 12,
-                  fontWeight: "600",
+                  marginTop: 4,
                 }}
               >
-                Pro Priority
+                Submit and track support requests.
               </Text>
             </View>
-          )}
-        </View>
+            {isPriorityUser && (
+              <Chip color="info" dot>
+                Pro Priority
+              </Chip>
+            )}
+          </View>
+        </Animated.View>
 
         {/* SLA info */}
         {priorityQuery.data && (
-          <View
-            className="rounded-xl px-3 py-2"
-            style={{ borderWidth: 1, borderColor: colors.border }}
-          >
-            <Text style={{ color: colors.textMuted, fontSize: 12 }}>
-              Tier:{" "}
-              <Text style={{ color: colors.text, fontWeight: "600" }}>
-                {priorityQuery.data.priorityTier}
-              </Text>
-              {" · "}SLA: {priorityQuery.data.slaTargetMinutes} min
-            </Text>
-          </View>
+          <Animated.View entering={FadeInDown.duration(300).delay(50)}>
+            <Card variant="recessed">
+              <View className="flex-row items-center gap-2">
+                <Ionicons
+                  name="shield-checkmark-outline"
+                  size={16}
+                  color={colors.primary}
+                />
+                <Text style={{ color: colors.textMuted, fontSize: 12 }}>
+                  Tier:{" "}
+                  <Text style={{ color: colors.text, fontWeight: "600" }}>
+                    {priorityQuery.data.priorityTier}
+                  </Text>
+                  {" · "}SLA: {priorityQuery.data.slaTargetMinutes} min
+                </Text>
+              </View>
+            </Card>
+          </Animated.View>
         )}
 
         {/* New Issue Form */}
-        <Card className="p-4 gap-3 rounded-2xl border border-surface-border">
-          <Text className="text-foreground font-bold text-base">New Issue</Text>
+        <Animated.View entering={FadeInDown.duration(300).delay(100)}>
+          <Card variant="outlined">
+            <SectionHeader title="New Issue" icon="create-outline" />
 
-          <View>
-            <Text
-              style={{ color: colors.textMuted, fontSize: 12, marginBottom: 4 }}
-            >
-              Summary *
-            </Text>
-            <TextInput
-              value={summary}
-              onChangeText={setSummary}
-              placeholder="Brief description"
-              maxLength={240}
-              className={inputClass}
-              placeholderTextColor={colors.textSubtle}
-            />
-          </View>
-
-          <View>
-            <Text
-              style={{ color: colors.textMuted, fontSize: 12, marginBottom: 4 }}
-            >
-              Details (optional)
-            </Text>
-            <TextInput
-              value={details}
-              onChangeText={setDetails}
-              placeholder="Steps to reproduce, additional context..."
-              maxLength={4000}
-              multiline
-              numberOfLines={4}
-              className={inputClass}
-              placeholderTextColor={colors.textSubtle}
-              style={{ textAlignVertical: "top" }}
-            />
-          </View>
-
-          {/* Diagnostic Bundle */}
-          <View className="flex-row items-center justify-between">
-            <Text
-              style={{
-                color: colors.textMuted,
-                fontSize: 13,
-                flex: 1,
-                marginRight: 8,
-              }}
-            >
-              Attach diagnostic data
-            </Text>
-            <Switch
-              value={includeBundle}
-              onValueChange={(v) => {
-                setIncludeBundle(v);
-                if (!v) setConsentBundle(false);
-              }}
-              trackColor={{ true: colors.primary }}
-            />
-          </View>
-
-          {includeBundle && (
-            <TouchableOpacity
-              onPress={() => setConsentBundle((v) => !v)}
-              className="flex-row items-start gap-2 rounded-xl p-3"
-              style={{
-                borderWidth: 1,
-                borderColor: `${colors.warning}66`,
-                backgroundColor: `${colors.warning}14`,
-              }}
-            >
-              <View
-                style={{
-                  width: 16,
-                  height: 16,
-                  borderRadius: 4,
-                  marginTop: 2,
-                  backgroundColor: consentBundle
-                    ? colors.primary
-                    : "transparent",
-                  borderWidth: 1,
-                  borderColor: consentBundle
-                    ? colors.primary
-                    : colors.textSubtle,
-                }}
+            <View className="gap-3">
+              <AppTextInput
+                label="Summary *"
+                value={summary}
+                onChangeText={setSummary}
+                placeholder="Brief description"
+                maxLength={240}
               />
-              <Text style={{ color: colors.warning, fontSize: 12, flex: 1 }}>
-                I consent to sharing my recent diagnostic event data (DTC codes,
-                severity, timestamps) with the support team to resolve my issue.
-              </Text>
-            </TouchableOpacity>
-          )}
 
-          {createMutation.error && (
-            <Text style={{ color: colors.danger, fontSize: 12 }}>
-              {createMutation.error.message}
-            </Text>
-          )}
-          {submitSuccess && (
-            <Text style={{ color: colors.success, fontSize: 12 }}>
-              Issue submitted successfully. We&apos;ll be in touch soon.
-            </Text>
-          )}
+              <AppTextInput
+                label="Details (optional)"
+                value={details}
+                onChangeText={setDetails}
+                placeholder="Steps to reproduce, additional context..."
+                maxLength={4000}
+                multiline
+                numberOfLines={4}
+              />
 
-          <Button
-            onPress={handleSubmit}
-            isDisabled={
-              createMutation.isPending ||
-              !summary.trim() ||
-              (includeBundle && !consentBundle)
-            }
-          >
-            {createMutation.isPending ? "Submitting..." : "Submit Issue"}
-          </Button>
-        </Card>
+              {/* Diagnostic Bundle */}
+              <View className="flex-row items-center justify-between">
+                <Text
+                  style={{
+                    color: colors.textMuted,
+                    fontSize: 13,
+                    flex: 1,
+                    marginRight: 8,
+                  }}
+                >
+                  Attach diagnostic data
+                </Text>
+                <Switch
+                  value={includeBundle}
+                  onValueChange={(v) => {
+                    setIncludeBundle(v);
+                    if (!v) setConsentBundle(false);
+                  }}
+                  trackColor={{ true: colors.primary }}
+                />
+              </View>
+
+              {includeBundle && (
+                <TouchableOpacity
+                  onPress={() => setConsentBundle((v) => !v)}
+                  className="flex-row items-start gap-2 rounded-xl p-3"
+                  style={{
+                    borderWidth: 1,
+                    borderColor: `${colors.warning}66`,
+                    backgroundColor: `${colors.warning}14`,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 16,
+                      height: 16,
+                      borderRadius: 4,
+                      marginTop: 2,
+                      backgroundColor: consentBundle
+                        ? colors.primary
+                        : "transparent",
+                      borderWidth: 1,
+                      borderColor: consentBundle
+                        ? colors.primary
+                        : colors.textSubtle,
+                    }}
+                  />
+                  <Text
+                    style={{ color: colors.warning, fontSize: 12, flex: 1 }}
+                  >
+                    I consent to sharing my recent diagnostic event data (DTC
+                    codes, severity, timestamps) with the support team to
+                    resolve my issue.
+                  </Text>
+                </TouchableOpacity>
+              )}
+
+              {createMutation.error && (
+                <Text style={{ color: colors.danger, fontSize: 12 }}>
+                  {createMutation.error.message}
+                </Text>
+              )}
+              {submitSuccess && (
+                <Text style={{ color: colors.success, fontSize: 12 }}>
+                  Issue submitted successfully. We&apos;ll be in touch soon.
+                </Text>
+              )}
+
+              <Button
+                onPress={handleSubmit}
+                isDisabled={
+                  createMutation.isPending ||
+                  !summary.trim() ||
+                  (includeBundle && !consentBundle)
+                }
+                isLoading={createMutation.isPending}
+              >
+                Submit Issue
+              </Button>
+            </View>
+          </Card>
+        </Animated.View>
 
         {/* Existing Issues */}
-        <Text className="text-foreground font-bold text-base">My Issues</Text>
+        <Animated.View entering={FadeInDown.duration(300).delay(150)}>
+          <SectionHeader title="My Issues" icon="list-outline" />
 
-        {issuesQuery.isLoading ? (
-          <View className="items-center py-8">
-            <Spinner />
-          </View>
-        ) : (issuesQuery.data?.length ?? 0) === 0 ? (
-          <Text style={{ color: colors.textMuted, fontSize: 13 }}>
-            No issues submitted yet.
-          </Text>
-        ) : (
-          <View className="gap-2">
-            {issuesQuery.data!.map((issue) => (
-              <Card
-                key={issue.id}
-                className="p-3 rounded-2xl border border-surface-border"
-              >
-                <View className="flex-row items-start justify-between gap-2">
-                  <View className="flex-1">
-                    <Text className="text-foreground text-sm font-medium">
-                      {issue.issueSummary}
-                    </Text>
-                    {issue.issueDetails && (
-                      <Text
-                        style={{
-                          color: colors.textMuted,
-                          fontSize: 12,
-                          marginTop: 2,
-                        }}
-                        numberOfLines={2}
-                      >
-                        {issue.issueDetails}
-                      </Text>
-                    )}
-                    <Text
-                      style={{
-                        color: colors.textSubtle,
-                        fontSize: 11,
-                        marginTop: 4,
-                      }}
-                    >
-                      {new Date(issue.createdAt).toLocaleDateString()}
-                    </Text>
-                  </View>
-                  <IssueStatusBadge status={issue.status} />
-                </View>
-              </Card>
-            ))}
-          </View>
-        )}
-      </ScrollView>
+          {issuesQuery.isLoading ? (
+            <SkeletonCard />
+          ) : (issuesQuery.data?.length ?? 0) === 0 ? (
+            <Text style={{ color: colors.textMuted, fontSize: 13 }}>
+              No issues submitted yet.
+            </Text>
+          ) : (
+            <View className="gap-2">
+              {issuesQuery.data!.map((issue, i) => (
+                <Animated.View
+                  key={issue.id}
+                  entering={FadeInDown.duration(300).delay(200 + i * 40)}
+                >
+                  <Card
+                    variant="default"
+                    noPadding
+                    style={{
+                      borderLeftWidth: 3,
+                      borderLeftColor: statusBorderColor(
+                        issue.status,
+                        colors,
+                      ),
+                    }}
+                  >
+                    <View style={{ padding: 14 }}>
+                      <View className="flex-row items-start justify-between gap-2">
+                        <View className="flex-1">
+                          <Text
+                            style={{
+                              color: colors.text,
+                              fontSize: 13,
+                              fontWeight: "600",
+                            }}
+                          >
+                            {issue.issueSummary}
+                          </Text>
+                          {issue.issueDetails && (
+                            <Text
+                              style={{
+                                color: colors.textMuted,
+                                fontSize: 12,
+                                marginTop: 2,
+                              }}
+                              numberOfLines={2}
+                            >
+                              {issue.issueDetails}
+                            </Text>
+                          )}
+                          <Text
+                            style={{
+                              color: colors.textSubtle,
+                              fontSize: 11,
+                              marginTop: 4,
+                            }}
+                          >
+                            {new Date(issue.createdAt).toLocaleDateString()}
+                          </Text>
+                        </View>
+                        <IssueStatusBadge status={issue.status} />
+                      </View>
+                    </View>
+                  </Card>
+                </Animated.View>
+              ))}
+            </View>
+          )}
+        </Animated.View>
+      </View>
     </Container>
   );
 }

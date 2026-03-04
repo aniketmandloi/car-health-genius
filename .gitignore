@@ -60,3 +60,6 @@ claude-output.md
 deploy-plan.md
 frontend-plan.md
 frontend-plan2.md
+/.agents
+/.claude
+skills-lock.json

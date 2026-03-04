@@ -15,11 +15,13 @@ type AppColors = {
   panel: string;
   input: string;
   border: string;
+  borderStrong: string;
   text: string;
   textMuted: string;
   textSubtle: string;
   textOnPrimary: string;
   primary: string;
+  primaryPressed: string;
   primarySoft: string;
   secondary: string;
   success: string;
@@ -27,44 +29,84 @@ type AppColors = {
   danger: string;
   info: string;
   track: string;
+  surfaceElevated: string;
+  surfaceRecessed: string;
+  shadow: string;
+  shadowLight: string;
+  auraPrimary: string;
+  auraSecondary: string;
+  tabBar: string;
+  tabBarBorder: string;
+  tabActive: string;
+  tabInactive: string;
+  header: string;
+  headerText: string;
 };
 
 const LIGHT_COLORS: AppColors = {
-  background: "#F3F8FC",
+  background: "#EDF3FA",
   panel: "#FFFFFF",
-  input: "#EDF3F9",
-  border: "rgba(15,23,42,0.12)",
-  text: "#0F172A",
-  textMuted: "#475569",
-  textSubtle: "#64748B",
+  input: "#F2F6FC",
+  border: "rgba(15,23,42,0.10)",
+  borderStrong: "rgba(15,23,42,0.18)",
+  text: "#0B1729",
+  textMuted: "#4B5D75",
+  textSubtle: "#6D7F98",
   textOnPrimary: "#FFFFFF",
-  primary: "#06B6D4",
-  primarySoft: "rgba(6,182,212,0.14)",
-  secondary: "#8B5CF6",
-  success: "#10B981",
-  warning: "#F59E0B",
-  danger: "#EF4444",
-  info: "#3B82F6",
-  track: "rgba(15,23,42,0.12)",
+  primary: "#069FBE",
+  primaryPressed: "#0282A0",
+  primarySoft: "rgba(6,159,190,0.14)",
+  secondary: "#3E6AF4",
+  success: "#159A72",
+  warning: "#C57D1D",
+  danger: "#DE5368",
+  info: "#4E7DFF",
+  track: "rgba(15,23,42,0.13)",
+  surfaceElevated: "#FFFFFF",
+  surfaceRecessed: "#E6EDF7",
+  shadow: "rgba(15,23,42,0.08)",
+  shadowLight: "rgba(15,23,42,0.04)",
+  auraPrimary: "rgba(6,159,190,0.18)",
+  auraSecondary: "rgba(62,106,244,0.14)",
+  tabBar: "#0C1A30",
+  tabBarBorder: "rgba(255,255,255,0.12)",
+  tabActive: "#86E9FF",
+  tabInactive: "rgba(219,232,250,0.74)",
+  header: "#F7FAFF",
+  headerText: "#0B1729",
 };
 
 const DARK_COLORS: AppColors = {
-  background: "#081323",
-  panel: "#0F1A2E",
-  input: "#162032",
-  border: "rgba(255,255,255,0.12)",
-  text: "#F1F5F9",
-  textMuted: "#94A3B8",
-  textSubtle: "#64748B",
+  background: "#070F1D",
+  panel: "#101B30",
+  input: "#17243A",
+  border: "rgba(165,186,214,0.24)",
+  borderStrong: "rgba(200,220,245,0.36)",
+  text: "#F2F7FF",
+  textMuted: "#A8B9D2",
+  textSubtle: "#7F96B3",
   textOnPrimary: "#FFFFFF",
-  primary: "#06B6D4",
-  primarySoft: "rgba(6,182,212,0.16)",
-  secondary: "#8B5CF6",
-  success: "#10B981",
-  warning: "#F59E0B",
-  danger: "#EF4444",
-  info: "#3B82F6",
-  track: "rgba(255,255,255,0.10)",
+  primary: "#3AD3F3",
+  primaryPressed: "#1FBBDD",
+  primarySoft: "rgba(58,211,243,0.16)",
+  secondary: "#7EA2FF",
+  success: "#3AD29A",
+  warning: "#FFB447",
+  danger: "#FF6C7B",
+  info: "#82A4FF",
+  track: "rgba(168,185,210,0.24)",
+  surfaceElevated: "#14233A",
+  surfaceRecessed: "#0C162A",
+  shadow: "rgba(0,0,0,0.45)",
+  shadowLight: "rgba(0,0,0,0.22)",
+  auraPrimary: "rgba(58,211,243,0.18)",
+  auraSecondary: "rgba(126,162,255,0.14)",
+  tabBar: "#091226",
+  tabBarBorder: "rgba(152,180,217,0.26)",
+  tabActive: "#9CEFFF",
+  tabInactive: "rgba(172,194,222,0.72)",
+  header: "#0A162B",
+  headerText: "#F2F7FF",
 };
 
 type AppThemeContextType = {

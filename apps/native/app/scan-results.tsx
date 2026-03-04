@@ -1,14 +1,18 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { Text, View } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { Container } from "@/components/container";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Chip } from "@/components/ui/chip";
-import { Spinner } from "@/components/ui/spinner";
+import { EmptyState } from "@/components/ui/empty-state";
+import { SkeletonCard } from "@/components/ui/skeleton";
 import { useAppTheme } from "@/contexts/app-theme-context";
+import { TYPO } from "@/lib/design";
 import { queryClient, trpc } from "@/utils/trpc";
 
 function getSeverityColor(
@@ -74,14 +78,34 @@ function EventCard({
     }),
   );
 
+  const severityColor =
+    event.severity === "critical" || event.severity === "high"
+      ? colors.danger
+      : event.severity === "medium"
+        ? colors.warning
+        : event.severity === "low"
+          ? colors.info
+          : colors.textSubtle;
+
   return (
-    <Card className="p-4 rounded-2xl border border-surface-border">
-      <View className="gap-2">
+    <Card
+      variant="elevated"
+      noPadding
+      style={{
+        borderLeftWidth: 3,
+        borderLeftColor: severityColor,
+      }}
+    >
+      <View style={{ padding: 16 }} className="gap-3">
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center gap-2">
             <Text
-              className="text-foreground font-bold"
-              style={{ fontFamily: "monospace", fontSize: 16 }}
+              style={{
+                fontFamily: "monospace",
+                fontSize: 16,
+                fontWeight: "700",
+                color: colors.text,
+              }}
             >
               {event.dtcCode}
             </Text>
@@ -106,11 +130,12 @@ function EventCard({
           </Text>
         )}
 
-        <View className="mt-1 flex-row gap-2">
+        <View className="flex-row gap-3">
           <Button
             variant="primary"
             size="sm"
             isDisabled={generateMutation.isPending}
+            isLoading={generateMutation.isPending}
             onPress={() => {
               setExplainError(null);
               generateMutation.mutate({
@@ -118,17 +143,15 @@ function EventCard({
                 mode: "basic",
               });
             }}
+            style={{ flex: 1 }}
           >
-            {generateMutation.isPending ? (
-              <Spinner size="sm" />
-            ) : (
-              "Get Explanation"
-            )}
+            Get Explanation
           </Button>
           <Button
-            variant="secondary"
+            variant="outline"
             size="sm"
             onPress={() => router.push(`/results/${event.id}` as never)}
+            style={{ flex: 1 }}
           >
             View Details
           </Button>
@@ -158,66 +181,82 @@ export default function ScanResultsScreen() {
   const recentEvents = (events.data ?? []).slice(0, 10);
 
   return (
-    <Container>
-      <ScrollView contentContainerClassName="p-4 gap-4">
-        {/* Header */}
-        <View className="gap-1">
-          <Text className="text-foreground text-xl font-bold">
-            Scan Results
-          </Text>
-          {activeVehicle ? (
-            <Text style={{ color: colors.textMuted, fontSize: 13 }}>
-              {activeVehicle.make} {activeVehicle.model} (
-              {activeVehicle.modelYear})
-            </Text>
-          ) : null}
-        </View>
+    <Container className="p-4">
+      <View className="gap-4">
+        {/* Summary */}
+        {!events.isLoading && recentEvents.length > 0 && (
+          <Animated.View entering={FadeInDown.duration(300)}>
+            <Card variant="accent">
+              <View className="flex-row items-center gap-3">
+                <Ionicons
+                  name="alert-circle-outline"
+                  size={24}
+                  color={colors.primary}
+                />
+                <View>
+                  <Text
+                    style={{
+                      ...TYPO.h3,
+                      color: colors.text,
+                    }}
+                  >
+                    {recentEvents.length} code
+                    {recentEvents.length !== 1 ? "s" : ""} detected
+                  </Text>
+                  {activeVehicle && (
+                    <Text
+                      style={{
+                        color: colors.textMuted,
+                        fontSize: 12,
+                        marginTop: 2,
+                      }}
+                    >
+                      {activeVehicle.make} {activeVehicle.model} (
+                      {activeVehicle.modelYear})
+                    </Text>
+                  )}
+                </View>
+              </View>
+            </Card>
+          </Animated.View>
+        )}
 
         {/* Events */}
         {events.isLoading ? (
-          <View className="items-center py-12">
-            <Spinner size="lg" />
-            <Text
-              style={{ color: colors.textMuted, fontSize: 13, marginTop: 12 }}
-            >
-              Loading results...
-            </Text>
+          <View className="gap-3">
+            <SkeletonCard />
+            <SkeletonCard />
           </View>
         ) : recentEvents.length === 0 ? (
-          <Card className="items-center p-6 rounded-2xl border border-surface-border">
-            <Text className="text-foreground font-medium">No codes found</Text>
-            <Text
-              style={{
-                color: colors.textMuted,
-                fontSize: 12,
-                textAlign: "center",
-                marginTop: 4,
-              }}
-            >
-              Your vehicle scan returned no diagnostic codes.
-            </Text>
-          </Card>
+          <EmptyState
+            icon="checkmark-circle-outline"
+            title="No codes found"
+            description="Your vehicle scan returned no diagnostic codes."
+          />
         ) : (
           <View className="gap-3">
-            <Text className="text-foreground text-sm font-semibold">
-              {recentEvents.length} code{recentEvents.length !== 1 ? "s" : ""}{" "}
-              detected
-            </Text>
-            {recentEvents.map((event) => (
-              <EventCard
+            {recentEvents.map((event, i) => (
+              <Animated.View
                 key={event.id}
-                event={event}
-                vehicleId={activeVehicle?.id ?? vehicleId}
-              />
+                entering={FadeInDown.duration(300).delay(i * 50)}
+              >
+                <EventCard
+                  event={event}
+                  vehicleId={activeVehicle?.id ?? vehicleId}
+                />
+              </Animated.View>
             ))}
           </View>
         )}
 
-        {/* Done button */}
-        <Button variant="ghost" onPress={() => router.back()}>
+        <Button
+          variant="ghost"
+          icon="arrow-back-outline"
+          onPress={() => router.back()}
+        >
           Back to Scan
         </Button>
-      </ScrollView>
+      </View>
     </Container>
   );
 }
