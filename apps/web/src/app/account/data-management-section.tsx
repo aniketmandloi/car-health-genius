@@ -52,7 +52,7 @@ export function DataManagementSection() {
             events, maintenance records, estimates, and support issues.
           </p>
           {exportSuccess && (
-            <p className="text-sm text-emerald-600 dark:text-emerald-400">
+            <p className="text-sm text-primary">
               Export downloaded successfully.
             </p>
           )}
@@ -106,7 +106,7 @@ export function DataManagementSection() {
                 value={deleteConfirm}
                 onChange={(e) => setDeleteConfirm(e.target.value)}
                 placeholder="DELETE MY ACCOUNT"
-                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm font-mono dark:bg-input/30"
+                className="w-full rounded-lg border border-input/85 bg-card px-3 py-2 text-sm font-mono shadow-sm"
               />
               {deleteMutation.error && (
                 <p className="text-sm text-destructive">

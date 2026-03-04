@@ -56,9 +56,19 @@ export default function SignUpForm({
   }
 
   return (
-    <div className="mx-auto w-full mt-10 max-w-md p-6">
-      <div className="surface-card p-6">
-        <h1 className="mb-6 text-center text-2xl font-bold">Create Account</h1>
+    <div className="cb-page-compact pt-12 md:pt-16">
+      <div className="cb-section p-6 md:p-8">
+        <div className="mb-6 text-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            Create Account
+          </p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight">
+            Join Car Health Genius
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Start tracking your vehicle health in minutes.
+          </p>
+        </div>
 
         <form
           onSubmit={(e) => {
@@ -162,7 +172,7 @@ export default function SignUpForm({
           <Button
             variant="link"
             onClick={onSwitchToSignIn}
-            className="text-primary hover:text-primary/80"
+            className="font-semibold"
           >
             Already have an account? Sign In
           </Button>

@@ -46,14 +46,14 @@ function SuccessContent() {
   }, [session?.user, trackUpgradeSuccess, plan, checkoutId]);
 
   return (
-    <div className="flex min-h-[calc(100svh-3.5rem)] items-center justify-center px-4">
+    <div className="flex min-h-[calc(100svh-4rem)] items-center justify-center px-4 py-8">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
         className="w-full max-w-md"
       >
-        <Card className="text-center p-8">
+        <Card className="text-center p-8 shadow-[0_18px_40px_-26px_rgba(7,41,88,0.35)]">
           <CardContent className="space-y-4">
             <motion.div
               initial={{ scale: 0 }}
@@ -102,7 +102,7 @@ export default function SuccessPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-[calc(100svh-3.5rem)] items-center justify-center text-sm text-muted-foreground">
+        <div className="flex min-h-[calc(100svh-4rem)] items-center justify-center text-sm text-muted-foreground">
           Loading...
         </div>
       }

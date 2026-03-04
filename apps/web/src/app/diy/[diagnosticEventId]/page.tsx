@@ -17,5 +17,9 @@ export default async function DiyGuidePage({
 
   if (isNaN(id) || id <= 0) redirect("/dashboard");
 
-  return <DiyGuideClient diagnosticEventId={id} />;
+  return (
+    <div className="pb-8">
+      <DiyGuideClient diagnosticEventId={id} />
+    </div>
+  );
 }

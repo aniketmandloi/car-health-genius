@@ -23,15 +23,15 @@ export default async function AccountPage() {
   const { user } = session;
 
   return (
-    <div className="container mx-auto max-w-2xl space-y-6 p-4 md:p-6">
+    <div className="cb-page-compact space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Account Settings</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Account Settings</h1>
         <p className="text-sm text-muted-foreground">
           Manage your profile and subscription.
         </p>
       </div>
 
-      <Card className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
+      <Card>
         <CardHeader>
           <CardTitle className="text-base">Profile</CardTitle>
         </CardHeader>
@@ -47,7 +47,7 @@ export default async function AccountPage() {
         </CardContent>
       </Card>
 
-      <Card className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 delay-100">
+      <Card className="anim-delay-1">
         <CardHeader>
           <CardTitle className="text-base">Subscription</CardTitle>
         </CardHeader>
@@ -65,7 +65,7 @@ export default async function AccountPage() {
         </CardContent>
       </Card>
 
-      <Card className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 delay-200">
+      <Card className="anim-delay-2">
         <CardHeader>
           <CardTitle className="text-base">Navigation</CardTitle>
         </CardHeader>
@@ -86,7 +86,7 @@ export default async function AccountPage() {
       </Card>
 
       {/* Data Management — SEC-005 */}
-      <div className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 delay-300">
+      <div className="animate-soft-enter anim-delay-2">
         <DataManagementSection />
       </div>
     </div>

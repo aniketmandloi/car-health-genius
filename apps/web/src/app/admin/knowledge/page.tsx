@@ -4,7 +4,7 @@ export default function DtcKnowledgePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">DTC Knowledge Base</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">DTC Knowledge Base</h1>
         <p className="text-sm text-muted-foreground">
           Create and update diagnostic trouble code definitions, severity, and
           DIY permissions.

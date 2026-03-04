@@ -21,33 +21,28 @@ export default function Header() {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/70 backdrop-blur-2xl dark:border-white/10">
-      <div className="mx-auto flex h-[3.75rem] max-w-6xl items-center justify-between px-4 md:px-6">
-        {/* Left: Brand + Mobile hamburger */}
+    <header className="sticky top-0 z-50 w-full border-b border-border/80 bg-background/90 backdrop-blur-xl">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-6">
         <div className="flex items-center gap-3">
           <MobileNav />
           <Link
             href={"/" as never}
-            className="group flex items-center gap-2 text-lg font-extrabold tracking-tight"
+            className="group flex items-center gap-2.5 text-lg font-semibold tracking-tight"
           >
             <Image
-              src="/logo.png"
+              src="/icon.png"
               alt="Car Health Genius logo"
-              width={38}
-              height={38}
-              className="h-9 w-9 rounded-xl object-cover shadow-[0_10px_28px_-18px_rgba(6,182,212,0.75)]"
+              width={44}
+              height={44}
+              className="h-10 w-10 rounded-lg object-cover shadow-[0_10px_26px_-18px_rgba(7,41,88,0.4)]"
               priority
             />
-            <span className="text-foreground">Car</span>
-            <span className="bg-gradient-to-r from-primary to-cyan-300 bg-clip-text text-transparent transition-all duration-200 group-hover:drop-shadow-[0_0_8px_rgba(6,182,212,0.28)]">
-              Health
-            </span>
-            <span className="text-foreground">Genius</span>
+            <span className="hidden sm:inline">Car Health</span>
+            <span className="hidden text-primary sm:inline">Genius</span>
           </Link>
         </div>
 
-        {/* Center: Nav links (desktop) */}
-        <nav className="hidden items-center gap-1 rounded-full border border-border/60 bg-card/50 p-1 backdrop-blur-xl dark:border-white/10 dark:bg-white/[0.03] md:flex">
+        <nav className="hidden items-center gap-1 rounded-full border border-border/80 bg-card/90 p-1 shadow-[0_8px_18px_-16px_rgba(7,41,88,0.3)] md:flex">
           {navLinks.map(({ href, label }) => {
             const isActive =
               pathname === href || pathname.startsWith(href + "/");
@@ -56,10 +51,10 @@ export default function Header() {
                 key={href}
                 href={href as never}
                 className={cn(
-                  "rounded-full px-3 py-1.5 text-sm font-medium transition-all duration-200",
+                  "rounded-full px-3 py-1.5 text-sm font-semibold transition-colors",
                   isActive
-                    ? "bg-primary/12 text-primary shadow-[0_0_0_1px_rgba(6,182,212,0.18)]"
-                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground dark:hover:bg-white/[0.06]",
+                    ? "bg-primary text-primary-foreground shadow-[0_10px_22px_-16px_rgba(0,82,255,0.8)]"
+                    : "text-muted-foreground hover:bg-muted/70 hover:text-foreground",
                 )}
               >
                 {label}
@@ -69,7 +64,7 @@ export default function Header() {
         </nav>
 
         {/* Right: ModeToggle + UserMenu */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <ModeToggle />
           <UserMenu />
         </div>

@@ -6,10 +6,16 @@ import {
   ArrowRight,
   Car,
   DollarSign,
+  Github,
+  Instagram,
   Plug,
   ScanLine,
   Search,
   Shield,
+  ShieldCheck,
+  Star,
+  Timer,
+  Twitter,
   Zap,
 } from "lucide-react";
 import Link from "next/link";
@@ -56,183 +62,277 @@ const steps = [
   },
 ];
 
-export default function Home() {
-  return (
-    <div className="relative overflow-hidden pb-8">
-      {/* ── Animated gradient orbs ── */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="mesh-orb absolute -top-1/2 -left-1/4 h-[800px] w-[800px] rounded-full bg-cyan-500/10 blur-[120px]" />
-        <div className="mesh-orb-delay absolute -bottom-1/2 -right-1/4 h-[600px] w-[600px] rounded-full bg-violet-500/10 blur-[120px]" />
-      </div>
+const stats = [
+  { icon: ShieldCheck, value: "24/7", label: "Safety-first guidance" },
+  { icon: Timer, value: "<2 min", label: "Average code explanation time" },
+  { icon: Star, value: "4.8/5", label: "Driver satisfaction score" },
+];
 
-      {/* ── Hero ── */}
-      <section className="relative flex min-h-[calc(100svh-3.75rem)] flex-col items-center justify-center px-4 pt-12 text-center">
+const footerColumns = [
+  {
+    heading: "Product",
+    links: [
+      { href: "/pricing", label: "Pricing" },
+      { href: "/dashboard", label: "Dashboard" },
+      { href: "/vehicles", label: "Vehicles" },
+      { href: "/scan", label: "Scan" },
+    ],
+  },
+  {
+    heading: "Company",
+    links: [
+      { href: "/support", label: "Support" },
+      { href: "/account", label: "Account" },
+      { href: "/login", label: "Sign In" },
+      { href: "/", label: "Home" },
+    ],
+  },
+];
+
+const socialLinks = [
+  { href: "https://x.com", label: "X", icon: Twitter },
+  { href: "https://www.instagram.com", label: "Instagram", icon: Instagram },
+  { href: "https://github.com", label: "GitHub", icon: Github },
+];
+
+export default function Home() {
+  const year = new Date().getFullYear();
+
+  return (
+    <div className="pb-12">
+      <section className="cb-page pt-12 text-center md:pt-18">
         <motion.div
           variants={staggerContainer}
           initial="hidden"
           animate="show"
-          className="mx-auto max-w-3xl space-y-7"
+          className="mx-auto max-w-4xl space-y-7"
         >
           <motion.div variants={fadeUp}>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/12 px-3 py-1 text-xs font-semibold text-primary shadow-[0_0_0_1px_rgba(6,182,212,0.14)]">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
               <Zap className="size-3" />
-              AI-Powered Diagnostics
+              AI Diagnostics for Drivers
             </span>
           </motion.div>
 
           <motion.h1
             variants={fadeUp}
-            className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl"
+            className="text-4xl font-semibold tracking-tight sm:text-5xl md:text-6xl"
           >
-            Your Car&apos;s Health.{" "}
-            <span className="bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">
-              Decoded.
-            </span>
+            Understand your car with confidence.
+            <span className="mt-2 block text-primary">No mechanic guesswork.</span>
           </motion.h1>
 
           <motion.p
             variants={fadeUp}
-            className="mx-auto max-w-xl text-base text-muted-foreground sm:text-lg"
+            className="mx-auto max-w-2xl text-base text-muted-foreground sm:text-lg"
           >
-            Stop guessing what your check engine light means. Get instant AI
-            analysis, repair cost estimates, and step-by-step DIY guides.
+            Decode engine lights, get repair context, and plan maintenance from
+            one clean dashboard designed to make complex diagnostics simple.
           </motion.p>
 
           <motion.div
             variants={fadeUp}
-            className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center"
+            className="flex flex-col items-center justify-center gap-3 sm:flex-row"
           >
             <Link href={"/login" as never}>
-              <Button
-                size="lg"
-                className="gap-2 shadow-[0_0_24px_rgba(6,182,212,0.25)]"
-              >
+              <Button size="lg" className="gap-2">
                 Get Started
                 <ArrowRight className="size-4" />
               </Button>
             </Link>
             <Link href={"/pricing" as never}>
-              <Button variant="outline" size="lg" className="gap-2">
-                View Plans
+              <Button variant="outline" size="lg">
+                View Pricing
               </Button>
             </Link>
           </motion.div>
         </motion.div>
       </section>
 
-      {/* ── Features ── */}
-      <section className="relative px-4 py-20 md:py-28">
+      <section className="cb-page pb-4 md:pb-8">
         <motion.div
           variants={staggerContainer}
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, margin: "-100px" }}
-          className="mx-auto max-w-5xl"
+          className="grid gap-4 md:grid-cols-3"
         >
-          <motion.div variants={fadeUp} className="mb-12 text-center">
-            <h2 className="text-2xl font-bold sm:text-3xl">
-              Everything you need to stay{" "}
-              <span className="text-primary">ahead of repairs</span>
+          {features.map((feature) => (
+            <motion.div
+              key={feature.title}
+              variants={fadeUp}
+              className="cb-section surface-card-hover p-6 text-left"
+            >
+              <div className="mb-3 flex size-10 items-center justify-center rounded-xl bg-primary/10">
+                <feature.icon className="size-5 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold">{feature.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                {feature.description}
+              </p>
+            </motion.div>
+          ))}
+        </motion.div>
+      </section>
+
+      <section className="cb-page pb-2">
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-80px" }}
+          className="cb-section grid gap-3 p-4 sm:grid-cols-3 sm:p-5"
+        >
+          {stats.map((stat) => (
+            <motion.div
+              key={stat.label}
+              variants={fadeUp}
+              className="surface-card-hover rounded-lg border border-border/70 bg-card px-4 py-3"
+            >
+              <div className="mb-2 flex items-center gap-2 text-primary">
+                <stat.icon className="size-4" />
+                <span className="text-sm font-semibold">{stat.value}</span>
+              </div>
+              <p className="text-xs text-muted-foreground">{stat.label}</p>
+            </motion.div>
+          ))}
+        </motion.div>
+      </section>
+
+      <section className="cb-page">
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-100px" }}
+          className="cb-section p-6 md:p-8"
+        >
+          <motion.div variants={fadeUp} className="mb-8 text-center">
+            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+              How it works
             </h2>
-            <p className="mt-3 text-muted-foreground">
-              Powered by AI. Built for car owners who want transparency.
+            <p className="mt-2 text-sm text-muted-foreground sm:text-base">
+              Three steps from warning light to an actionable plan.
             </p>
           </motion.div>
 
           <div className="grid gap-6 md:grid-cols-3">
-            {features.map((feature) => (
-              <motion.div
-                key={feature.title}
-                variants={fadeUp}
-                className="surface-card surface-card-hover group p-6"
-              >
-                <div className="mb-4 flex size-10 items-center justify-center rounded-xl bg-primary/10">
-                  <feature.icon className="size-5 text-primary" />
-                </div>
-                <h3 className="mb-2 text-base font-semibold">
-                  {feature.title}
-                </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {feature.description}
-                </p>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-      </section>
-
-      {/* ── How It Works ── */}
-      <section className="relative px-4 py-20 md:py-28">
-        <motion.div
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, margin: "-100px" }}
-          className="mx-auto max-w-4xl"
-        >
-          <motion.div variants={fadeUp} className="mb-12 text-center">
-            <h2 className="text-2xl font-bold sm:text-3xl">How it works</h2>
-            <p className="mt-3 text-muted-foreground">
-              Three simple steps to understand your vehicle
-            </p>
-          </motion.div>
-
-          <div className="relative grid gap-8 md:grid-cols-3">
-            {/* Connecting gradient line (desktop) */}
-            <div className="pointer-events-none absolute top-12 left-[16.67%] right-[16.67%] hidden h-0.5 bg-gradient-to-r from-cyan-500/40 via-cyan-500/20 to-cyan-500/40 md:block" />
-
             {steps.map((step, i) => (
-              <motion.div
-                key={step.title}
-                variants={fadeUp}
-                className="relative flex flex-col items-center text-center"
-              >
-                <div className="relative z-10 mb-4 flex size-14 items-center justify-center rounded-2xl border border-primary/25 bg-primary/12 shadow-[0_0_0_1px_rgba(6,182,212,0.14)]">
-                  <step.icon className="size-6 text-primary" />
+              <motion.div key={step.title} variants={fadeUp} className="text-center">
+                <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-full border border-primary/20 bg-primary/10">
+                  <step.icon className="size-5 text-primary" />
                 </div>
-                <span className="mb-1 text-xs font-medium text-primary">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary">
                   Step {i + 1}
-                </span>
-                <h3 className="mb-1.5 text-base font-semibold">{step.title}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {step.description}
                 </p>
+                <h3 className="mt-1 text-base font-semibold">{step.title}</h3>
+                <p className="mt-1 text-sm text-muted-foreground">{step.description}</p>
               </motion.div>
             ))}
           </div>
         </motion.div>
       </section>
 
-      {/* ── CTA Banner ── */}
-      <section className="px-4 pb-20 md:pb-28">
+      <section className="cb-page pt-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="mx-auto max-w-3xl"
+          transition={{ duration: 0.45 }}
+          className="cb-section p-8 text-center md:p-12"
         >
-          <div className="surface-card relative overflow-hidden border-primary/20 bg-gradient-to-br from-primary/6 to-primary/12 p-8 text-center md:p-12">
-            <Car className="mx-auto mb-4 size-10 text-primary" />
-            <h2 className="mb-3 text-xl font-bold sm:text-2xl">
-              Ready to take control of your car&apos;s health?
-            </h2>
-            <p className="mb-6 text-muted-foreground">
-              Join thousands of car owners saving money and avoiding surprise
-              repairs.
-            </p>
-            <Link href={"/login" as never}>
-              <Button
-                size="lg"
-                className="gap-2 shadow-[0_0_24px_rgba(6,182,212,0.25)]"
-              >
-                Start For Free
-                <ArrowRight className="size-4" />
-              </Button>
-            </Link>
-          </div>
+          <Car className="mx-auto mb-4 size-10 text-primary" />
+          <h2 className="text-2xl font-semibold tracking-tight">
+            Ready to take control of your car health?
+          </h2>
+          <p className="mx-auto mt-2 max-w-xl text-sm text-muted-foreground sm:text-base">
+            Start with the free plan, then unlock deeper insights only when you
+            need them.
+          </p>
+          <Link href={"/login" as never} className="mt-6 inline-flex">
+            <Button size="lg" className="gap-2">
+              Start for Free
+              <ArrowRight className="size-4" />
+            </Button>
+          </Link>
         </motion.div>
       </section>
+
+      <footer className="mt-10 border-t border-border/80 bg-card/40">
+        <div className="cb-page !max-w-6xl py-10">
+          <div className="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr]">
+            <div>
+              <h3 className="text-lg font-semibold tracking-tight">
+                Car Health Genius
+              </h3>
+              <p className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
+                A clearer way to understand your vehicle, plan repairs, and make
+                confident maintenance decisions.
+              </p>
+            </div>
+
+            {footerColumns.map((column) => (
+              <div key={column.heading}>
+                <h4 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                  {column.heading}
+                </h4>
+                <ul className="mt-3 space-y-2">
+                  {column.links.map((link) => (
+                    <li key={link.href}>
+                      <Link
+                        href={link.href as never}
+                        className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-8 flex flex-wrap items-center gap-3 border-t border-border/70 pt-4">
+            <Link
+              href={"/privacy" as never}
+              className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Privacy
+            </Link>
+            <Link
+              href={"/terms" as never}
+              className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Terms
+            </Link>
+            <Link
+              href={"/support" as never}
+              className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Contact
+            </Link>
+            <div className="ml-auto flex items-center gap-2">
+              {socialLinks.map((item) => (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  aria-label={item.label}
+                  className="rounded-md border border-border/70 bg-card p-1.5 text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  <item.icon className="size-3.5" />
+                </a>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-4 flex flex-col gap-2 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+            <p>© {year} Car Health Genius. All rights reserved.</p>
+            <p>Built for drivers who want clarity, not guesswork.</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

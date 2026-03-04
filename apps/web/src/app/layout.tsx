@@ -1,18 +1,20 @@
 import type { Metadata } from "next";
 
-import { Manrope, JetBrains_Mono } from "next/font/google";
+import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 
 import "../index.css";
 import Header from "@/components/header";
 import Providers from "@/components/providers";
 
-const manrope = Manrope({
+const ibmPlexSans = IBM_Plex_Sans({
   variable: "--font-sans",
+  weight: ["400", "500", "600", "700"],
   subsets: ["latin"],
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const ibmPlexMono = IBM_Plex_Mono({
   variable: "--font-mono",
+  weight: ["400", "500", "600"],
   subsets: ["latin"],
 });
 
@@ -21,9 +23,9 @@ export const metadata: Metadata = {
   description:
     "AI-powered car diagnostics and health monitoring. Decode check engine lights, track vehicle health, and save on repairs.",
   icons: {
-    icon: "/logo.png",
-    shortcut: "/logo.png",
-    apple: "/logo.png",
+    icon: "/icon.png",
+    shortcut: "/icon.png",
+    apple: "/icon.png",
   },
 };
 
@@ -35,13 +37,13 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${manrope.variable} ${jetbrainsMono.variable} antialiased selection:bg-primary/20`}
+        className={`${ibmPlexSans.variable} ${ibmPlexMono.variable} antialiased`}
       >
         <Providers>
-          <div className="relative min-h-svh overflow-hidden bg-background dark:bg-gradient-to-br dark:from-[#081323] dark:via-[#0D1B2F] dark:to-[#162032]">
+          <div className="relative min-h-svh overflow-hidden bg-background">
             <div className="pointer-events-none absolute inset-0 overflow-hidden">
-              <div className="mesh-orb absolute -top-56 -left-36 h-[28rem] w-[28rem] rounded-full bg-primary/10 blur-[120px]" />
-              <div className="mesh-orb-delay absolute top-[32%] -right-40 h-[24rem] w-[24rem] rounded-full bg-secondary/10 blur-[120px]" />
+              <div className="mesh-orb absolute -top-56 -left-40 h-[28rem] w-[28rem] rounded-full bg-primary/12 blur-[120px]" />
+              <div className="mesh-orb-delay absolute top-[32%] -right-40 h-[24rem] w-[24rem] rounded-full bg-primary/8 blur-[120px]" />
             </div>
             <Header />
             <main className="relative z-10">{children}</main>

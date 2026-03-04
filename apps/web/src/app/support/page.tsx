@@ -8,5 +8,9 @@ export default async function SupportPage() {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) redirect("/sign-in" as never);
 
-  return <SupportClient />;
+  return (
+    <div className="pb-8">
+      <SupportClient />
+    </div>
+  );
 }

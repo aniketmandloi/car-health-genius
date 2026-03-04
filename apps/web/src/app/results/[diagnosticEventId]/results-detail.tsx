@@ -399,7 +399,7 @@ function RepairOutcomeSection({
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   rows={2}
-                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm dark:bg-input/30"
+                  className="cb-textarea text-sm"
                   placeholder="Optional notes..."
                 />
               </div>
@@ -582,7 +582,7 @@ export default function ResultsDetail({
 
   return (
     <PageTransition>
-      <div className="container mx-auto max-w-3xl space-y-6 p-4 md:p-6">
+      <div className="cb-page-narrow space-y-6">
         {/* Back nav */}
         <Link
           href="/dashboard"
@@ -1019,7 +1019,7 @@ export default function ResultsDetail({
         </Tabs>
 
         {/* Compliance disclaimer (CMP-002) */}
-        <div className="rounded-2xl border border-dashed px-4 py-3 text-xs text-muted-foreground">
+        <div className="cb-section-soft px-4 py-3 text-xs text-muted-foreground">
           <p className="font-semibold">Disclaimer (CMP-002)</p>
           <p className="mt-1">
             Car Health Genius provides AI-generated diagnostic information for

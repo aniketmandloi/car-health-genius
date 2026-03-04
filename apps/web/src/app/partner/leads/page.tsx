@@ -18,7 +18,7 @@ export default async function PartnerLeadsPage() {
   }
 
   return (
-    <div className="container mx-auto max-w-5xl space-y-6 p-4">
+    <div className="cb-page !max-w-5xl space-y-6">
       <div className="space-y-1">
         <h1 className="text-2xl font-semibold">Partner Lead Queue</h1>
         <p className="text-sm text-muted-foreground">

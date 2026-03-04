@@ -39,9 +39,9 @@ export default function ScanPage() {
 
   return (
     <PageTransition>
-      <div className="container mx-auto max-w-3xl space-y-6 p-4 md:p-6">
+      <div className="cb-page-narrow space-y-6">
         {/* Mobile app guidance banner */}
-        <div className="flex items-start gap-3 rounded-2xl border border-info/20 bg-info/5 px-4 py-3">
+        <div className="cb-section-soft flex items-start gap-3 px-4 py-3">
           <Info className="mt-0.5 size-4 shrink-0 text-info" />
           <div>
             <p className="text-sm font-semibold">
@@ -77,10 +77,10 @@ export default function ScanPage() {
                       <button
                         key={v.id}
                         onClick={() => setSelectedVehicleId(v.id)}
-                        className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
+                        className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
                           activeVehicleId === v.id
-                            ? "border-primary bg-primary text-primary-foreground shadow-[0_0_12px_rgba(6,182,212,0.2)]"
-                            : "border-border/60 bg-card/70 hover:bg-muted/70 dark:border-white/[0.10] dark:bg-white/[0.03] dark:hover:bg-white/[0.07]"
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-border/80 bg-card hover:bg-muted/70"
                         }`}
                       >
                         {v.make} {v.model} ({v.modelYear})
@@ -121,7 +121,7 @@ export default function ScanPage() {
                         key={event.id}
                         href={`/results/${event.id}` as never}
                       >
-                        <div className="surface-subtle flex cursor-pointer items-center justify-between px-4 py-2.5 transition-colors hover:bg-muted/65 dark:hover:bg-white/[0.08]">
+                        <div className="surface-subtle flex cursor-pointer items-center justify-between px-4 py-2.5 transition-colors hover:bg-muted/65">
                           <div className="flex items-center gap-2">
                             <span className="font-mono text-sm font-semibold">
                               {event.dtcCode}

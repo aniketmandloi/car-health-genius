@@ -3,70 +3,63 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const badgeVariants = cva(
-  "inline-flex items-center justify-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium whitespace-nowrap transition-colors shrink-0 w-fit",
+  "inline-flex w-fit shrink-0 items-center justify-center gap-1 rounded-full border px-2.5 py-1 text-[11px] leading-none font-semibold whitespace-nowrap transition-colors",
   {
     variants: {
       variant: {
-        default: "bg-primary/10 text-primary border-primary/20",
-        secondary: "bg-secondary/10 text-secondary border-secondary/20",
-        destructive: "bg-destructive/10 text-destructive border-destructive/20",
-        outline: "border-border text-foreground",
-        ghost: "border-transparent text-muted-foreground",
+        default: "border-primary/20 bg-primary/10 text-primary",
+        secondary: "border-border/60 bg-secondary text-secondary-foreground",
+        destructive: "border-destructive/30 bg-destructive/10 text-destructive",
+        outline: "border-border/80 bg-card text-foreground",
+        ghost: "border-border/50 bg-muted/45 text-muted-foreground",
 
-        // Severity levels
         critical:
-          "bg-red-500/10 text-red-500 border-red-500/20 dark:bg-red-500/15 dark:text-red-400",
-        high: "bg-orange-500/10 text-orange-500 border-orange-500/20 dark:bg-orange-500/15 dark:text-orange-400",
+          "border-red-500/30 bg-red-500/12 text-red-700 dark:text-red-300",
+        high: "border-orange-500/30 bg-orange-500/12 text-orange-700 dark:text-orange-300",
         medium:
-          "bg-amber-500/10 text-amber-500 border-amber-500/20 dark:bg-amber-500/15 dark:text-amber-400",
-        low: "bg-blue-500/10 text-blue-500 border-blue-500/20 dark:bg-blue-500/15 dark:text-blue-400",
+          "border-amber-500/30 bg-amber-500/12 text-amber-700 dark:text-amber-300",
+        low: "border-blue-500/30 bg-blue-500/12 text-blue-700 dark:text-blue-300",
         cleared:
-          "bg-slate-500/10 text-slate-500 border-slate-500/20 dark:bg-slate-400/15 dark:text-slate-400",
+          "border-slate-500/30 bg-slate-500/12 text-slate-600 dark:text-slate-300",
 
-        // Triage
-        safe: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:bg-emerald-500/15 dark:text-emerald-400",
+        safe: "border-emerald-500/30 bg-emerald-500/12 text-emerald-700 dark:text-emerald-300",
         service_soon:
-          "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:bg-amber-500/15 dark:text-amber-400",
+          "border-amber-500/30 bg-amber-500/12 text-amber-700 dark:text-amber-300",
         service_now:
-          "bg-red-500/10 text-red-600 border-red-500/20 dark:bg-red-500/15 dark:text-red-400",
+          "border-red-500/30 bg-red-500/12 text-red-700 dark:text-red-300",
 
-        // Priority
-        soon: "bg-red-500/10 text-red-600 border-red-500/20 dark:bg-red-500/15 dark:text-red-400",
+        soon: "border-red-500/30 bg-red-500/12 text-red-700 dark:text-red-300",
         upcoming:
-          "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:bg-amber-500/15 dark:text-amber-400",
+          "border-amber-500/30 bg-amber-500/12 text-amber-700 dark:text-amber-300",
         later:
-          "bg-blue-500/10 text-blue-600 border-blue-500/20 dark:bg-blue-500/15 dark:text-blue-400",
+          "border-blue-500/30 bg-blue-500/12 text-blue-700 dark:text-blue-300",
 
-        // Issue status
-        open: "bg-blue-500/10 text-blue-600 border-blue-500/20 dark:bg-blue-500/15 dark:text-blue-400",
+        open: "border-blue-500/30 bg-blue-500/12 text-blue-700 dark:text-blue-300",
         in_progress:
-          "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:bg-amber-500/15 dark:text-amber-400",
+          "border-amber-500/30 bg-amber-500/12 text-amber-700 dark:text-amber-300",
         resolved:
-          "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:bg-emerald-500/15 dark:text-emerald-400",
+          "border-emerald-500/30 bg-emerald-500/12 text-emerald-700 dark:text-emerald-300",
         closed:
-          "bg-slate-500/10 text-slate-500 border-slate-500/20 dark:bg-slate-400/15 dark:text-slate-400",
+          "border-slate-500/30 bg-slate-500/12 text-slate-600 dark:text-slate-300",
 
-        // Plan
-        free: "bg-slate-500/10 text-slate-600 border-slate-500/20 dark:bg-slate-400/15 dark:text-slate-400",
-        pro: "bg-cyan-500/10 text-cyan-600 border-cyan-500/20 dark:bg-cyan-500/15 dark:text-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.15)]",
+        free: "border-slate-500/30 bg-slate-500/12 text-slate-600 dark:text-slate-300",
+        pro: "border-primary/30 bg-primary/12 text-primary shadow-[0_8px_20px_-14px_rgba(0,82,255,0.6)]",
 
-        // Health grade
         grade_a:
-          "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:bg-emerald-500/15 dark:text-emerald-400",
+          "border-emerald-500/30 bg-emerald-500/12 text-emerald-700 dark:text-emerald-300",
         grade_b:
-          "bg-cyan-500/10 text-cyan-600 border-cyan-500/20 dark:bg-cyan-500/15 dark:text-cyan-400",
+          "border-blue-500/30 bg-blue-500/12 text-blue-700 dark:text-blue-300",
         grade_c:
-          "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:bg-amber-500/15 dark:text-amber-400",
+          "border-amber-500/30 bg-amber-500/12 text-amber-700 dark:text-amber-300",
         grade_d:
-          "bg-orange-500/10 text-orange-600 border-orange-500/20 dark:bg-orange-500/15 dark:text-orange-400",
+          "border-orange-500/30 bg-orange-500/12 text-orange-700 dark:text-orange-300",
         grade_f:
-          "bg-red-500/10 text-red-600 border-red-500/20 dark:bg-red-500/15 dark:text-red-400",
+          "border-red-500/30 bg-red-500/12 text-red-700 dark:text-red-300",
 
-        // Difficulty
-        easy: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:bg-emerald-500/15 dark:text-emerald-400",
+        easy: "border-emerald-500/30 bg-emerald-500/12 text-emerald-700 dark:text-emerald-300",
         moderate:
-          "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:bg-amber-500/15 dark:text-amber-400",
-        hard: "bg-red-500/10 text-red-600 border-red-500/20 dark:bg-red-500/15 dark:text-red-400",
+          "border-amber-500/30 bg-amber-500/12 text-amber-700 dark:text-amber-300",
+        hard: "border-red-500/30 bg-red-500/12 text-red-700 dark:text-red-300",
       },
     },
     defaultVariants: {

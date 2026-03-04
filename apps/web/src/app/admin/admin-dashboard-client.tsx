@@ -28,14 +28,14 @@ export default function AdminDashboardClient() {
           Monetization Funnel (14 days)
         </h2>
         {funnel.isLoading ? (
-          <div className="h-32 animate-pulse rounded-lg bg-muted" />
+          <div className="h-32 animate-pulse rounded-lg bg-muted/70" />
         ) : funnel.isError ? (
-          <p className="text-sm text-red-500">Failed to load funnel data.</p>
+          <p className="text-sm text-destructive">Failed to load funnel data.</p>
         ) : (
-          <div className="overflow-x-auto rounded-lg border">
-            <table className="w-full text-xs">
+          <div className="cb-table-shell">
+            <table className="cb-table">
               <thead>
-                <tr className="border-b bg-muted/50">
+                <tr>
                   <th className="px-3 py-2 text-left font-medium">Day</th>
                   <th className="px-3 py-2 text-right font-medium">
                     Paywall Views
@@ -56,7 +56,7 @@ export default function AdminDashboardClient() {
                   .map((row) => (
                     <tr
                       key={row.day}
-                      className="border-b last:border-0 hover:bg-muted/30"
+                      className="border-b last:border-0 hover:bg-muted/35"
                     >
                       <td className="px-3 py-1.5 font-mono">{row.day}</td>
                       <td className="px-3 py-1.5 text-right">
@@ -83,9 +83,9 @@ export default function AdminDashboardClient() {
       <section>
         <h2 className="mb-3 text-base font-semibold">Recent AI Model Traces</h2>
         {modelTraces.isLoading ? (
-          <div className="h-32 animate-pulse rounded-lg bg-muted" />
+          <div className="h-32 animate-pulse rounded-lg bg-muted/70" />
         ) : modelTraces.isError ? (
-          <p className="text-sm text-red-500">Failed to load model traces.</p>
+          <p className="text-sm text-destructive">Failed to load model traces.</p>
         ) : (modelTraces.data?.length ?? 0) === 0 ? (
           <Card>
             <CardContent className="py-6 text-center text-sm text-muted-foreground">
@@ -106,7 +106,7 @@ export default function AdminDashboardClient() {
                     <p
                       className={
                         trace.policyBlocked
-                          ? "font-medium text-red-600"
+                          ? "font-medium text-destructive"
                           : "font-medium"
                       }
                     >
@@ -142,9 +142,9 @@ export default function AdminDashboardClient() {
       <section>
         <h2 className="mb-3 text-base font-semibold">Recent Audit Logs</h2>
         {auditLogs.isLoading ? (
-          <div className="h-32 animate-pulse rounded-lg bg-muted" />
+          <div className="h-32 animate-pulse rounded-lg bg-muted/70" />
         ) : auditLogs.isError ? (
-          <p className="text-sm text-red-500">Failed to load audit logs.</p>
+          <p className="text-sm text-destructive">Failed to load audit logs.</p>
         ) : (auditLogs.data?.length ?? 0) === 0 ? (
           <Card>
             <CardContent className="py-6 text-center text-sm text-muted-foreground">
@@ -152,10 +152,10 @@ export default function AdminDashboardClient() {
             </CardContent>
           </Card>
         ) : (
-          <div className="overflow-x-auto rounded-lg border">
-            <table className="w-full text-xs">
+          <div className="cb-table-shell">
+            <table className="cb-table">
               <thead>
-                <tr className="border-b bg-muted/50">
+                <tr>
                   <th className="px-3 py-2 text-left font-medium">Action</th>
                   <th className="px-3 py-2 text-left font-medium">Target</th>
                   <th className="px-3 py-2 text-left font-medium">Role</th>

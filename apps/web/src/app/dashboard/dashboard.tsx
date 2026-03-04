@@ -53,7 +53,7 @@ function VehicleHealthCard({
 
   return (
     <Link href={`/diagnostics/${vehicleId}` as never}>
-      <Card className="h-full cursor-pointer">
+      <Card className="h-full cursor-pointer transition-colors hover:border-primary/30">
         <CardHeader className="pb-2">
           <div className="flex items-start justify-between gap-2">
             <div>
@@ -258,29 +258,29 @@ export default function Dashboard({
         variants={staggerContainer}
         initial="hidden"
         animate="show"
-        className="container mx-auto max-w-5xl space-y-8 p-4 md:p-6"
+        className="cb-page !max-w-5xl space-y-8"
       >
         {/* Pro/Free Banner */}
         <motion.div variants={fadeUp}>
           <Card
             className={cn(
-              "flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-5",
+              "flex flex-col items-start justify-between gap-3 p-5 sm:flex-row sm:items-center",
               hasProSubscription
-                ? "border-primary/30 dark:border-primary/20"
-                : "border-secondary/30 dark:border-secondary/20",
+                ? "border-primary/30"
+                : "border-border/90",
             )}
           >
             <div className="flex items-center gap-3">
               <div
                 className={cn(
                   "flex size-10 items-center justify-center rounded-xl",
-                  hasProSubscription ? "bg-primary/10" : "bg-secondary/10",
+                  hasProSubscription ? "bg-primary/10" : "bg-muted/80",
                 )}
               >
                 <Crown
                   className={cn(
                     "size-5",
-                    hasProSubscription ? "text-primary" : "text-secondary",
+                    hasProSubscription ? "text-primary" : "text-muted-foreground",
                   )}
                 />
               </div>
@@ -328,7 +328,7 @@ export default function Dashboard({
             </div>
             <Link
               href="/vehicles"
-              className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
             >
               Manage <ArrowRight className="size-3" />
             </Link>
@@ -337,7 +337,7 @@ export default function Dashboard({
           {vehicles.isLoading ? (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {[1, 2].map((i) => (
-                <Card key={i} className="h-32 animate-pulse bg-muted" />
+                <Card key={i} className="h-32 animate-pulse bg-muted/60" />
               ))}
             </div>
           ) : (vehicles.data?.length ?? 0) === 0 ? (

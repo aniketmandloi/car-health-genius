@@ -44,7 +44,7 @@ export function DiyGuideClient({
 
   if (guideQuery.isLoading) {
     return (
-      <div className="container mx-auto max-w-3xl space-y-4 p-4 md:p-6">
+      <div className="cb-page-narrow space-y-4">
         <div className="h-8 w-48 animate-pulse rounded-lg bg-muted" />
         <div className="h-64 animate-pulse rounded-2xl bg-muted" />
       </div>
@@ -54,7 +54,7 @@ export function DiyGuideClient({
   const guide = guideQuery.data?.guide;
 
   return (
-    <div className="container mx-auto max-w-3xl space-y-6 p-4 md:p-6">
+    <div className="cb-page-narrow space-y-6">
       <div className="flex items-center gap-3">
         <Link
           href={`/results/${diagnosticEventId}`}
@@ -101,7 +101,7 @@ export function DiyGuideClient({
 
           {/* Safety Warnings */}
           {guide.safetyWarnings.length > 0 && (
-            <Card className="border-warning/30">
+            <Card className="border-warning/30 bg-warning/5">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base text-warning">
                   Safety Warnings

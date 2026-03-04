@@ -53,9 +53,19 @@ export default function SignInForm({
   }
 
   return (
-    <div className="mx-auto w-full mt-10 max-w-md p-6">
-      <div className="surface-card p-6">
-        <h1 className="mb-6 text-center text-2xl font-bold">Welcome Back</h1>
+    <div className="cb-page-compact pt-12 md:pt-16">
+      <div className="cb-section p-6 md:p-8">
+        <div className="mb-6 text-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            Sign In
+          </p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight">
+            Welcome back
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Continue to your diagnostics dashboard.
+          </p>
+        </div>
 
         <form
           onSubmit={(e) => {
@@ -134,7 +144,7 @@ export default function SignInForm({
           <Button
             variant="link"
             onClick={onSwitchToSignUp}
-            className="text-primary hover:text-primary/80"
+            className="font-semibold"
           >
             Need an account? Sign Up
           </Button>

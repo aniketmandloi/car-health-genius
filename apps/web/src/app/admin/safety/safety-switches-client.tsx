@@ -33,15 +33,15 @@ function SwitchCard({
   const [reason, setReason] = useState("");
 
   return (
-    <Card className={sw.enabled ? "border-green-200" : "border-red-200"}>
+    <Card className={sw.enabled ? "border-emerald-500/25" : "border-red-500/25"}>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between gap-2">
           <CardTitle className="font-mono text-sm">{sw.scope}</CardTitle>
           <span
             className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
               sw.enabled
-                ? "bg-green-100 text-green-700"
-                : "bg-red-100 text-red-700"
+                ? "border border-emerald-500/30 bg-emerald-500/12 text-emerald-700 dark:text-emerald-300"
+                : "border border-red-500/30 bg-red-500/12 text-red-700 dark:text-red-300"
             }`}
           >
             {sw.enabled ? "Enabled" : "Disabled"}
@@ -75,7 +75,7 @@ function SwitchCard({
             placeholder="Reason for change..."
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            className="h-7 flex-1 rounded border bg-background px-2 text-xs"
+            className="cb-input-like h-8 flex-1 text-xs"
           />
           <Button
             size="sm"
@@ -118,7 +118,7 @@ export default function SafetySwitchesClient() {
   return (
     <div className="space-y-4">
       {mutationError && (
-        <p className="rounded border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600">
+        <p className="rounded-xl border border-destructive/25 bg-destructive/10 px-3 py-2 text-xs text-destructive">
           {mutationError}
         </p>
       )}
@@ -126,7 +126,7 @@ export default function SafetySwitchesClient() {
       {switches.isLoading ? (
         <div className="grid gap-3 sm:grid-cols-2">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-32 animate-pulse rounded-lg bg-muted" />
+            <div key={i} className="h-32 animate-pulse rounded-lg bg-muted/70" />
           ))}
         </div>
       ) : (switches.data?.length ?? 0) === 0 ? (

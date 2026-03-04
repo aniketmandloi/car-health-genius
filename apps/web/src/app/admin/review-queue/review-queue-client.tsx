@@ -24,15 +24,15 @@ function readErrorMessage(error: unknown): string {
 function statusBadgeClass(status: string) {
   switch (status) {
     case "pending":
-      return "bg-amber-100 text-amber-800";
+      return "border border-amber-500/30 bg-amber-500/12 text-amber-700 dark:text-amber-300";
     case "in_review":
-      return "bg-blue-100 text-blue-800";
+      return "border border-blue-500/30 bg-blue-500/12 text-blue-700 dark:text-blue-300";
     case "approved":
-      return "bg-green-100 text-green-800";
+      return "border border-emerald-500/30 bg-emerald-500/12 text-emerald-700 dark:text-emerald-300";
     case "rejected":
-      return "bg-red-100 text-red-800";
+      return "border border-red-500/30 bg-red-500/12 text-red-700 dark:text-red-300";
     default:
-      return "bg-gray-100 text-gray-600";
+      return "border border-slate-500/30 bg-slate-500/12 text-slate-600 dark:text-slate-300";
   }
 }
 
@@ -103,7 +103,7 @@ export default function ReviewQueueClient() {
             className={`rounded-full px-3 py-1 text-xs font-medium ${
               statusFilter === s
                 ? "bg-primary text-primary-foreground"
-                : "bg-muted text-muted-foreground"
+                : "bg-muted/70 text-muted-foreground"
             }`}
           >
             {s === "all" ? "All" : s.replace("_", " ")}
@@ -112,7 +112,7 @@ export default function ReviewQueueClient() {
       </div>
 
       {mutationError && (
-        <p className="rounded border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600">
+        <p className="rounded-xl border border-destructive/25 bg-destructive/10 px-3 py-2 text-xs text-destructive">
           {mutationError}
         </p>
       )}
@@ -120,7 +120,7 @@ export default function ReviewQueueClient() {
       {items.isLoading ? (
         <div className="space-y-2">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-24 animate-pulse rounded-lg bg-muted" />
+            <div key={i} className="h-24 animate-pulse rounded-lg bg-muted/70" />
           ))}
         </div>
       ) : data.length === 0 ? (
@@ -160,7 +160,7 @@ export default function ReviewQueueClient() {
                     <p
                       className={
                         item.policyBlocked
-                          ? "font-medium text-red-600"
+                          ? "font-medium text-destructive"
                           : "font-medium"
                       }
                     >
@@ -186,7 +186,7 @@ export default function ReviewQueueClient() {
                             },
                         )
                       }
-                      className="h-8 w-full rounded border bg-background px-2 text-xs"
+                      className="cb-input-like h-9 w-full text-xs"
                     >
                       <option value="approved">Approve</option>
                       <option value="rejected">Reject</option>
@@ -201,7 +201,7 @@ export default function ReviewQueueClient() {
                       }
                       placeholder="Resolution notes (required)"
                       rows={2}
-                      className="w-full rounded border bg-background px-2 py-1.5 text-xs"
+                      className="cb-textarea text-xs"
                     />
                     <div className="flex gap-2">
                       <Button

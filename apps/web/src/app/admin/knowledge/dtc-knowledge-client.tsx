@@ -156,7 +156,7 @@ export default function DtcKnowledgeClient() {
                       defaultSeverityClass: e.target.value as SeverityClass,
                     }))
                   }
-                  className="h-9 w-full rounded border bg-background px-2 text-sm"
+                  className="cb-input-like h-10 w-full text-sm"
                 >
                   <option value="safe">Safe</option>
                   <option value="service_soon">Service Soon</option>
@@ -174,7 +174,7 @@ export default function DtcKnowledgeClient() {
                       driveability: e.target.value as Driveability,
                     }))
                   }
-                  className="h-9 w-full rounded border bg-background px-2 text-sm"
+                  className="cb-input-like h-10 w-full text-sm"
                 >
                   <option value="drivable">Drivable</option>
                   <option value="limited">Limited</option>
@@ -191,7 +191,7 @@ export default function DtcKnowledgeClient() {
                   }
                   rows={3}
                   required
-                  className="w-full rounded border bg-background px-2 py-1.5 text-sm"
+                  className="cb-textarea"
                   placeholder="Catalytic converter efficiency below threshold..."
                 />
               </div>
@@ -207,7 +207,7 @@ export default function DtcKnowledgeClient() {
                     }))
                   }
                   rows={2}
-                  className="w-full rounded border bg-background px-2 py-1.5 text-sm"
+                  className="cb-textarea"
                   placeholder="Optional rationale template..."
                 />
               </div>
@@ -237,7 +237,7 @@ export default function DtcKnowledgeClient() {
                 </label>
               </div>
               {mutationError && (
-                <p className="text-xs text-red-500 sm:col-span-2">
+                <p className="text-xs text-destructive sm:col-span-2">
                   {mutationError}
                 </p>
               )}
@@ -266,14 +266,14 @@ export default function DtcKnowledgeClient() {
       {list.isLoading ? (
         <div className="space-y-2">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-12 animate-pulse rounded-lg bg-muted" />
+            <div key={i} className="h-12 animate-pulse rounded-lg bg-muted/70" />
           ))}
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-lg border">
-          <table className="w-full text-xs">
+        <div className="cb-table-shell">
+          <table className="cb-table">
             <thead>
-              <tr className="border-b bg-muted/50">
+              <tr>
                 <th className="px-3 py-2 text-left font-medium">DTC Code</th>
                 <th className="px-3 py-2 text-left font-medium">Category</th>
                 <th className="px-3 py-2 text-left font-medium">Severity</th>

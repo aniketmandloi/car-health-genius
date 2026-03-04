@@ -28,5 +28,9 @@ export default async function DiagnosticsPage({
     redirect("/dashboard");
   }
 
-  return <DiagnosticsList vehicleId={vehicleIdNum} />;
+  return (
+    <div className="pb-8">
+      <DiagnosticsList vehicleId={vehicleIdNum} />
+    </div>
+  );
 }

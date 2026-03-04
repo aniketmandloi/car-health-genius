@@ -87,7 +87,7 @@ export default function BillingClient() {
                   {sub.cancelAt && (
                     <div>
                       <span className="block">Cancels on</span>
-                      <span className="font-medium text-red-600">
+                      <span className="font-medium text-destructive">
                         {formatDate(sub.cancelAt)}
                       </span>
                     </div>
@@ -191,7 +191,7 @@ export default function BillingClient() {
                   key={f.featureKey}
                   className="flex items-center gap-2 text-xs"
                 >
-                  <span className="text-emerald-500 dark:text-emerald-400">
+                  <span className="text-primary">
                     ✓
                   </span>
                   <span className="font-mono">{f.featureKey}</span>

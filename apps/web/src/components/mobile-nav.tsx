@@ -42,25 +42,22 @@ export function MobileNav() {
       </Button>
 
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent
+      <SheetContent
           side="left"
-          className="w-72 border-border/70 bg-card/88 backdrop-blur-2xl dark:border-white/10 dark:bg-[#0B1120]/92"
+          className="w-72 border-border/80 bg-card"
         >
-          <SheetHeader className="border-b border-border/60 pb-4 dark:border-white/10">
+          <SheetHeader className="border-b border-border/70 pb-4">
             <SheetTitle className="text-lg font-bold">
               <span className="flex items-center gap-2">
                 <Image
-                  src="/logo.png"
+                  src="/icon.png"
                   alt="Car Health Genius logo"
-                  width={30}
-                  height={30}
-                  className="h-8 w-8 rounded-lg object-cover shadow-[0_10px_24px_-18px_rgba(6,182,212,0.75)]"
+                  width={36}
+                  height={36}
+                  className="h-9 w-9 rounded-md object-cover"
                 />
-                <span className="text-foreground">Car</span>
-                <span className="bg-gradient-to-r from-primary to-cyan-300 bg-clip-text text-transparent">
-                  Health
-                </span>
-                <span className="text-foreground">Genius</span>
+                <span className="text-foreground">Car Health</span>
+                <span className="text-primary">Genius</span>
               </span>
             </SheetTitle>
           </SheetHeader>
@@ -75,10 +72,10 @@ export function MobileNav() {
                     href={href as never}
                     onClick={() => setOpen(false)}
                     className={cn(
-                      "flex items-center rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
+                      "flex items-center rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors",
                       isActive
-                        ? "bg-primary/12 text-primary shadow-[0_0_0_1px_rgba(6,182,212,0.2)]"
-                        : "text-muted-foreground hover:bg-muted/60 hover:text-foreground dark:hover:bg-white/[0.06]",
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:bg-muted/70 hover:text-foreground",
                     )}
                   >
                     {label}

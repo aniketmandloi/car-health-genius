@@ -61,7 +61,7 @@ export default function DiagnosticsList({ vehicleId }: { vehicleId: number }) {
 
   return (
     <PageTransition>
-      <div className="container mx-auto max-w-3xl space-y-6 p-4 md:p-6">
+      <div className="cb-page-narrow space-y-6">
         {/* Vehicle Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -98,7 +98,7 @@ export default function DiagnosticsList({ vehicleId }: { vehicleId: number }) {
 
         {/* Recalls Warning */}
         {!recalls.isLoading && recallCount > 0 && (
-          <div className="rounded-2xl border border-warning/20 bg-warning/5 px-4 py-3">
+          <div className="cb-section-soft border-warning/20 bg-warning/10 px-4 py-3">
             <p className="text-sm font-semibold text-warning">
               {recallCount} Active Recall{recallCount !== 1 ? "s" : ""}
             </p>

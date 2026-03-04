@@ -55,7 +55,7 @@ export function SupportClient() {
 
   return (
     <PageTransition>
-      <div className="container mx-auto max-w-2xl space-y-6 p-4 md:p-6">
+      <div className="cb-page-compact space-y-6">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2">
             <Headphones className="size-6 text-primary" />
@@ -75,7 +75,7 @@ export function SupportClient() {
         </div>
 
         {priorityQuery.data && (
-          <div className="rounded-2xl border border-border/50 bg-muted/40 px-4 py-2.5 text-sm text-muted-foreground dark:bg-white/[0.03]">
+          <div className="cb-section-soft px-4 py-2.5 text-sm text-muted-foreground">
             Your support tier:{" "}
             <span className="font-semibold text-foreground capitalize">
               {priorityQuery.data.priorityTier}
@@ -113,7 +113,7 @@ export function SupportClient() {
                   onChange={(e) => setDetails(e.target.value)}
                   placeholder="Provide additional context, steps to reproduce, etc."
                   rows={4}
-                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm dark:bg-input/30 placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring transition-colors"
+                  className="cb-textarea min-h-28"
                 />
               </div>
               <div className="space-y-2">

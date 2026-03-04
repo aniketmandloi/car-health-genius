@@ -3,11 +3,11 @@
 import { cn } from "@/lib/utils";
 
 const GRADE_COLORS: Record<string, { stroke: string; text: string }> = {
-  A: { stroke: "stroke-emerald-500", text: "text-emerald-500" },
-  B: { stroke: "stroke-cyan-500", text: "text-cyan-500" },
-  C: { stroke: "stroke-amber-500", text: "text-amber-500" },
-  D: { stroke: "stroke-orange-500", text: "text-orange-500" },
-  F: { stroke: "stroke-red-500", text: "text-red-500" },
+  A: { stroke: "stroke-emerald-500", text: "text-emerald-600 dark:text-emerald-300" },
+  B: { stroke: "stroke-blue-500", text: "text-blue-600 dark:text-blue-300" },
+  C: { stroke: "stroke-amber-500", text: "text-amber-600 dark:text-amber-300" },
+  D: { stroke: "stroke-orange-500", text: "text-orange-600 dark:text-orange-300" },
+  F: { stroke: "stroke-red-500", text: "text-red-600 dark:text-red-300" },
 };
 
 interface ProgressRingProps {
@@ -33,12 +33,6 @@ export function ProgressRing({
   return (
     <div className={cn("relative inline-flex items-center justify-center", className)}>
       <svg width={size} height={size} className="-rotate-90">
-        <defs>
-          <linearGradient id={`ring-gradient-${grade}`} x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="rgb(6 182 212)" />
-            <stop offset="100%" stopColor="rgb(16 185 129)" />
-          </linearGradient>
-        </defs>
         {/* Background track */}
         <circle
           cx={size / 2}
@@ -46,7 +40,7 @@ export function ProgressRing({
           r={radius}
           fill="none"
           strokeWidth={strokeWidth}
-          className="stroke-muted/30"
+          className="stroke-muted/55"
         />
         {/* Progress arc */}
         <circle
