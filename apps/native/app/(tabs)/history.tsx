@@ -1,15 +1,16 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
-import { Button, Card, Chip, Spinner } from "heroui-native";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 import { Container } from "@/components/container";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Chip } from "@/components/ui/chip";
+import { Spinner } from "@/components/ui/spinner";
+import { useAppTheme } from "@/contexts/app-theme-context";
 import { trpc } from "@/utils/trpc";
-
-const TEAL = "#06B6D4";
-const SLATE_400 = "#94A3B8";
 
 function getSeverityColor(
   severity: string,
@@ -49,6 +50,8 @@ const EVENT_TYPE_OPTIONS = [
 
 export default function HistoryTab() {
   const router = useRouter();
+  const { colors } = useAppTheme();
+  const inactivePillText = colors.text;
 
   const vehicles = useQuery(trpc.vehicles.list.queryOptions());
   const [selectedVehicleId, setSelectedVehicleId] = useState<number | null>(
@@ -107,7 +110,7 @@ export default function HistoryTab() {
             </View>
           ) : (vehicles.data?.length ?? 0) === 0 ? (
             <Card className="p-4 rounded-2xl border border-surface-border">
-              <Text style={{ color: SLATE_400, fontSize: 13 }}>
+              <Text style={{ color: colors.textMuted, fontSize: 13 }}>
                 No vehicles found. Add a vehicle in the Vehicles tab.
               </Text>
             </Card>
@@ -123,8 +126,11 @@ export default function HistoryTab() {
                   onPress={() => setSelectedVehicleId(v.id)}
                   style={
                     activeVehicleId === v.id
-                      ? { backgroundColor: TEAL, borderColor: TEAL }
-                      : { borderColor: "rgba(255,255,255,0.1)" }
+                      ? {
+                          backgroundColor: colors.primary,
+                          borderColor: colors.primary,
+                        }
+                      : { borderColor: colors.border }
                   }
                   className="rounded-full border px-3 py-1.5"
                 >
@@ -132,7 +138,10 @@ export default function HistoryTab() {
                     style={{
                       fontSize: 12,
                       fontWeight: "500",
-                      color: activeVehicleId === v.id ? "#FFFFFF" : "#F1F5F9",
+                      color:
+                        activeVehicleId === v.id
+                          ? colors.textOnPrimary
+                          : inactivePillText,
                     }}
                   >
                     {v.make} {v.model} ({v.modelYear})
@@ -150,8 +159,12 @@ export default function HistoryTab() {
               onPress={() => setShowFilters(!showFilters)}
               className="flex-row items-center gap-1"
             >
-              <Ionicons name="filter-outline" size={14} color={SLATE_400} />
-              <Text style={{ color: SLATE_400, fontSize: 12 }}>
+              <Ionicons
+                name="filter-outline"
+                size={14}
+                color={colors.textMuted}
+              />
+              <Text style={{ color: colors.textMuted, fontSize: 12 }}>
                 {showFilters ? "Hide Filters" : "Filters"}
               </Text>
             </TouchableOpacity>
@@ -172,8 +185,11 @@ export default function HistoryTab() {
                       onPress={() => setEventTypeFilter(opt.value)}
                       style={
                         eventTypeFilter === opt.value
-                          ? { backgroundColor: TEAL, borderColor: TEAL }
-                          : { borderColor: "rgba(255,255,255,0.1)" }
+                          ? {
+                              backgroundColor: colors.primary,
+                              borderColor: colors.primary,
+                            }
+                          : { borderColor: colors.border }
                       }
                       className="rounded-full border px-3 py-1"
                     >
@@ -182,8 +198,8 @@ export default function HistoryTab() {
                           fontSize: 12,
                           color:
                             eventTypeFilter === opt.value
-                              ? "#FFFFFF"
-                              : "#F1F5F9",
+                              ? colors.textOnPrimary
+                              : inactivePillText,
                         }}
                       >
                         {opt.label}
@@ -200,19 +216,21 @@ export default function HistoryTab() {
         {activeVehicleId === null ? null : isLoading ? (
           <View className="items-center py-12">
             <Spinner size="lg" />
-            <Text style={{ color: SLATE_400, fontSize: 13, marginTop: 12 }}>
+            <Text
+              style={{ color: colors.textMuted, fontSize: 13, marginTop: 12 }}
+            >
               Loading history...
             </Text>
           </View>
         ) : diagnosticEvents.length === 0 ? (
           <Card className="items-center py-10 p-4 rounded-2xl border border-surface-border">
-            <Ionicons name="time-outline" size={40} color={SLATE_400} />
+            <Ionicons name="time-outline" size={40} color={colors.textMuted} />
             <Text className="text-foreground mt-3 font-medium">
               No scan history
             </Text>
             <Text
               style={{
-                color: SLATE_400,
+                color: colors.textMuted,
                 fontSize: 12,
                 textAlign: "center",
                 marginTop: 4,
@@ -244,16 +262,12 @@ export default function HistoryTab() {
                         >
                           {event.dtcCode}
                         </Text>
-                        <Chip
-                          variant="secondary"
-                          color={getSeverityColor(event.severity)}
-                          size="sm"
-                        >
-                          <Chip.Label>{event.severity}</Chip.Label>
+                        <Chip color={getSeverityColor(event.severity)}>
+                          {event.severity}
                         </Chip>
                       </View>
 
-                      <Text style={{ color: SLATE_400, fontSize: 11 }}>
+                      <Text style={{ color: colors.textMuted, fontSize: 11 }}>
                         {timelineRef
                           ? getEventTypeLabel(timelineRef.eventType)
                           : event.source}{" "}

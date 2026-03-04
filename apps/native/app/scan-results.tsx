@@ -1,15 +1,15 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Button, Card, Chip, Spinner } from "heroui-native";
 import { useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 
 import { Container } from "@/components/container";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Chip } from "@/components/ui/chip";
+import { Spinner } from "@/components/ui/spinner";
+import { useAppTheme } from "@/contexts/app-theme-context";
 import { queryClient, trpc } from "@/utils/trpc";
-
-const TEAL = "#06B6D4";
-const SLATE_400 = "#94A3B8";
-const RED = "#EF4444";
 
 function getSeverityColor(
   severity: string,
@@ -37,7 +37,6 @@ function extractBusinessCode(error: unknown): string | undefined {
 
 function EventCard({
   event,
-  vehicleId,
 }: {
   event: {
     id: number;
@@ -49,6 +48,7 @@ function EventCard({
   vehicleId: number;
 }) {
   const router = useRouter();
+  const { colors } = useAppTheme();
   const [explainError, setExplainError] = useState<string | null>(null);
 
   const generateMutation = useMutation(
@@ -85,17 +85,13 @@ function EventCard({
             >
               {event.dtcCode}
             </Text>
-            <Chip
-              variant="secondary"
-              color={getSeverityColor(event.severity)}
-              size="sm"
-            >
-              <Chip.Label>{event.severity}</Chip.Label>
+            <Chip color={getSeverityColor(event.severity)}>
+              {event.severity}
             </Chip>
           </View>
         </View>
 
-        <Text style={{ color: SLATE_400, fontSize: 12 }}>
+        <Text style={{ color: colors.textMuted, fontSize: 12 }}>
           {event.source} ·{" "}
           {new Date(event.occurredAt).toLocaleDateString(undefined, {
             month: "short",
@@ -105,7 +101,9 @@ function EventCard({
         </Text>
 
         {explainError && (
-          <Text style={{ color: RED, fontSize: 12 }}>{explainError}</Text>
+          <Text style={{ color: colors.danger, fontSize: 12 }}>
+            {explainError}
+          </Text>
         )}
 
         <View className="mt-1 flex-row gap-2">
@@ -122,7 +120,7 @@ function EventCard({
             }}
           >
             {generateMutation.isPending ? (
-              <Spinner size="sm" color="default" />
+              <Spinner size="sm" />
             ) : (
               "Get Explanation"
             )}
@@ -142,6 +140,7 @@ function EventCard({
 
 export default function ScanResultsScreen() {
   const router = useRouter();
+  const { colors } = useAppTheme();
   const params = useLocalSearchParams<{ vehicleId: string }>();
   const vehicleId = Number.parseInt(params.vehicleId ?? "0", 10);
 
@@ -167,7 +166,7 @@ export default function ScanResultsScreen() {
             Scan Results
           </Text>
           {activeVehicle ? (
-            <Text style={{ color: SLATE_400, fontSize: 13 }}>
+            <Text style={{ color: colors.textMuted, fontSize: 13 }}>
               {activeVehicle.make} {activeVehicle.model} (
               {activeVehicle.modelYear})
             </Text>
@@ -178,7 +177,9 @@ export default function ScanResultsScreen() {
         {events.isLoading ? (
           <View className="items-center py-12">
             <Spinner size="lg" />
-            <Text style={{ color: SLATE_400, fontSize: 13, marginTop: 12 }}>
+            <Text
+              style={{ color: colors.textMuted, fontSize: 13, marginTop: 12 }}
+            >
               Loading results...
             </Text>
           </View>
@@ -187,7 +188,7 @@ export default function ScanResultsScreen() {
             <Text className="text-foreground font-medium">No codes found</Text>
             <Text
               style={{
-                color: SLATE_400,
+                color: colors.textMuted,
                 fontSize: 12,
                 textAlign: "center",
                 marginTop: 4,

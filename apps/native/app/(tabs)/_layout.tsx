@@ -2,32 +2,29 @@ import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 
 import { ThemeToggle } from "@/components/theme-toggle";
-
-const DARK_BG = "#081323";
-const TEAL = "#06B6D4";
-const SLATE_400 = "#94A3B8";
-const SLATE_50 = "#F1F5F9";
-const BORDER_SUBTLE = "rgba(255,255,255,0.12)";
+import { useAppTheme } from "@/contexts/app-theme-context";
 
 export default function TabLayout() {
+  const { colors } = useAppTheme();
+
   return (
     <Tabs
       screenOptions={{
         headerShown: true,
         headerStyle: {
-          backgroundColor: DARK_BG,
+          backgroundColor: colors.background,
         },
         headerShadowVisible: false,
-        headerTintColor: SLATE_50,
+        headerTintColor: colors.text,
         headerTitleStyle: {
-          color: SLATE_50,
+          color: colors.text,
           fontWeight: "700",
         },
         headerRight: () => <ThemeToggle />,
         tabBarStyle: {
-          backgroundColor: DARK_BG,
+          backgroundColor: colors.background,
           borderTopWidth: 1,
-          borderTopColor: BORDER_SUBTLE,
+          borderTopColor: colors.border,
           elevation: 0,
           shadowColor: "transparent",
           shadowOpacity: 0,
@@ -39,8 +36,8 @@ export default function TabLayout() {
           fontSize: 11,
           fontWeight: "600",
         },
-        tabBarActiveTintColor: TEAL,
-        tabBarInactiveTintColor: SLATE_400,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textMuted,
       }}
     >
       <Tabs.Screen

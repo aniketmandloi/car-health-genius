@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -27,8 +28,16 @@ export default function Header() {
           <MobileNav />
           <Link
             href={"/" as never}
-            className="group flex items-center gap-1 text-lg font-extrabold tracking-tight"
+            className="group flex items-center gap-2 text-lg font-extrabold tracking-tight"
           >
+            <Image
+              src="/logo.png"
+              alt="Car Health Genius logo"
+              width={38}
+              height={38}
+              className="h-9 w-9 rounded-xl object-cover shadow-[0_10px_28px_-18px_rgba(6,182,212,0.75)]"
+              priority
+            />
             <span className="text-foreground">Car</span>
             <span className="bg-gradient-to-r from-primary to-cyan-300 bg-clip-text text-transparent transition-all duration-200 group-hover:drop-shadow-[0_0_8px_rgba(6,182,212,0.28)]">
               Health

@@ -2,13 +2,12 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { Platform, Pressable } from "react-native";
 import Animated, { FadeOut, ZoomIn } from "react-native-reanimated";
-import { useThemeColor } from "heroui-native";
 
 import { useAppTheme } from "@/contexts/app-theme-context";
 
 export function ThemeToggle() {
-  const { toggleTheme, isLight } = useAppTheme();
-  const iconColor = useThemeColor("foreground");
+  const { toggleTheme, isLight, colors } = useAppTheme();
+  const iconColor = colors.text;
 
   return (
     <Pressable

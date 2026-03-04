@@ -1,23 +1,19 @@
 import { env } from "@car-health-genius/env/native";
 import { useMutation } from "@tanstack/react-query";
-import { Button, Card, Spinner } from "heroui-native";
 import { useEffect, useState } from "react";
-import { Linking, Text, View } from "react-native";
+import { ActivityIndicator, Linking, Text, View } from "react-native";
 
 import { Container } from "@/components/container";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { useAppTheme } from "@/contexts/app-theme-context";
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/utils/trpc";
-
-const TEAL = "#06B6D4";
-const VIOLET = "#8B5CF6";
-const SLATE_400 = "#94A3B8";
-const SLATE_50 = "#F1F5F9";
-const SLATE_500 = "#64748B";
-const RED = "#EF4444";
 
 type Plan = "monthly" | "annual";
 
 export default function PricingTab() {
+  const { colors } = useAppTheme();
   const { data: session } = authClient.useSession();
   const [status, setStatus] = useState<string>(
     "Choose a plan to unlock Pro diagnostics.",
@@ -83,9 +79,9 @@ export default function PricingTab() {
         {/* Header */}
         <View className="mb-2">
           <Text className="text-foreground text-2xl font-bold">
-            Upgrade to <Text style={{ color: TEAL }}>Pro</Text>
+            Upgrade to <Text style={{ color: colors.primary }}>Pro</Text>
           </Text>
-          <Text style={{ color: SLATE_400, fontSize: 14, marginTop: 4 }}>
+          <Text style={{ color: colors.textMuted, fontSize: 14, marginTop: 4 }}>
             Unlock likely causes, advanced diagnostics, and maintenance
             intelligence.
           </Text>
@@ -93,36 +89,43 @@ export default function PricingTab() {
 
         {/* Monthly Plan */}
         <Card
-          variant="secondary"
           className="p-5 rounded-2xl"
-          style={{ borderWidth: 1, borderColor: "rgba(6,182,212,0.25)" }}
+          style={{ borderWidth: 1, borderColor: `${colors.primary}40` }}
         >
           <View className="flex-row items-center justify-between mb-2">
             <Text className="text-foreground text-lg font-bold">
               Monthly Pro
             </Text>
             <View
-              style={{ backgroundColor: "rgba(6,182,212,0.15)" }}
+              style={{ backgroundColor: colors.primarySoft }}
               className="rounded-full px-2.5 py-0.5"
             >
-              <Text style={{ color: TEAL, fontSize: 11, fontWeight: "600" }}>
+              <Text
+                style={{
+                  color: colors.primary,
+                  fontSize: 11,
+                  fontWeight: "600",
+                }}
+              >
                 Monthly
               </Text>
             </View>
           </View>
           <View className="flex-row items-end gap-1 mb-1">
             <Text className="text-foreground text-3xl font-bold">$9.99</Text>
-            <Text style={{ color: SLATE_400, fontSize: 14, marginBottom: 4 }}>
+            <Text
+              style={{ color: colors.textMuted, fontSize: 14, marginBottom: 4 }}
+            >
               / month
             </Text>
           </View>
-          <Text style={{ color: SLATE_400, fontSize: 13 }}>
+          <Text style={{ color: colors.textMuted, fontSize: 13 }}>
             Full diagnostic intelligence. Cancel anytime.
           </Text>
           <Button
             className="mt-4"
             style={{
-              shadowColor: "#06B6D4",
+              shadowColor: colors.primary,
               shadowOpacity: 0.3,
               shadowRadius: 12,
               shadowOffset: { width: 0, height: 0 },
@@ -137,36 +140,43 @@ export default function PricingTab() {
 
         {/* Annual Plan */}
         <Card
-          variant="secondary"
           className="p-5 rounded-2xl"
-          style={{ borderWidth: 1, borderColor: "rgba(139,92,246,0.25)" }}
+          style={{ borderWidth: 1, borderColor: `${colors.secondary}40` }}
         >
           <View className="flex-row items-center justify-between mb-2">
             <Text className="text-foreground text-lg font-bold">
               Annual Pro
             </Text>
             <View
-              style={{ backgroundColor: "rgba(139,92,246,0.15)" }}
+              style={{ backgroundColor: `${colors.secondary}26` }}
               className="rounded-full px-2.5 py-0.5"
             >
-              <Text style={{ color: VIOLET, fontSize: 11, fontWeight: "600" }}>
+              <Text
+                style={{
+                  color: colors.secondary,
+                  fontSize: 11,
+                  fontWeight: "600",
+                }}
+              >
                 Best Value
               </Text>
             </View>
           </View>
           <View className="flex-row items-end gap-1 mb-1">
             <Text className="text-foreground text-3xl font-bold">$79</Text>
-            <Text style={{ color: SLATE_400, fontSize: 14, marginBottom: 4 }}>
+            <Text
+              style={{ color: colors.textMuted, fontSize: 14, marginBottom: 4 }}
+            >
               / year
             </Text>
           </View>
-          <Text style={{ color: SLATE_400, fontSize: 13 }}>
+          <Text style={{ color: colors.textMuted, fontSize: 13 }}>
             Save 34% vs monthly. Priority access to new features.
           </Text>
           <Button
             className="mt-4"
             style={{
-              shadowColor: "#06B6D4",
+              shadowColor: colors.primary,
               shadowOpacity: 0.3,
               shadowRadius: 12,
               shadowOffset: { width: 0, height: 0 },
@@ -182,17 +192,21 @@ export default function PricingTab() {
         {/* Status */}
         {createCheckoutSession.isPending ? (
           <View className="flex-row items-center gap-2 mt-2">
-            <Spinner size="sm" />
-            <Text style={{ color: SLATE_400, fontSize: 13 }}>
+            <ActivityIndicator size="small" color={colors.primary} />
+            <Text style={{ color: colors.textMuted, fontSize: 13 }}>
               Starting checkout...
             </Text>
           </View>
         ) : null}
 
         <View className="rounded-2xl border border-surface-border p-4 mt-2">
-          <Text style={{ color: SLATE_400, fontSize: 13 }}>{status}</Text>
+          <Text style={{ color: colors.textMuted, fontSize: 13 }}>
+            {status}
+          </Text>
           {!session?.user ? (
-            <Text style={{ color: SLATE_500, fontSize: 12, marginTop: 4 }}>
+            <Text
+              style={{ color: colors.textSubtle, fontSize: 12, marginTop: 4 }}
+            >
               Sign in from Home tab before starting checkout.
             </Text>
           ) : null}

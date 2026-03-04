@@ -1,24 +1,30 @@
 import "@/global.css";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
-import { HeroUINativeProvider } from "heroui-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
-import { Uniwind } from "uniwind";
+import Toast from "react-native-toast-message";
 
-import { AppThemeProvider } from "@/contexts/app-theme-context";
+import { AppThemeProvider, useAppTheme } from "@/contexts/app-theme-context";
 import { queryClient } from "@/utils/trpc";
-
-// Force dark mode — app background is #0B1120, all heroui-native tokens must use dark palette
-Uniwind.setTheme("dark");
 
 export const unstable_settings = {
   initialRouteName: "(tabs)",
 };
 
 function StackLayout() {
+  const { colors } = useAppTheme();
+
   return (
-    <Stack screenOptions={{}}>
+    <Stack
+      screenOptions={{
+        headerStyle: { backgroundColor: colors.background },
+        headerTitleStyle: { color: colors.text, fontWeight: "700" },
+        headerTintColor: colors.text,
+        headerShadowVisible: false,
+        contentStyle: { backgroundColor: colors.background },
+      }}
+    >
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen
         name="modal"
@@ -39,9 +45,8 @@ export default function Layout() {
       <GestureHandlerRootView style={{ flex: 1 }}>
         <KeyboardProvider>
           <AppThemeProvider>
-            <HeroUINativeProvider>
-              <StackLayout />
-            </HeroUINativeProvider>
+            <StackLayout />
+            <Toast />
           </AppThemeProvider>
         </KeyboardProvider>
       </GestureHandlerRootView>

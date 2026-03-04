@@ -1,4 +1,4 @@
-import { cn } from "heroui-native";
+import { cn } from "@/lib/cn";
 import { type PropsWithChildren } from "react";
 import {
   ScrollView,

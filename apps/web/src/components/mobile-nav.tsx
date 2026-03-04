@@ -1,6 +1,7 @@
 "use client";
 
 import { Menu } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -47,11 +48,20 @@ export function MobileNav() {
         >
           <SheetHeader className="border-b border-border/60 pb-4 dark:border-white/10">
             <SheetTitle className="text-lg font-bold">
-              <span className="text-foreground">Car </span>
-              <span className="bg-gradient-to-r from-primary to-cyan-300 bg-clip-text text-transparent">
-                Health{" "}
+              <span className="flex items-center gap-2">
+                <Image
+                  src="/logo.png"
+                  alt="Car Health Genius logo"
+                  width={30}
+                  height={30}
+                  className="h-8 w-8 rounded-lg object-cover shadow-[0_10px_24px_-18px_rgba(6,182,212,0.75)]"
+                />
+                <span className="text-foreground">Car</span>
+                <span className="bg-gradient-to-r from-primary to-cyan-300 bg-clip-text text-transparent">
+                  Health
+                </span>
+                <span className="text-foreground">Genius</span>
               </span>
-              <span className="text-foreground">Genius</span>
             </SheetTitle>
           </SheetHeader>
           <nav className="flex flex-col gap-1 px-2 py-4">

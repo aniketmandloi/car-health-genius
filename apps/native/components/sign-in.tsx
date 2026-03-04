@@ -1,17 +1,16 @@
 import { useForm } from "@tanstack/react-form";
-import {
-  Button,
-  FieldError,
-  Input,
-  Label,
-  Spinner,
-  TextField,
-  useToast,
-} from "heroui-native";
 import { useRef } from "react";
-import { Text, TextInput, View } from "react-native";
+import Toast from "react-native-toast-message";
+import {
+  ActivityIndicator,
+  Pressable,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import z from "zod";
 
+import { useAppTheme } from "@/contexts/app-theme-context";
 import { authClient } from "@/lib/auth-client";
 import { queryClient } from "@/utils/trpc";
 
@@ -56,7 +55,7 @@ function getErrorMessage(error: unknown): string | null {
 
 function SignIn() {
   const passwordInputRef = useRef<TextInput>(null);
-  const { toast } = useToast();
+  const { colors } = useAppTheme();
 
   const form = useForm({
     defaultValues: {
@@ -74,16 +73,16 @@ function SignIn() {
         },
         {
           onError(error) {
-            toast.show({
-              variant: "danger",
-              label: error.error?.message || "Failed to sign in",
+            Toast.show({
+              type: "error",
+              text1: error.error?.message || "Failed to sign in",
             });
           },
           onSuccess() {
             formApi.reset();
-            toast.show({
-              variant: "success",
-              label: "Signed in successfully",
+            Toast.show({
+              type: "success",
+              text1: "Signed in successfully",
             });
             queryClient.refetchQueries();
           },
@@ -93,8 +92,13 @@ function SignIn() {
   });
 
   return (
-    <View className="gap-2">
-      <Text className="text-foreground font-medium mb-4">Sign In</Text>
+    <View className="gap-3">
+      <Text className="text-foreground text-lg font-semibold">
+        Welcome Back
+      </Text>
+      <Text style={{ color: colors.textMuted, fontSize: 13 }}>
+        Sign in to continue scanning and tracking your vehicle health.
+      </Text>
 
       <form.Subscribe
         selector={(state) => ({
@@ -107,20 +111,42 @@ function SignIn() {
 
           return (
             <>
-              <FieldError isInvalid={!!formError} className="mb-3">
-                {formError}
-              </FieldError>
+              {formError ? (
+                <View
+                  style={{
+                    borderWidth: 1,
+                    borderColor: `${colors.danger}55`,
+                    backgroundColor: `${colors.danger}14`,
+                    borderRadius: 12,
+                    paddingHorizontal: 12,
+                    paddingVertical: 10,
+                  }}
+                >
+                  <Text style={{ color: colors.danger, fontSize: 12 }}>
+                    {formError}
+                  </Text>
+                </View>
+              ) : null}
 
               <View className="gap-3">
                 <form.Field name="email">
                   {(field) => (
-                    <TextField>
-                      <Label>Email</Label>
-                      <Input
+                    <View className="gap-1.5">
+                      <Text
+                        style={{
+                          color: colors.textMuted,
+                          fontSize: 12,
+                          fontWeight: "600",
+                        }}
+                      >
+                        Email
+                      </Text>
+                      <TextInput
                         value={field.state.value}
                         onBlur={field.handleBlur}
                         onChangeText={field.handleChange}
                         placeholder="email@example.com"
+                        placeholderTextColor={colors.textSubtle}
                         keyboardType="email-address"
                         autoCapitalize="none"
                         autoComplete="email"
@@ -130,42 +156,91 @@ function SignIn() {
                         onSubmitEditing={() => {
                           passwordInputRef.current?.focus();
                         }}
+                        style={{
+                          backgroundColor: colors.input,
+                          borderColor: colors.border,
+                          borderWidth: 1,
+                          borderRadius: 12,
+                          color: colors.text,
+                          fontSize: 15,
+                          paddingHorizontal: 14,
+                          paddingVertical: 12,
+                        }}
                       />
-                    </TextField>
+                    </View>
                   )}
                 </form.Field>
 
                 <form.Field name="password">
                   {(field) => (
-                    <TextField>
-                      <Label>Password</Label>
-                      <Input
+                    <View className="gap-1.5">
+                      <Text
+                        style={{
+                          color: colors.textMuted,
+                          fontSize: 12,
+                          fontWeight: "600",
+                        }}
+                      >
+                        Password
+                      </Text>
+                      <TextInput
                         ref={passwordInputRef}
                         value={field.state.value}
                         onBlur={field.handleBlur}
                         onChangeText={field.handleChange}
                         placeholder="••••••••"
+                        placeholderTextColor={colors.textSubtle}
                         secureTextEntry
                         autoComplete="password"
                         textContentType="password"
                         returnKeyType="go"
                         onSubmitEditing={form.handleSubmit}
+                        style={{
+                          backgroundColor: colors.input,
+                          borderColor: colors.border,
+                          borderWidth: 1,
+                          borderRadius: 12,
+                          color: colors.text,
+                          fontSize: 15,
+                          paddingHorizontal: 14,
+                          paddingVertical: 12,
+                        }}
                       />
-                    </TextField>
+                    </View>
                   )}
                 </form.Field>
 
-                <Button
+                <Pressable
                   onPress={form.handleSubmit}
-                  isDisabled={isSubmitting}
-                  className="mt-1"
+                  disabled={isSubmitting}
+                  style={({ pressed }) => ({
+                    marginTop: 4,
+                    borderRadius: 12,
+                    backgroundColor: colors.primary,
+                    opacity: isSubmitting ? 0.7 : pressed ? 0.9 : 1,
+                    paddingVertical: 12,
+                    alignItems: "center",
+                    shadowColor: colors.primary,
+                    shadowOpacity: 0.28,
+                    shadowRadius: 12,
+                    shadowOffset: { width: 0, height: 0 },
+                    elevation: 6,
+                  })}
                 >
                   {isSubmitting ? (
-                    <Spinner size="sm" color="default" />
+                    <ActivityIndicator color={colors.textOnPrimary} />
                   ) : (
-                    <Button.Label>Sign In</Button.Label>
+                    <Text
+                      style={{
+                        color: colors.textOnPrimary,
+                        fontSize: 15,
+                        fontWeight: "700",
+                      }}
+                    >
+                      Sign In
+                    </Text>
                   )}
-                </Button>
+                </Pressable>
               </View>
             </>
           );

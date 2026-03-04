@@ -1,15 +1,12 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
-import { Button, Card, Spinner } from "heroui-native";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 import { Container } from "@/components/container";
+import { Card } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
+import { useAppTheme } from "@/contexts/app-theme-context";
 import { trpc } from "@/utils/trpc";
-
-const TEAL = "#06B6D4";
-const SLATE_400 = "#94A3B8";
-const SLATE_500 = "#64748B";
-const AMBER = "#F59E0B";
 
 function difficultyColor(difficulty: string): string {
   switch (difficulty.toLowerCase()) {
@@ -32,6 +29,7 @@ export default function DiyGuideScreen() {
   const { diagnosticEventId: rawId } = useLocalSearchParams<{
     diagnosticEventId: string;
   }>();
+  const { colors } = useAppTheme();
   const router = useRouter();
   const diagnosticEventId = parseInt(rawId ?? "0", 10);
 
@@ -57,7 +55,7 @@ export default function DiyGuideScreen() {
         {/* Header */}
         <View className="flex-row items-center gap-3">
           <TouchableOpacity onPress={() => router.back()}>
-            <Text style={{ color: TEAL, fontSize: 13 }}>← Back</Text>
+            <Text style={{ color: colors.primary, fontSize: 13 }}>← Back</Text>
           </TouchableOpacity>
         </View>
 
@@ -65,7 +63,7 @@ export default function DiyGuideScreen() {
           <Text className="text-foreground text-2xl font-bold">
             DIY Repair Guide
           </Text>
-          <Text style={{ color: SLATE_400, fontSize: 12, marginTop: 4 }}>
+          <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: 4 }}>
             Step-by-step instructions (Pro feature)
           </Text>
         </View>
@@ -77,7 +75,7 @@ export default function DiyGuideScreen() {
             </Text>
             <Text
               style={{
-                color: SLATE_400,
+                color: colors.textMuted,
                 fontSize: 12,
                 textAlign: "center",
                 marginTop: 4,
@@ -95,7 +93,7 @@ export default function DiyGuideScreen() {
               </Text>
               <Text
                 style={{
-                  color: SLATE_500,
+                  color: colors.textSubtle,
                   fontFamily: "monospace",
                   fontSize: 12,
                   marginTop: 2,
@@ -120,7 +118,7 @@ export default function DiyGuideScreen() {
                     {guide.difficulty}
                   </Text>
                 </View>
-                <Text style={{ color: SLATE_400, fontSize: 12 }}>
+                <Text style={{ color: colors.textMuted, fontSize: 12 }}>
                   ~{guide.estimatedMinutes} min
                 </Text>
               </View>
@@ -130,11 +128,11 @@ export default function DiyGuideScreen() {
             {guide.safetyWarnings.length > 0 && (
               <Card
                 className="p-4 rounded-2xl"
-                style={{ borderWidth: 1, borderColor: "rgba(245,158,11,0.3)" }}
+                style={{ borderWidth: 1, borderColor: `${colors.warning}66` }}
               >
                 <Text
                   style={{
-                    color: AMBER,
+                    color: colors.warning,
                     fontSize: 14,
                     fontWeight: "700",
                     marginBottom: 8,
@@ -145,7 +143,11 @@ export default function DiyGuideScreen() {
                 {guide.safetyWarnings.map((warning, idx) => (
                   <Text
                     key={idx}
-                    style={{ color: SLATE_400, fontSize: 12, marginBottom: 4 }}
+                    style={{
+                      color: colors.textMuted,
+                      fontSize: 12,
+                      marginBottom: 4,
+                    }}
                   >
                     • {warning}
                   </Text>
@@ -164,7 +166,7 @@ export default function DiyGuideScreen() {
                     <Text
                       key={idx}
                       style={{
-                        color: SLATE_400,
+                        color: colors.textMuted,
                         fontSize: 12,
                         marginBottom: 3,
                       }}
@@ -184,7 +186,7 @@ export default function DiyGuideScreen() {
                     <Text
                       key={idx}
                       style={{
-                        color: SLATE_400,
+                        color: colors.textMuted,
                         fontSize: 12,
                         marginBottom: 3,
                       }}
@@ -205,7 +207,7 @@ export default function DiyGuideScreen() {
                 {guide.steps.map((step, idx) => (
                   <View key={idx} className="flex-row gap-3 mb-3">
                     <View
-                      style={{ backgroundColor: TEAL }}
+                      style={{ backgroundColor: colors.primary }}
                       className="h-6 w-6 shrink-0 items-center justify-center rounded-full"
                     >
                       <Text className="text-white text-xs font-bold">
@@ -214,7 +216,7 @@ export default function DiyGuideScreen() {
                     </View>
                     <Text
                       style={{
-                        color: SLATE_400,
+                        color: colors.textMuted,
                         fontSize: 12,
                         flex: 1,
                         lineHeight: 18,
@@ -229,7 +231,11 @@ export default function DiyGuideScreen() {
 
             {/* Disclaimer */}
             <Text
-              style={{ color: SLATE_500, fontSize: 11, fontStyle: "italic" }}
+              style={{
+                color: colors.textSubtle,
+                fontSize: 11,
+                fontStyle: "italic",
+              }}
             >
               This guide is for informational purposes only. If unsure about any
               step, consult a licensed mechanic. Improper repairs can cause

@@ -1,25 +1,43 @@
 @import "tailwindcss";
 @import "uniwind";
-@import "heroui-native/styles";
-
-@source './node_modules/heroui-native/lib';
 
 /*
  * Custom theme overrides — Automotive Glassmorphic palette
  * Matches web app design system (Car Health Genius)
  */
 
+:root {
+  --surface-base: #f3f8fc;
+  --surface-panel: #ffffff;
+  --surface-input: #edf3f9;
+  --surface-border: rgba(15, 23, 42, 0.12);
+  --text-muted: #475569;
+  --text-subtle: #64748b;
+  --foreground: #0f172a;
+}
+
+.dark {
+  --surface-base: #081323;
+  --surface-panel: #0f1a2e;
+  --surface-input: #162032;
+  --surface-border: rgba(255, 255, 255, 0.12);
+  --text-muted: #94a3b8;
+  --text-subtle: #64748b;
+  --foreground: #f1f5f9;
+}
+
 @theme inline {
+  --color-foreground: var(--foreground);
   --color-brand-teal: #06b6d4;
   --color-brand-teal-light: #22d3ee;
   --color-brand-violet: #8b5cf6;
 
-  --color-surface-base: #0b1120;
-  --color-surface-panel: #0f1a2e;
-  --color-surface-input: #162032;
-  --color-surface-border: rgba(255, 255, 255, 0.12);
-  --color-text-muted: #94a3b8;
-  --color-text-subtle: #64748b;
+  --color-surface-base: var(--surface-base);
+  --color-surface-panel: var(--surface-panel);
+  --color-surface-input: var(--surface-input);
+  --color-surface-border: var(--surface-border);
+  --color-text-muted: var(--text-muted);
+  --color-text-subtle: var(--text-subtle);
 
   --color-severity-critical: #ef4444;
   --color-severity-high: #f97316;

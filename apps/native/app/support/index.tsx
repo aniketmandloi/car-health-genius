@@ -1,5 +1,4 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Button, Card, Spinner } from "heroui-native";
 import { useState } from "react";
 import {
   ScrollView,
@@ -11,33 +10,23 @@ import {
 } from "react-native";
 
 import { Container } from "@/components/container";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
+import { useAppTheme } from "@/contexts/app-theme-context";
 import { queryClient, trpc } from "@/utils/trpc";
 
-const TEAL = "#06B6D4";
-const SLATE_400 = "#94A3B8";
-const SLATE_500 = "#64748B";
-const RED = "#EF4444";
-const EMERALD = "#10B981";
-const AMBER = "#F59E0B";
-const BLUE = "#3B82F6";
-
-function getStatusColor(status: string): string {
-  switch (status) {
-    case "open":
-      return BLUE;
-    case "in_progress":
-      return AMBER;
-    case "resolved":
-      return EMERALD;
-    case "closed":
-      return SLATE_500;
-    default:
-      return BLUE;
-  }
-}
-
 function IssueStatusBadge({ status }: { status: string }) {
-  const color = getStatusColor(status);
+  const { colors } = useAppTheme();
+  const color =
+    status === "resolved"
+      ? colors.success
+      : status === "in_progress"
+        ? colors.warning
+        : status === "closed"
+          ? colors.textSubtle
+          : colors.info;
+
   return (
     <View
       style={{ backgroundColor: `${color}20` }}
@@ -51,6 +40,7 @@ function IssueStatusBadge({ status }: { status: string }) {
 }
 
 export default function SupportScreen() {
+  const { colors } = useAppTheme();
   const [summary, setSummary] = useState("");
   const [details, setDetails] = useState("");
   const [includeBundle, setIncludeBundle] = useState(false);
@@ -90,7 +80,7 @@ export default function SupportScreen() {
   }
 
   const inputClass =
-    "rounded-xl border border-surface-border bg-surface-input px-3 py-2.5 text-sm text-white";
+    "rounded-xl border border-surface-border bg-surface-input px-3 py-2.5 text-sm text-foreground";
 
   return (
     <Container>
@@ -99,16 +89,24 @@ export default function SupportScreen() {
         <View className="flex-row items-start justify-between">
           <View>
             <Text className="text-foreground text-2xl font-bold">Support</Text>
-            <Text style={{ color: SLATE_400, fontSize: 12, marginTop: 4 }}>
+            <Text
+              style={{ color: colors.textMuted, fontSize: 12, marginTop: 4 }}
+            >
               Submit and track support requests.
             </Text>
           </View>
           {isPriorityUser && (
             <View
-              style={{ backgroundColor: "rgba(6,182,212,0.15)" }}
+              style={{ backgroundColor: colors.primarySoft }}
               className="rounded-full px-3 py-1"
             >
-              <Text style={{ color: TEAL, fontSize: 12, fontWeight: "600" }}>
+              <Text
+                style={{
+                  color: colors.primary,
+                  fontSize: 12,
+                  fontWeight: "600",
+                }}
+              >
                 Pro Priority
               </Text>
             </View>
@@ -119,11 +117,11 @@ export default function SupportScreen() {
         {priorityQuery.data && (
           <View
             className="rounded-xl px-3 py-2"
-            style={{ borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" }}
+            style={{ borderWidth: 1, borderColor: colors.border }}
           >
-            <Text style={{ color: SLATE_400, fontSize: 12 }}>
+            <Text style={{ color: colors.textMuted, fontSize: 12 }}>
               Tier:{" "}
-              <Text style={{ color: "#F1F5F9", fontWeight: "600" }}>
+              <Text style={{ color: colors.text, fontWeight: "600" }}>
                 {priorityQuery.data.priorityTier}
               </Text>
               {" · "}SLA: {priorityQuery.data.slaTargetMinutes} min
@@ -136,7 +134,9 @@ export default function SupportScreen() {
           <Text className="text-foreground font-bold text-base">New Issue</Text>
 
           <View>
-            <Text style={{ color: SLATE_400, fontSize: 12, marginBottom: 4 }}>
+            <Text
+              style={{ color: colors.textMuted, fontSize: 12, marginBottom: 4 }}
+            >
               Summary *
             </Text>
             <TextInput
@@ -145,12 +145,14 @@ export default function SupportScreen() {
               placeholder="Brief description"
               maxLength={240}
               className={inputClass}
-              placeholderTextColor={SLATE_500}
+              placeholderTextColor={colors.textSubtle}
             />
           </View>
 
           <View>
-            <Text style={{ color: SLATE_400, fontSize: 12, marginBottom: 4 }}>
+            <Text
+              style={{ color: colors.textMuted, fontSize: 12, marginBottom: 4 }}
+            >
               Details (optional)
             </Text>
             <TextInput
@@ -161,7 +163,7 @@ export default function SupportScreen() {
               multiline
               numberOfLines={4}
               className={inputClass}
-              placeholderTextColor={SLATE_500}
+              placeholderTextColor={colors.textSubtle}
               style={{ textAlignVertical: "top" }}
             />
           </View>
@@ -170,7 +172,7 @@ export default function SupportScreen() {
           <View className="flex-row items-center justify-between">
             <Text
               style={{
-                color: SLATE_400,
+                color: colors.textMuted,
                 fontSize: 13,
                 flex: 1,
                 marginRight: 8,
@@ -184,7 +186,7 @@ export default function SupportScreen() {
                 setIncludeBundle(v);
                 if (!v) setConsentBundle(false);
               }}
-              trackColor={{ true: TEAL }}
+              trackColor={{ true: colors.primary }}
             />
           </View>
 
@@ -194,8 +196,8 @@ export default function SupportScreen() {
               className="flex-row items-start gap-2 rounded-xl p-3"
               style={{
                 borderWidth: 1,
-                borderColor: "rgba(245,158,11,0.3)",
-                backgroundColor: "rgba(245,158,11,0.05)",
+                borderColor: `${colors.warning}66`,
+                backgroundColor: `${colors.warning}14`,
               }}
             >
               <View
@@ -204,12 +206,16 @@ export default function SupportScreen() {
                   height: 16,
                   borderRadius: 4,
                   marginTop: 2,
-                  backgroundColor: consentBundle ? TEAL : "transparent",
+                  backgroundColor: consentBundle
+                    ? colors.primary
+                    : "transparent",
                   borderWidth: 1,
-                  borderColor: consentBundle ? TEAL : SLATE_500,
+                  borderColor: consentBundle
+                    ? colors.primary
+                    : colors.textSubtle,
                 }}
               />
-              <Text style={{ color: AMBER, fontSize: 12, flex: 1 }}>
+              <Text style={{ color: colors.warning, fontSize: 12, flex: 1 }}>
                 I consent to sharing my recent diagnostic event data (DTC codes,
                 severity, timestamps) with the support team to resolve my issue.
               </Text>
@@ -217,12 +223,12 @@ export default function SupportScreen() {
           )}
 
           {createMutation.error && (
-            <Text style={{ color: RED, fontSize: 12 }}>
+            <Text style={{ color: colors.danger, fontSize: 12 }}>
               {createMutation.error.message}
             </Text>
           )}
           {submitSuccess && (
-            <Text style={{ color: EMERALD, fontSize: 12 }}>
+            <Text style={{ color: colors.success, fontSize: 12 }}>
               Issue submitted successfully. We&apos;ll be in touch soon.
             </Text>
           )}
@@ -247,7 +253,7 @@ export default function SupportScreen() {
             <Spinner />
           </View>
         ) : (issuesQuery.data?.length ?? 0) === 0 ? (
-          <Text style={{ color: SLATE_400, fontSize: 13 }}>
+          <Text style={{ color: colors.textMuted, fontSize: 13 }}>
             No issues submitted yet.
           </Text>
         ) : (
@@ -264,14 +270,22 @@ export default function SupportScreen() {
                     </Text>
                     {issue.issueDetails && (
                       <Text
-                        style={{ color: SLATE_400, fontSize: 12, marginTop: 2 }}
+                        style={{
+                          color: colors.textMuted,
+                          fontSize: 12,
+                          marginTop: 2,
+                        }}
                         numberOfLines={2}
                       >
                         {issue.issueDetails}
                       </Text>
                     )}
                     <Text
-                      style={{ color: SLATE_500, fontSize: 11, marginTop: 4 }}
+                      style={{
+                        color: colors.textSubtle,
+                        fontSize: 11,
+                        marginTop: 4,
+                      }}
                     >
                       {new Date(issue.createdAt).toLocaleDateString()}
                     </Text>

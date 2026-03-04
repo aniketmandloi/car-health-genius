@@ -20,6 +20,11 @@ export const metadata: Metadata = {
   title: "Car Health Genius",
   description:
     "AI-powered car diagnostics and health monitoring. Decode check engine lights, track vehicle health, and save on repairs.",
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({

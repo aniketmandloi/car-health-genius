@@ -1,20 +1,15 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Button, Card, Chip, Spinner } from "heroui-native";
 import { useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 import { Container } from "@/components/container";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Chip } from "@/components/ui/chip";
+import { Spinner } from "@/components/ui/spinner";
+import { useAppTheme } from "@/contexts/app-theme-context";
 import { queryClient, trpc } from "@/utils/trpc";
-
-// ─── Colors ──────────────────────────────────────────────────────────────────
-
-const TEAL = "#06B6D4";
-const SLATE_400 = "#94A3B8";
-const SLATE_500 = "#64748B";
-const RED = "#EF4444";
-const AMBER = "#F59E0B";
-const VIOLET = "#8B5CF6";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -99,17 +94,21 @@ function extractBusinessCode(error: unknown): string | undefined {
 // ─── Pro Lock Card ───────────────────────────────────────────────────────────
 
 function ProLockedCard({ feature }: { feature: string }) {
+  const { colors } = useAppTheme();
+
   return (
     <Card
       className="items-center p-6 rounded-2xl"
-      style={{ borderWidth: 1, borderColor: "rgba(139,92,246,0.2)" }}
+      style={{ borderWidth: 1, borderColor: `${colors.secondary}33` }}
     >
-      <Text style={{ color: VIOLET, fontSize: 14, fontWeight: "700" }}>
+      <Text
+        style={{ color: colors.secondary, fontSize: 14, fontWeight: "700" }}
+      >
         Pro Feature
       </Text>
       <Text
         style={{
-          color: SLATE_400,
+          color: colors.textMuted,
           fontSize: 12,
           textAlign: "center",
           marginTop: 4,
@@ -125,6 +124,7 @@ function ProLockedCard({ feature }: { feature: string }) {
 
 export default function ResultsDetailScreen() {
   const router = useRouter();
+  const { colors } = useAppTheme();
   const params = useLocalSearchParams<{ diagnosticEventId: string }>();
   const diagnosticEventId = Number.parseInt(
     params.diagnosticEventId ?? "0",
@@ -146,18 +146,14 @@ export default function ResultsDetailScreen() {
     retry: false,
   });
   const feedback = useQuery(
-    trpc.feedback.listByDiagnosticEvent.queryOptions({
-      diagnosticEventId,
-    }),
+    trpc.feedback.listByDiagnosticEvent.queryOptions({ diagnosticEventId }),
   );
   const diyGuide = useQuery({
     ...trpc.recommendations.diyGuide.queryOptions({ diagnosticEventId }),
     retry: false,
   });
   const estimates = useQuery(
-    trpc.estimates.listByDiagnosticEvent.queryOptions({
-      diagnosticEventId,
-    }),
+    trpc.estimates.listByDiagnosticEvent.queryOptions({ diagnosticEventId }),
   );
 
   const generateMutation = useMutation(
@@ -251,7 +247,7 @@ export default function ResultsDetailScreen() {
         <Button
           variant="ghost"
           onPress={() => router.back()}
-          className="self-start"
+          style={{ alignSelf: "flex-start" }}
         >
           ← Back
         </Button>
@@ -266,12 +262,8 @@ export default function ResultsDetailScreen() {
               >
                 {firstRec.title}
               </Text>
-              <Chip
-                variant="secondary"
-                color={getSeverityColor(firstRec.urgency)}
-                size="sm"
-              >
-                <Chip.Label>{firstRec.urgency}</Chip.Label>
+              <Chip color={getSeverityColor(firstRec.urgency)}>
+                {firstRec.urgency}
               </Chip>
             </>
           ) : (
@@ -291,19 +283,21 @@ export default function ResultsDetailScreen() {
               <Text className="text-foreground text-sm font-semibold">
                 Triage
               </Text>
-              <Chip
-                variant="secondary"
-                color={getTriageColor(firstRec.triageClass)}
-                size="sm"
-              >
-                <Chip.Label>{getTriageLabel(firstRec.triageClass)}</Chip.Label>
+              <Chip color={getTriageColor(firstRec.triageClass)}>
+                {getTriageLabel(firstRec.triageClass)}
               </Chip>
             </View>
             {(() => {
               const triageDetails = getTriageDetails(firstRec.details);
               const driveability = getString(triageDetails, "driveability");
               return driveability ? (
-                <Text style={{ color: SLATE_400, fontSize: 12, marginTop: 8 }}>
+                <Text
+                  style={{
+                    color: colors.textMuted,
+                    fontSize: 12,
+                    marginTop: 8,
+                  }}
+                >
                   {driveability}
                 </Text>
               ) : null;
@@ -328,7 +322,7 @@ export default function ResultsDetailScreen() {
               </Text>
               <Text
                 style={{
-                  color: SLATE_400,
+                  color: colors.textMuted,
                   fontSize: 12,
                   textAlign: "center",
                   marginTop: 4,
@@ -337,7 +331,9 @@ export default function ResultsDetailScreen() {
                 Generate an AI-powered explanation for this code.
               </Text>
               {generateError && (
-                <Text style={{ color: RED, fontSize: 12, marginTop: 8 }}>
+                <Text
+                  style={{ color: colors.danger, fontSize: 12, marginTop: 8 }}
+                >
                   {generateError}
                 </Text>
               )}
@@ -347,7 +343,7 @@ export default function ResultsDetailScreen() {
                 isDisabled={generating || generateMutation.isPending}
               >
                 {generating || generateMutation.isPending ? (
-                  <Spinner size="sm" color="default" />
+                  <Spinner size="sm" />
                 ) : (
                   "Generate Explanation"
                 )}
@@ -371,7 +367,11 @@ export default function ResultsDetailScreen() {
                         {rec.title}
                       </Text>
                       <Text
-                        style={{ color: TEAL, fontSize: 12, fontWeight: "600" }}
+                        style={{
+                          color: colors.primary,
+                          fontSize: 12,
+                          fontWeight: "600",
+                        }}
                       >
                         {rec.confidence}%
                       </Text>
@@ -380,19 +380,19 @@ export default function ResultsDetailScreen() {
                     {/* Confidence bar */}
                     <View
                       className="h-1.5 overflow-hidden rounded-full"
-                      style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+                      style={{ backgroundColor: colors.track }}
                     >
                       <View
                         className="h-full rounded-full"
                         style={{
                           width: `${rec.confidence}%`,
-                          backgroundColor: TEAL,
+                          backgroundColor: colors.primary,
                         }}
                       />
                     </View>
 
                     {/* Rationale */}
-                    <Text style={{ color: SLATE_400, fontSize: 13 }}>
+                    <Text style={{ color: colors.textMuted, fontSize: 13 }}>
                       {rec.rationale}
                     </Text>
 
@@ -405,7 +405,7 @@ export default function ResultsDetailScreen() {
                         {evidence.map((item, i) => (
                           <Text
                             key={i}
-                            style={{ color: SLATE_400, fontSize: 12 }}
+                            style={{ color: colors.textMuted, fontSize: 12 }}
                           >
                             · {item}
                           </Text>
@@ -422,7 +422,7 @@ export default function ResultsDetailScreen() {
                         {nextSteps.map((step, i) => (
                           <Text
                             key={i}
-                            style={{ color: SLATE_400, fontSize: 12 }}
+                            style={{ color: colors.textMuted, fontSize: 12 }}
                           >
                             {i + 1}. {step}
                           </Text>
@@ -437,12 +437,12 @@ export default function ResultsDetailScreen() {
                         style={{
                           borderWidth: 1,
                           borderStyle: "dashed",
-                          borderColor: "rgba(255,255,255,0.1)",
+                          borderColor: colors.track,
                         }}
                       >
                         <Text
                           style={{
-                            color: SLATE_400,
+                            color: colors.textMuted,
                             fontSize: 12,
                             fontWeight: "600",
                           }}
@@ -452,7 +452,7 @@ export default function ResultsDetailScreen() {
                         {limitations.map((item, i) => (
                           <Text
                             key={i}
-                            style={{ color: SLATE_500, fontSize: 12 }}
+                            style={{ color: colors.textSubtle, fontSize: 12 }}
                           >
                             {item}
                           </Text>
@@ -462,14 +462,11 @@ export default function ResultsDetailScreen() {
 
                     <View
                       className="rounded-xl p-3"
-                      style={{
-                        borderWidth: 1,
-                        borderColor: "rgba(255,255,255,0.1)",
-                      }}
+                      style={{ borderWidth: 1, borderColor: colors.track }}
                     >
                       <Text
                         style={{
-                          color: SLATE_400,
+                          color: colors.textMuted,
                           fontSize: 12,
                           fontWeight: "600",
                         }}
@@ -550,25 +547,29 @@ export default function ResultsDetailScreen() {
                         {cause.rank}. {cause.title}
                       </Text>
                       <Text
-                        style={{ color: TEAL, fontSize: 12, fontWeight: "600" }}
+                        style={{
+                          color: colors.primary,
+                          fontSize: 12,
+                          fontWeight: "600",
+                        }}
                       >
                         {cause.confidence}%
                       </Text>
                     </View>
                     <View
                       className="h-1.5 overflow-hidden rounded-full"
-                      style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+                      style={{ backgroundColor: colors.track }}
                     >
                       <View
                         className="h-full rounded-full"
                         style={{
                           width: `${cause.confidence}%`,
-                          backgroundColor: TEAL,
+                          backgroundColor: colors.primary,
                         }}
                       />
                     </View>
                     {cause.evidence.length > 0 && (
-                      <Text style={{ color: SLATE_400, fontSize: 12 }}>
+                      <Text style={{ color: colors.textMuted, fontSize: 12 }}>
                         {cause.evidence.join(", ")}
                       </Text>
                     )}
@@ -594,14 +595,14 @@ export default function ResultsDetailScreen() {
                 <Text className="text-foreground text-sm font-semibold">
                   {diyGuide.data.guide.title}
                 </Text>
-                <Text style={{ color: SLATE_400, fontSize: 12 }}>
+                <Text style={{ color: colors.textMuted, fontSize: 12 }}>
                   {diyGuide.data.guide.estimatedMinutes} min ·{" "}
                   {diyGuide.data.guide.difficulty}
                 </Text>
-                <Text style={{ color: SLATE_400, fontSize: 12 }}>
+                <Text style={{ color: colors.textMuted, fontSize: 12 }}>
                   Tools: {diyGuide.data.guide.tools.join(", ")}
                 </Text>
-                <Text style={{ color: SLATE_400, fontSize: 12 }}>
+                <Text style={{ color: colors.textMuted, fontSize: 12 }}>
                   Parts: {diyGuide.data.guide.parts.join(", ")}
                 </Text>
                 {diyGuide.data.guide.safetyWarnings.length > 0 && (
@@ -613,7 +614,7 @@ export default function ResultsDetailScreen() {
                       (warning, index) => (
                         <Text
                           key={index}
-                          style={{ color: AMBER, fontSize: 12 }}
+                          style={{ color: colors.warning, fontSize: 12 }}
                         >
                           • {warning}
                         </Text>
@@ -629,7 +630,7 @@ export default function ResultsDetailScreen() {
                     {diyGuide.data.guide.steps.map((step, index) => (
                       <Text
                         key={index}
-                        style={{ color: SLATE_400, fontSize: 12 }}
+                        style={{ color: colors.textMuted, fontSize: 12 }}
                       >
                         {index + 1}. {step}
                       </Text>
@@ -643,13 +644,19 @@ export default function ResultsDetailScreen() {
                 }
                 className="mt-2"
               >
-                <Text style={{ color: TEAL, fontSize: 12, fontWeight: "600" }}>
+                <Text
+                  style={{
+                    color: colors.primary,
+                    fontSize: 12,
+                    fontWeight: "600",
+                  }}
+                >
                   View Full Step-by-Step Guide →
                 </Text>
               </TouchableOpacity>
             </Card>
           ) : (
-            <Text style={{ color: SLATE_500, fontSize: 12 }}>
+            <Text style={{ color: colors.textSubtle, fontSize: 12 }}>
               No approved DIY guide is currently available for this code.
             </Text>
           )}
@@ -682,7 +689,7 @@ export default function ResultsDetailScreen() {
                 </Button>
                 {latestEstimate ? (
                   <>
-                    <Text style={{ color: SLATE_400, fontSize: 12 }}>
+                    <Text style={{ color: colors.textMuted, fontSize: 12 }}>
                       Total: $
                       {(
                         (latestEstimate.laborLowCents +
@@ -696,14 +703,14 @@ export default function ResultsDetailScreen() {
                         100
                       ).toFixed(0)}
                     </Text>
-                    <Text style={{ color: SLATE_400, fontSize: 12 }}>
+                    <Text style={{ color: colors.textMuted, fontSize: 12 }}>
                       Region: {latestEstimate.region}
                     </Text>
-                    <Text style={{ color: SLATE_400, fontSize: 12 }}>
+                    <Text style={{ color: colors.textMuted, fontSize: 12 }}>
                       Labor: ${(latestEstimate.laborLowCents / 100).toFixed(0)}{" "}
                       - ${(latestEstimate.laborHighCents / 100).toFixed(0)}
                     </Text>
-                    <Text style={{ color: SLATE_400, fontSize: 12 }}>
+                    <Text style={{ color: colors.textMuted, fontSize: 12 }}>
                       Parts: ${(latestEstimate.partsLowCents / 100).toFixed(0)}{" "}
                       - ${(latestEstimate.partsHighCents / 100).toFixed(0)}
                     </Text>
@@ -713,14 +720,18 @@ export default function ResultsDetailScreen() {
                       style={{
                         borderWidth: 1,
                         borderStyle: "dashed",
-                        borderColor: "rgba(255,255,255,0.1)",
+                        borderColor: colors.track,
                       }}
                     >
                       <Text className="text-foreground text-xs font-semibold">
                         Estimate Disclosure (CMP-003)
                       </Text>
                       <Text
-                        style={{ color: SLATE_400, fontSize: 11, marginTop: 2 }}
+                        style={{
+                          color: colors.textMuted,
+                          fontSize: 11,
+                          marginTop: 2,
+                        }}
                       >
                         Geography basis:{" "}
                         {latestEstimate.disclosure?.geographyBasis ??
@@ -730,7 +741,7 @@ export default function ResultsDetailScreen() {
                         (item, index) => (
                           <Text
                             key={`assumption-${index}`}
-                            style={{ color: SLATE_400, fontSize: 11 }}
+                            style={{ color: colors.textMuted, fontSize: 11 }}
                           >
                             Assumption: {item}
                           </Text>
@@ -740,7 +751,7 @@ export default function ResultsDetailScreen() {
                         (item, index) => (
                           <Text
                             key={`exclusion-${index}`}
-                            style={{ color: SLATE_400, fontSize: 11 }}
+                            style={{ color: colors.textMuted, fontSize: 11 }}
                           >
                             Exclusion: {item}
                           </Text>
@@ -748,7 +759,7 @@ export default function ResultsDetailScreen() {
                       )}
                       <Text
                         style={{
-                          color: SLATE_500,
+                          color: colors.textSubtle,
                           fontSize: 11,
                           marginTop: 4,
                           fontStyle: "italic",
@@ -760,7 +771,7 @@ export default function ResultsDetailScreen() {
                     </View>
                   </>
                 ) : (
-                  <Text style={{ color: SLATE_500, fontSize: 12 }}>
+                  <Text style={{ color: colors.textSubtle, fontSize: 12 }}>
                     No estimate generated for this event yet.
                   </Text>
                 )}
@@ -787,25 +798,28 @@ export default function ResultsDetailScreen() {
                   {negotiationScript.data.headline}
                 </Text>
                 {negotiationScript.data.keyQuestions.map((question, index) => (
-                  <Text key={index} style={{ color: SLATE_400, fontSize: 12 }}>
+                  <Text
+                    key={index}
+                    style={{ color: colors.textMuted, fontSize: 12 }}
+                  >
                     {index + 1}. {question}
                   </Text>
                 ))}
                 {negotiationScript.data.costAnchors.map((anchor, index) => (
                   <Text
                     key={`anchor-${index}`}
-                    style={{ color: SLATE_400, fontSize: 12 }}
+                    style={{ color: colors.textMuted, fontSize: 12 }}
                   >
                     • {anchor}
                   </Text>
                 ))}
-                <Text style={{ color: SLATE_400, fontSize: 12 }}>
+                <Text style={{ color: colors.textMuted, fontSize: 12 }}>
                   {negotiationScript.data.closingPrompt}
                 </Text>
               </View>
             </Card>
           ) : (
-            <Text style={{ color: SLATE_500, fontSize: 12 }}>
+            <Text style={{ color: colors.textSubtle, fontSize: 12 }}>
               Generate an estimate first to build the script.
             </Text>
           )}
@@ -817,13 +831,17 @@ export default function ResultsDetailScreen() {
           style={{
             borderWidth: 1,
             borderStyle: "dashed",
-            borderColor: "rgba(255,255,255,0.1)",
+            borderColor: colors.track,
           }}
         >
-          <Text style={{ color: SLATE_400, fontSize: 12, fontWeight: "600" }}>
+          <Text
+            style={{ color: colors.textMuted, fontSize: 12, fontWeight: "600" }}
+          >
             Disclaimer (CMP-002)
           </Text>
-          <Text style={{ color: SLATE_500, fontSize: 12, marginTop: 4 }}>
+          <Text
+            style={{ color: colors.textSubtle, fontSize: 12, marginTop: 4 }}
+          >
             Car Health Genius provides AI-generated diagnostic information for
             educational purposes only. Always consult a licensed mechanic before
             making vehicle repairs.

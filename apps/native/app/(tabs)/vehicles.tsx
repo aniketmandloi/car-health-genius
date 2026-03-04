@@ -1,6 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Button, Card, Spinner } from "heroui-native";
 import { useState } from "react";
 import {
   Alert,
@@ -12,12 +11,11 @@ import {
 } from "react-native";
 
 import { Container } from "@/components/container";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
+import { useAppTheme } from "@/contexts/app-theme-context";
 import { queryClient, trpc } from "@/utils/trpc";
-
-const TEAL = "#06B6D4";
-const SLATE_400 = "#94A3B8";
-const SLATE_500 = "#64748B";
-const RED = "#EF4444";
 
 function gradeColor(grade: string): string {
   switch (grade) {
@@ -35,6 +33,7 @@ function gradeColor(grade: string): string {
 }
 
 function VehicleHealthBadge({ vehicleId }: { vehicleId: number }) {
+  const { colors } = useAppTheme();
   const healthScore = useQuery(
     trpc.maintenance.getHealthScore.queryOptions({ vehicleId }),
   );
@@ -51,7 +50,7 @@ function VehicleHealthBadge({ vehicleId }: { vehicleId: number }) {
       <Text style={{ color, fontSize: 22, fontWeight: "800", lineHeight: 24 }}>
         {healthScore.data.grade}
       </Text>
-      <Text style={{ color: SLATE_500, fontSize: 9 }}>
+      <Text style={{ color: colors.textSubtle, fontSize: 9 }}>
         {healthScore.data.score}/100
       </Text>
     </View>
@@ -93,6 +92,7 @@ function VehicleFormSheet({
   onDone: () => void;
   onCancel: () => void;
 }) {
+  const { colors } = useAppTheme();
   const [form, setForm] = useState<VehicleForm>(initial ?? EMPTY_FORM);
   const [error, setError] = useState<string | null>(null);
 
@@ -145,7 +145,7 @@ function VehicleFormSheet({
   }
 
   const inputClass =
-    "rounded-xl border border-surface-border bg-surface-input px-3 py-2.5 text-sm text-white";
+    "rounded-xl border border-surface-border bg-surface-input px-3 py-2.5 text-sm text-foreground";
 
   return (
     <View className="gap-3 rounded-2xl border border-surface-border bg-surface-panel p-4">
@@ -154,53 +154,55 @@ function VehicleFormSheet({
       </Text>
 
       <View className="gap-2">
-        <Text style={{ color: SLATE_400, fontSize: 12 }}>Make *</Text>
+        <Text style={{ color: colors.textMuted, fontSize: 12 }}>Make *</Text>
         <TextInput
           value={form.make}
           onChangeText={(t) => setForm((f) => ({ ...f, make: t }))}
           placeholder="Toyota"
           className={inputClass}
-          placeholderTextColor={SLATE_500}
+          placeholderTextColor={colors.textSubtle}
         />
       </View>
 
       <View className="gap-2">
-        <Text style={{ color: SLATE_400, fontSize: 12 }}>Model *</Text>
+        <Text style={{ color: colors.textMuted, fontSize: 12 }}>Model *</Text>
         <TextInput
           value={form.model}
           onChangeText={(t) => setForm((f) => ({ ...f, model: t }))}
           placeholder="Camry"
           className={inputClass}
-          placeholderTextColor={SLATE_500}
+          placeholderTextColor={colors.textSubtle}
         />
       </View>
 
       <View className="gap-2">
-        <Text style={{ color: SLATE_400, fontSize: 12 }}>Year *</Text>
+        <Text style={{ color: colors.textMuted, fontSize: 12 }}>Year *</Text>
         <TextInput
           value={form.modelYear}
           onChangeText={(t) => setForm((f) => ({ ...f, modelYear: t }))}
           placeholder="2020"
           keyboardType="numeric"
           className={inputClass}
-          placeholderTextColor={SLATE_500}
+          placeholderTextColor={colors.textSubtle}
         />
       </View>
 
       <View className="gap-2">
-        <Text style={{ color: SLATE_400, fontSize: 12 }}>VIN (optional)</Text>
+        <Text style={{ color: colors.textMuted, fontSize: 12 }}>
+          VIN (optional)
+        </Text>
         <TextInput
           value={form.vin}
           onChangeText={(t) => setForm((f) => ({ ...f, vin: t.toUpperCase() }))}
           placeholder="17-character VIN"
           autoCapitalize="characters"
           className={inputClass}
-          placeholderTextColor={SLATE_500}
+          placeholderTextColor={colors.textSubtle}
         />
       </View>
 
       <View className="gap-2">
-        <Text style={{ color: SLATE_400, fontSize: 12 }}>
+        <Text style={{ color: colors.textMuted, fontSize: 12 }}>
           Mileage (optional)
         </Text>
         <TextInput
@@ -209,12 +211,12 @@ function VehicleFormSheet({
           placeholder="50000"
           keyboardType="numeric"
           className={inputClass}
-          placeholderTextColor={SLATE_500}
+          placeholderTextColor={colors.textSubtle}
         />
       </View>
 
       <View className="gap-2">
-        <Text style={{ color: SLATE_400, fontSize: 12 }}>
+        <Text style={{ color: colors.textMuted, fontSize: 12 }}>
           Engine (optional)
         </Text>
         <TextInput
@@ -222,21 +224,23 @@ function VehicleFormSheet({
           onChangeText={(t) => setForm((f) => ({ ...f, engine: t }))}
           placeholder="2.5L 4-cylinder"
           className={inputClass}
-          placeholderTextColor={SLATE_500}
+          placeholderTextColor={colors.textSubtle}
         />
       </View>
 
-      {error && <Text style={{ color: RED, fontSize: 12 }}>{error}</Text>}
+      {error && (
+        <Text style={{ color: colors.danger, fontSize: 12 }}>{error}</Text>
+      )}
 
       <View className="flex-row gap-2">
         <Button
           onPress={handleSubmit}
           isDisabled={isPending}
-          className="flex-1"
+          style={{ flex: 1 }}
         >
           {isPending ? "Saving..." : vehicleId ? "Update" : "Add Vehicle"}
         </Button>
-        <Button variant="secondary" onPress={onCancel} className="flex-1">
+        <Button variant="secondary" onPress={onCancel} style={{ flex: 1 }}>
           Cancel
         </Button>
       </View>
@@ -245,6 +249,7 @@ function VehicleFormSheet({
 }
 
 export default function VehiclesTab() {
+  const { colors } = useAppTheme();
   const [showForm, setShowForm] = useState(false);
   const [editTarget, setEditTarget] = useState<{
     id: number;
@@ -288,8 +293,8 @@ export default function VehiclesTab() {
             <TouchableOpacity
               onPress={() => setShowForm(true)}
               style={{
-                backgroundColor: TEAL,
-                shadowColor: "#06B6D4",
+                backgroundColor: colors.primary,
+                shadowColor: colors.primary,
                 shadowOpacity: 0.3,
                 shadowRadius: 12,
                 shadowOffset: { width: 0, height: 0 },
@@ -320,7 +325,9 @@ export default function VehiclesTab() {
         )}
 
         {deleteError && (
-          <Text style={{ color: RED, fontSize: 12 }}>{deleteError}</Text>
+          <Text style={{ color: colors.danger, fontSize: 12 }}>
+            {deleteError}
+          </Text>
         )}
 
         {vehicles.isLoading ? (
@@ -329,13 +336,13 @@ export default function VehiclesTab() {
           </View>
         ) : (vehicles.data?.length ?? 0) === 0 ? (
           <Card className="items-center p-6 rounded-2xl border border-surface-border">
-            <Ionicons name="car-outline" size={40} color={SLATE_500} />
+            <Ionicons name="car-outline" size={40} color={colors.textSubtle} />
             <Text className="text-foreground mt-3 text-base font-medium">
               No vehicles yet
             </Text>
             <Text
               style={{
-                color: SLATE_400,
+                color: colors.textMuted,
                 fontSize: 12,
                 textAlign: "center",
                 marginTop: 4,
@@ -356,7 +363,7 @@ export default function VehiclesTab() {
                     <Text className="text-foreground font-bold text-base">
                       {v.make} {v.model}
                     </Text>
-                    <Text style={{ color: SLATE_400, fontSize: 12 }}>
+                    <Text style={{ color: colors.textMuted, fontSize: 12 }}>
                       {v.modelYear}
                       {v.mileage ? ` · ${v.mileage.toLocaleString()} mi` : ""}
                       {v.engine ? ` · ${v.engine}` : ""}
@@ -364,7 +371,7 @@ export default function VehiclesTab() {
                     {v.vin && (
                       <Text
                         style={{
-                          color: SLATE_500,
+                          color: colors.textSubtle,
                           fontSize: 11,
                           fontFamily: "monospace",
                         }}
@@ -402,10 +409,12 @@ export default function VehiclesTab() {
                             `${v.make} ${v.model} (${v.modelYear})`,
                           )
                         }
-                        style={{ borderColor: "rgba(239,68,68,0.3)" }}
+                        style={{ borderColor: `${colors.danger}55` }}
                         className="rounded-lg border px-2.5 py-1"
                       >
-                        <Text style={{ color: RED, fontSize: 12 }}>Delete</Text>
+                        <Text style={{ color: colors.danger, fontSize: 12 }}>
+                          Delete
+                        </Text>
                       </TouchableOpacity>
                     </View>
                   </View>

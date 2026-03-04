@@ -1,12 +1,15 @@
 import { env } from "@car-health-genius/env/native";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Button, Card, Input, Spinner, TextField } from "heroui-native";
 import * as Network from "expo-network";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { Alert, Text, View } from "react-native";
+import { Alert, Text, TextInput, View } from "react-native";
 
 import { Container } from "@/components/container";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
+import { useAppTheme } from "@/contexts/app-theme-context";
 import { createAdapterDriver } from "@/src/modules/adapter";
 import type {
   AdapterConnectionState,
@@ -19,10 +22,6 @@ import {
   markScanUploadSucceeded,
 } from "@/src/modules/scan-upload/queue";
 import { queryClient, trpc } from "@/utils/trpc";
-
-const TEAL = "#06B6D4";
-const SLATE_400 = "#94A3B8";
-const EMERALD = "#10B981";
 
 function extractBusinessCode(error: unknown): string | undefined {
   if (!error || typeof error !== "object") {
@@ -43,6 +42,7 @@ function createUploadId() {
 export default function ScanTab() {
   const mode = env.EXPO_PUBLIC_ADAPTER_MODE;
   const driver = useMemo(() => createAdapterDriver({ mode }), [mode]);
+  const { colors } = useAppTheme();
   const router = useRouter();
 
   const [status, setStatus] = useState<string>("Idle");
@@ -126,10 +126,7 @@ export default function ScanTab() {
       !networkState.isConnected ||
       networkState.isInternetReachable === false
     ) {
-      return {
-        processed: 0,
-        uploaded: 0,
-      };
+      return { processed: 0, uploaded: 0 };
     }
 
     const pending = await listReadyScanUploads();
@@ -162,10 +159,7 @@ export default function ScanTab() {
       }
     }
 
-    return {
-      processed,
-      uploaded,
-    };
+    return { processed, uploaded };
   }
 
   useEffect(() => {
@@ -211,9 +205,7 @@ export default function ScanTab() {
     await driver.connect();
     const session = await startSession.mutateAsync({
       vehicleId: activeVehicleId,
-      metadata: {
-        adapterMode: mode,
-      },
+      metadata: { adapterMode: mode },
     });
     setActiveSessionId(session.id);
     setStatus(`Connected. Session #${session.id} started.`);
@@ -273,10 +265,7 @@ export default function ScanTab() {
       "Clear Diagnostic Codes?",
       "Clearing codes can erase diagnostics that are needed for troubleshooting. Only continue if you understand the risk.",
       [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
+        { text: "Cancel", style: "cancel" },
         {
           text: "I Understand",
           style: "destructive",
@@ -314,50 +303,52 @@ export default function ScanTab() {
     setStatus("Disconnected");
   }
 
+  const inputStyle = {
+    backgroundColor: colors.input,
+    borderColor: colors.border,
+    borderWidth: 1,
+    borderRadius: 12,
+    color: colors.text,
+    fontSize: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  };
+
   return (
     <Container className="p-6">
       <View className="gap-4">
-        <Card
-          variant="secondary"
-          className="p-4 rounded-2xl border border-surface-border"
-        >
+        <Card className="p-4 rounded-2xl border border-surface-border">
           <Card.Title>Set Up Your Vehicle</Card.Title>
           <Card.Description>
             Enter your VIN to create a vehicle profile.
           </Card.Description>
           <View className="mt-3 gap-2">
-            <TextField>
-              <Input
-                value={vinInput}
-                onChangeText={setVinInput}
-                placeholder="VIN (17 chars)"
-                autoCapitalize="characters"
-                autoCorrect={false}
-              />
-            </TextField>
+            <TextInput
+              value={vinInput}
+              onChangeText={setVinInput}
+              placeholder="VIN (17 chars)"
+              placeholderTextColor={colors.textSubtle}
+              autoCapitalize="characters"
+              autoCorrect={false}
+              style={inputStyle}
+            />
             <View className="flex-row gap-2">
-              <View className="flex-1">
-                <TextField>
-                  <Input
-                    value={countryCode}
-                    onChangeText={(value) =>
-                      setCountryCode(value.toUpperCase())
-                    }
-                    placeholder="Country (US)"
-                    autoCapitalize="characters"
-                  />
-                </TextField>
-              </View>
-              <View className="flex-1">
-                <TextField>
-                  <Input
-                    value={stateCode}
-                    onChangeText={(value) => setStateCode(value.toUpperCase())}
-                    placeholder="State (CA)"
-                    autoCapitalize="characters"
-                  />
-                </TextField>
-              </View>
+              <TextInput
+                value={countryCode}
+                onChangeText={(value) => setCountryCode(value.toUpperCase())}
+                placeholder="Country (US)"
+                placeholderTextColor={colors.textSubtle}
+                autoCapitalize="characters"
+                style={[inputStyle, { flex: 1 }]}
+              />
+              <TextInput
+                value={stateCode}
+                onChangeText={(value) => setStateCode(value.toUpperCase())}
+                placeholder="State (CA)"
+                placeholderTextColor={colors.textSubtle}
+                autoCapitalize="characters"
+                style={[inputStyle, { flex: 1 }]}
+              />
             </View>
             <Button
               isDisabled={
@@ -372,15 +363,15 @@ export default function ScanTab() {
               }
             >
               {createFromVin.isPending ? (
-                <Spinner size="sm" color="default" />
+                <Spinner size="sm" />
               ) : (
                 "Create From VIN"
               )}
             </Button>
-            <Text style={{ color: SLATE_400, fontSize: 12 }}>
+            <Text style={{ color: colors.textMuted, fontSize: 12 }}>
               {onboardingStatus}
             </Text>
-            <Text style={{ color: SLATE_400, fontSize: 12 }}>
+            <Text style={{ color: colors.textMuted, fontSize: 12 }}>
               {activeVehicleId
                 ? (() => {
                     const v = vehicles.data?.find(
@@ -397,23 +388,23 @@ export default function ScanTab() {
           </View>
         </Card>
 
-        <Card
-          variant="secondary"
-          className="p-4 rounded-2xl border border-surface-border"
-        >
+        <Card className="p-4 rounded-2xl border border-surface-border">
           <Card.Title>OBD Scanner</Card.Title>
           <View className="mt-2 gap-1">
-            <Text style={{ color: SLATE_400, fontSize: 13 }}>
+            <Text style={{ color: colors.textMuted, fontSize: 13 }}>
               State:{" "}
               <Text
                 style={{
-                  color: driverState === "connected" ? EMERALD : SLATE_400,
+                  color:
+                    driverState === "connected"
+                      ? colors.success
+                      : colors.textMuted,
                 }}
               >
                 {driverState}
               </Text>
             </Text>
-            <Text style={{ color: SLATE_400, fontSize: 13 }}>
+            <Text style={{ color: colors.textMuted, fontSize: 13 }}>
               Status: {status}
             </Text>
           </View>
@@ -422,7 +413,7 @@ export default function ScanTab() {
             <Button
               isDisabled={busy || driverState === "connected"}
               style={{
-                shadowColor: "#06B6D4",
+                shadowColor: colors.primary,
                 shadowOpacity: 0.3,
                 shadowRadius: 12,
                 shadowOffset: { width: 0, height: 0 },
@@ -436,7 +427,7 @@ export default function ScanTab() {
               }
             >
               {busy && driverState !== "connected" ? (
-                <Spinner size="sm" color="default" />
+                <Spinner size="sm" />
               ) : (
                 "Connect"
               )}
@@ -480,12 +471,9 @@ export default function ScanTab() {
           </View>
         </Card>
 
-        <Card
-          variant="secondary"
-          className="p-4 rounded-2xl border border-surface-border"
-        >
+        <Card className="p-4 rounded-2xl border border-surface-border">
           <Card.Title>Compatible Adapters</Card.Title>
-          <Text style={{ color: SLATE_400, fontSize: 13, marginTop: 4 }}>
+          <Text style={{ color: colors.textMuted, fontSize: 13, marginTop: 4 }}>
             {adapters.isLoading
               ? "Loading adapter list..."
               : `${adapters.data?.length ?? 0} active adapter(s) available`}
@@ -500,7 +488,7 @@ export default function ScanTab() {
                 <Text className="text-foreground text-sm font-semibold">
                   {entry.vendor} {entry.model}
                 </Text>
-                <Text style={{ color: SLATE_400, fontSize: 11 }}>
+                <Text style={{ color: colors.textMuted, fontSize: 11 }}>
                   {entry.connectionType} | iOS {entry.iosSupported ? "✓" : "✗"}{" "}
                   | Android {entry.androidSupported ? "✓" : "✗"}
                 </Text>
@@ -508,7 +496,7 @@ export default function ScanTab() {
             ))}
 
             {!adapters.isLoading && (adapters.data?.length ?? 0) === 0 ? (
-              <Text style={{ color: SLATE_400, fontSize: 12 }}>
+              <Text style={{ color: colors.textMuted, fontSize: 12 }}>
                 No active adapters configured yet.
               </Text>
             ) : null}
