@@ -93,7 +93,7 @@ export default function SupportScreen() {
     <Container
       refreshing={issuesQuery.isFetching}
       onRefresh={handleRefresh}
-      className="px-4 pb-8 pt-2"
+      className="px-4 pt-2"
     >
       <View className="gap-5">
         {/* Header */}

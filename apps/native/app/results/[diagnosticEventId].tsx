@@ -247,7 +247,7 @@ export default function ResultsDetailScreen() {
   }
 
   return (
-    <Container className="px-4 pb-8 pt-2">
+    <Container className="px-4 pt-2">
       <View className="gap-5">
         {/* Header */}
         <Animated.View entering={FadeInDown.duration(300)}>

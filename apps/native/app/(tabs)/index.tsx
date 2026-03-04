@@ -45,7 +45,7 @@ export default function Home() {
   const [authMode, setAuthMode] = useState<"signin" | "signup">("signin");
 
   return (
-    <Container className="px-4 pb-8 pt-2">
+    <Container className="px-4 pt-2">
       {session?.user ? (
         <AuthenticatedHome />
       ) : (

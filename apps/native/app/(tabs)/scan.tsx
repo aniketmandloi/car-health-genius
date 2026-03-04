@@ -357,7 +357,7 @@ export default function ScanTab() {
   const activeVehicle = vehicles.data?.find((v) => v.id === activeVehicleId);
 
   return (
-    <Container className="px-4 pb-8 pt-2">
+    <Container className="px-4 pt-2">
       <View className="gap-5">
         {/* Connection Status Hero */}
         <Animated.View entering={FadeInDown.duration(400).delay(50)}>

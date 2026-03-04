@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { env } from "@car-health-genius/env/native";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Linking, Text, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
@@ -27,8 +28,17 @@ const FEATURES = [
 export default function PricingTab() {
   const { colors } = useAppTheme();
   const { data: session } = authClient.useSession();
+  const router = useRouter();
   const [status, setStatus] = useState<string>(
     "Choose a plan to unlock Pro diagnostics.",
+  );
+  const entitlements = useQuery({
+    ...trpc.billing.getEntitlements.queryOptions(),
+    enabled: !!session?.user,
+  });
+
+  const hasProAccess = (entitlements.data?.features ?? []).some((feature) =>
+    feature.featureKey.startsWith("pro."),
   );
 
   const trackPaywallView = useMutation(
@@ -44,6 +54,7 @@ export default function PricingTab() {
   useEffect(() => {
     if (
       !session?.user ||
+      hasProAccess ||
       trackPaywallView.isSuccess ||
       trackPaywallView.isPending
     ) {
@@ -54,7 +65,13 @@ export default function PricingTab() {
       channel: "native",
       source: "native_pricing_tab",
     });
-  }, [session?.user, trackPaywallView]);
+  }, [session?.user, hasProAccess, trackPaywallView]);
+
+  useEffect(() => {
+    if (session?.user && hasProAccess) {
+      router.replace("/profile");
+    }
+  }, [session?.user, hasProAccess, router]);
 
   async function startCheckout(plan: Plan) {
     if (!session?.user) {
@@ -86,7 +103,7 @@ export default function PricingTab() {
   }
 
   return (
-    <Container className="px-4 pb-8 pt-2">
+    <Container className="px-4 pt-2">
       <View className="gap-5">
         {/* Header */}
         <Animated.View entering={FadeInDown.duration(400).delay(50)}>

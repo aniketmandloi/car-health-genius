@@ -1,9 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useQuery } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 import { Platform, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useAppTheme } from "@/contexts/app-theme-context";
+import { authClient } from "@/lib/auth-client";
+import { trpc } from "@/utils/trpc";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type TabBarProps = any;
@@ -25,6 +28,7 @@ const TAB_CONFIG: Record<
   },
   vehicles: { icon: "car-sport-outline", activeIcon: "car-sport", label: "Vehicles" },
   pricing: { icon: "star-outline", activeIcon: "star", label: "Pro" },
+  profile: { icon: "person-outline", activeIcon: "person", label: "Profile" },
 };
 
 export function CustomTabBar({
@@ -33,18 +37,38 @@ export function CustomTabBar({
 }: TabBarProps) {
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
+  const { data: session } = authClient.useSession();
+  const entitlements = useQuery({
+    ...trpc.billing.getEntitlements.queryOptions(),
+    enabled: !!session?.user,
+  });
 
-  const orderedRoutes = ["index", "history", "scan", "vehicles", "pricing"];
+  const hasProAccess = (entitlements.data?.features ?? []).some((feature) =>
+    feature.featureKey.startsWith("pro."),
+  );
+  const showPricingTab = !session?.user || (Boolean(entitlements.data) && !hasProAccess);
+
+  const orderedRoutes = showPricingTab ? [
+    "index",
+    "history",
+    "scan",
+    "vehicles",
+    "pricing",
+  ] : [
+    "index",
+    "history",
+    "scan",
+    "vehicles",
+    "profile",
+  ];
 
   return (
     <View
       style={{
         paddingHorizontal: 8,
-        paddingTop: 6,
-        paddingBottom: insets.bottom > 0 ? insets.bottom + 4 : 10,
+        paddingTop: 0,
+        paddingBottom: insets.bottom > 0 ? insets.bottom : 6,
         backgroundColor: colors.tabBar,
-        borderTopWidth: 1,
-        borderTopColor: colors.tabBarBorder,
       }}
     >
       <View
@@ -52,7 +76,7 @@ export function CustomTabBar({
           flexDirection: "row",
           alignItems: "center",
           paddingHorizontal: 4,
-          paddingVertical: 6,
+          paddingVertical: 3,
         }}
       >
         {orderedRoutes.map((routeName) => {

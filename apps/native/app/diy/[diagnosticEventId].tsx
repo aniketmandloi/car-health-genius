@@ -27,7 +27,7 @@ export default function DiyGuideScreen() {
 
   if (guideQuery.isLoading) {
     return (
-      <Container className="px-4 pb-8 pt-2">
+      <Container className="px-4 pt-2">
         <View className="gap-4">
           <SkeletonCard />
           <SkeletonCard />
@@ -39,7 +39,7 @@ export default function DiyGuideScreen() {
   const guide = guideQuery.data?.guide;
 
   return (
-    <Container className="px-4 pb-8 pt-2">
+    <Container className="px-4 pt-2">
       <View className="gap-4">
         <Animated.View entering={FadeInDown.duration(300)}>
           <Text style={{ ...TYPO.h1, color: colors.text }}>

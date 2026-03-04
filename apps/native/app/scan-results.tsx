@@ -179,7 +179,7 @@ export default function ScanResultsScreen() {
   const recentEvents = (events.data ?? []).slice(0, 10);
 
   return (
-    <Container className="px-4 pb-8 pt-2">
+    <Container className="px-4 pt-2">
       <View className="gap-4">
         {/* Summary */}
         {!events.isLoading && recentEvents.length > 0 && (

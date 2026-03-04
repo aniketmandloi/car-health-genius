@@ -8,7 +8,6 @@ import {
   type ViewProps,
 } from "react-native";
 import Animated, { type AnimatedProps } from "react-native-reanimated";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAppTheme } from "@/contexts/app-theme-context";
 
 const AnimatedView = Animated.createAnimatedComponent(View);
@@ -35,7 +34,6 @@ export function Container({
   style,
   ...props
 }: PropsWithChildren<Props>) {
-  const insets = useSafeAreaInsets();
   const { colors } = useAppTheme();
 
   return (
@@ -44,7 +42,6 @@ export function Container({
       style={[
         {
           backgroundColor: variant === "plain" ? colors.panel : colors.background,
-          paddingBottom: insets.bottom,
         },
         style,
       ]}
@@ -55,7 +52,8 @@ export function Container({
         <ScrollView
           contentContainerStyle={{ flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
-          contentInsetAdjustmentBehavior="automatic"
+          contentInsetAdjustmentBehavior="never"
+          automaticallyAdjustContentInsets={false}
           showsVerticalScrollIndicator={false}
           refreshControl={
             onRefresh ? (
