@@ -1,81 +1,61 @@
-import { Ionicons } from "@expo/vector-icons";
-import { Tabs } from "expo-router";
-import { useThemeColor } from "heroui-native";
+import { useQuery } from "@tanstack/react-query";
+import { Tabs, usePathname, useRouter } from "expo-router";
+import { useEffect } from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ThemeToggle } from "@/components/theme-toggle";
+import { CustomTabBar } from "@/components/custom-tab-bar";
+import { useAppTheme } from "@/contexts/app-theme-context";
+import { authClient } from "@/lib/auth-client";
+import { trpc } from "@/utils/trpc";
 
 export default function TabLayout() {
-  const themeColorForeground = useThemeColor("foreground");
-  const themeColorBackground = useThemeColor("background");
+  const { colors } = useAppTheme();
+  const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const pathname = usePathname();
+  const { data: session } = authClient.useSession();
+
+  const entitlements = useQuery({
+    ...trpc.billing.getEntitlements.queryOptions(),
+    enabled: !!session?.user,
+  });
+
+  const hasProAccess = (entitlements.data?.features ?? []).some((feature) =>
+    feature.featureKey.startsWith("pro."),
+  );
+  const showPricingTab = !session?.user || (Boolean(entitlements.data) && !hasProAccess);
+
+  useEffect(() => {
+    const isOnPricing = pathname === "/pricing" || pathname.endsWith("/pricing");
+    const isOnProfile = pathname === "/profile" || pathname.endsWith("/profile");
+
+    if (!showPricingTab && isOnPricing) {
+      router.replace("/profile");
+      return;
+    }
+
+    if (showPricingTab && isOnProfile) {
+      router.replace("/pricing");
+    }
+  }, [pathname, router, showPricingTab]);
 
   return (
     <Tabs
+      tabBar={(props) => <CustomTabBar {...props} />}
       screenOptions={{
-        headerShown: true,
-        headerStyle: {
-          backgroundColor: themeColorBackground,
-        },
-        headerTintColor: themeColorForeground,
-        headerTitleStyle: {
-          color: themeColorForeground,
-          fontWeight: "600",
-        },
-        headerRight: () => <ThemeToggle />,
-        tabBarStyle: {
-          backgroundColor: themeColorBackground,
-          borderTopWidth: 0,
-          borderTopColor: "transparent",
-          elevation: 0,
-          shadowColor: "transparent",
-          shadowOpacity: 0,
+        headerShown: false,
+        sceneStyle: {
+          backgroundColor: colors.background,
+          paddingTop: insets.top,
         },
       }}
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Home",
-          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
-            <Ionicons name="home" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="scan"
-        options={{
-          title: "Scan",
-          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
-            <Ionicons name="compass" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="pricing"
-        options={{
-          title: "Pricing",
-          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
-            <Ionicons name="card" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="history"
-        options={{
-          title: "History",
-          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
-            <Ionicons name="time-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="vehicles"
-        options={{
-          title: "Vehicles",
-          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
-            <Ionicons name="car-outline" size={size} color={color} />
-          ),
-        }}
-      />
+      <Tabs.Screen name="index" />
+      <Tabs.Screen name="history" />
+      <Tabs.Screen name="scan" />
+      <Tabs.Screen name="vehicles" />
+      <Tabs.Screen name="pricing" />
+      <Tabs.Screen name="profile" />
     </Tabs>
   );
 }

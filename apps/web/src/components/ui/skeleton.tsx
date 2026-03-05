@@ -4,7 +4,7 @@ function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>)
   return (
     <div
       data-slot="skeleton"
-      className={cn("bg-muted rounded-none animate-pulse", className)}
+      className={cn("animate-pulse rounded-lg bg-muted/75 shimmer", className)}
       {...props}
     />
   );

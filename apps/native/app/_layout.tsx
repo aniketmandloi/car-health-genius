@@ -1,11 +1,12 @@
 import "@/global.css";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { StatusBar } from "expo-status-bar";
 import { Stack } from "expo-router";
-import { HeroUINativeProvider } from "heroui-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
+import Toast from "react-native-toast-message";
 
-import { AppThemeProvider } from "@/contexts/app-theme-context";
+import { AppThemeProvider, useAppTheme } from "@/contexts/app-theme-context";
 import { queryClient } from "@/utils/trpc";
 
 export const unstable_settings = {
@@ -13,19 +14,39 @@ export const unstable_settings = {
 };
 
 function StackLayout() {
+  const { colors, isDark } = useAppTheme();
+
   return (
-    <Stack screenOptions={{}}>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen
-        name="modal"
-        options={{ title: "Modal", presentation: "modal" }}
-      />
-      <Stack.Screen name="scan-results" options={{ title: "Scan Results" }} />
-      <Stack.Screen
-        name="results/[diagnosticEventId]"
-        options={{ title: "Diagnostic Detail" }}
-      />
-    </Stack>
+    <>
+      <StatusBar style={isDark ? "light" : "dark"} backgroundColor={colors.background} />
+      <Stack
+        screenOptions={{
+          headerStyle: { backgroundColor: colors.background },
+          headerTitleStyle: {
+            color: colors.headerText,
+            fontWeight: "700",
+            fontSize: 17,
+          },
+          headerTintColor: colors.headerText,
+          headerShadowVisible: false,
+          contentStyle: { backgroundColor: colors.background },
+        }}
+      >
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="modal"
+          options={{ title: "Modal", presentation: "modal" }}
+        />
+        <Stack.Screen
+          name="scan-results"
+          options={{ title: "Scan Results" }}
+        />
+        <Stack.Screen
+          name="results/[diagnosticEventId]"
+          options={{ title: "Diagnostic Detail" }}
+        />
+      </Stack>
+    </>
   );
 }
 
@@ -35,9 +56,8 @@ export default function Layout() {
       <GestureHandlerRootView style={{ flex: 1 }}>
         <KeyboardProvider>
           <AppThemeProvider>
-            <HeroUINativeProvider>
-              <StackLayout />
-            </HeroUINativeProvider>
+            <StackLayout />
+            <Toast />
           </AppThemeProvider>
         </KeyboardProvider>
       </GestureHandlerRootView>

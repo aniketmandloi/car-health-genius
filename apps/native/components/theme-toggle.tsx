@@ -1,34 +1,45 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import { Platform, Pressable } from "react-native";
+import { Platform, Pressable, View } from "react-native";
 import Animated, { FadeOut, ZoomIn } from "react-native-reanimated";
-import { useThemeColor } from "heroui-native";
 
 import { useAppTheme } from "@/contexts/app-theme-context";
 
 export function ThemeToggle() {
-  const { toggleTheme, isLight } = useAppTheme();
-  const iconColor = useThemeColor("foreground");
+  const { toggleTheme, isLight, colors } = useAppTheme();
 
   return (
     <Pressable
       onPress={() => {
-        if (Platform.OS === "ios") {
+        if (Platform.OS === "ios" || Platform.OS === "android") {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         }
         toggleTheme();
       }}
-      className="px-2.5"
+      hitSlop={8}
     >
-      {isLight ? (
-        <Animated.View key="moon" entering={ZoomIn} exiting={FadeOut}>
-          <Ionicons name="moon" size={20} color={iconColor} />
-        </Animated.View>
-      ) : (
-        <Animated.View key="sun" entering={ZoomIn} exiting={FadeOut}>
-          <Ionicons name="sunny" size={20} color={iconColor} />
-        </Animated.View>
-      )}
+      <View
+        style={{
+          width: 36,
+          height: 36,
+          borderRadius: 18,
+          alignItems: "center",
+          justifyContent: "center",
+          borderWidth: 1,
+          borderColor: colors.border,
+          backgroundColor: colors.panel,
+        }}
+      >
+        {isLight ? (
+          <Animated.View key="moon" entering={ZoomIn.duration(220)} exiting={FadeOut.duration(140)}>
+            <Ionicons name="moon" size={17} color={colors.textMuted} />
+          </Animated.View>
+        ) : (
+          <Animated.View key="sun" entering={ZoomIn.duration(220)} exiting={FadeOut.duration(140)}>
+            <Ionicons name="sunny" size={17} color={colors.warning} />
+          </Animated.View>
+        )}
+      </View>
     </Pressable>
   );
 }

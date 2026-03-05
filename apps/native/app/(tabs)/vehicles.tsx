@@ -1,52 +1,36 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Button, Card, Spinner, useThemeColor } from "heroui-native";
-import { useState } from "react";
-import {
-  Alert,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { useCallback, useState } from "react";
+import { Alert, Pressable, Text, TouchableOpacity, View } from "react-native";
+import Animated, { FadeInDown, FadeOutUp } from "react-native-reanimated";
 
-function gradeColor(grade: string): string {
-  switch (grade) {
-    case "A": return "#16a34a";
-    case "B": return "#65a30d";
-    case "C": return "#ca8a04";
-    case "D": return "#ea580c";
-    default:  return "#dc2626";
-  }
-}
+import { Container } from "@/components/container";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ProgressRing } from "@/components/ui/progress-ring";
+import { AppTextInput } from "@/components/ui/text-input";
+import { SkeletonCard } from "@/components/ui/skeleton";
+import { useAppTheme } from "@/contexts/app-theme-context";
+import { ELEVATION } from "@/lib/design";
+import { queryClient, trpc } from "@/utils/trpc";
 
 function VehicleHealthBadge({ vehicleId }: { vehicleId: number }) {
   const healthScore = useQuery(
     trpc.maintenance.getHealthScore.queryOptions({ vehicleId }),
   );
 
-  if (healthScore.isLoading) {
-    return <View className="h-8 w-8 animate-pulse rounded-full bg-muted" />;
-  }
-  if (!healthScore.data) return null;
-
-  const color = gradeColor(healthScore.data.grade);
+  if (healthScore.isLoading || !healthScore.data) return null;
 
   return (
-    <View className="items-center">
-      <Text style={{ color, fontSize: 20, fontWeight: "700", lineHeight: 22 }}>
-        {healthScore.data.grade}
-      </Text>
-      <Text className="text-muted" style={{ fontSize: 9 }}>
-        {healthScore.data.score}/100
-      </Text>
-    </View>
+    <ProgressRing
+      score={healthScore.data.score}
+      grade={healthScore.data.grade}
+      size={56}
+      strokeWidth={5}
+    />
   );
 }
-
-import { Container } from "@/components/container";
-import { queryClient, trpc } from "@/utils/trpc";
 
 type VehicleForm = {
   make: string;
@@ -83,6 +67,7 @@ function VehicleFormSheet({
   onDone: () => void;
   onCancel: () => void;
 }) {
+  const { colors } = useAppTheme();
   const [form, setForm] = useState<VehicleForm>(initial ?? EMPTY_FORM);
   const [error, setError] = useState<string | null>(null);
 
@@ -121,7 +106,9 @@ function VehicleFormSheet({
       model: form.model.trim(),
       modelYear: year,
       vin: form.vin.trim() || undefined,
-      mileage: form.mileage.trim() ? parseInt(form.mileage.trim(), 10) : undefined,
+      mileage: form.mileage.trim()
+        ? parseInt(form.mileage.trim(), 10)
+        : undefined,
       engine: form.engine.trim() || undefined,
     };
 
@@ -132,104 +119,95 @@ function VehicleFormSheet({
     }
   }
 
-  const inputClass =
-    "rounded border border-border bg-card px-3 py-2 text-sm text-foreground";
-
   return (
-    <View className="gap-3 rounded-xl border border-border bg-card p-4">
-      <Text className="text-foreground text-base font-semibold">
+    <Card variant="outlined">
+      <Text
+        style={{
+          color: colors.text,
+          fontSize: 16,
+          fontWeight: "600",
+          marginBottom: 12,
+        }}
+      >
         {vehicleId ? "Edit Vehicle" : "Add Vehicle"}
       </Text>
 
-      <View className="gap-2">
-        <Text className="text-muted text-xs">Make *</Text>
-        <TextInput
-          value={form.make}
-          onChangeText={(t) => setForm((f) => ({ ...f, make: t }))}
-          placeholder="Toyota"
-          className={inputClass}
-          placeholderTextColor="#888"
-        />
-      </View>
+      <View className="gap-3">
+        <View className="flex-row gap-3">
+          <AppTextInput
+            label="Make *"
+            value={form.make}
+            onChangeText={(t) => setForm((f) => ({ ...f, make: t }))}
+            placeholder="Toyota"
+            containerClassName="flex-1"
+          />
+          <AppTextInput
+            label="Model *"
+            value={form.model}
+            onChangeText={(t) => setForm((f) => ({ ...f, model: t }))}
+            placeholder="Camry"
+            containerClassName="flex-1"
+          />
+        </View>
 
-      <View className="gap-2">
-        <Text className="text-muted text-xs">Model *</Text>
-        <TextInput
-          value={form.model}
-          onChangeText={(t) => setForm((f) => ({ ...f, model: t }))}
-          placeholder="Camry"
-          className={inputClass}
-          placeholderTextColor="#888"
-        />
-      </View>
+        <View className="flex-row gap-3">
+          <AppTextInput
+            label="Year *"
+            value={form.modelYear}
+            onChangeText={(t) => setForm((f) => ({ ...f, modelYear: t }))}
+            placeholder="2020"
+            keyboardType="numeric"
+            containerClassName="flex-1"
+          />
+          <AppTextInput
+            label="Engine"
+            value={form.engine}
+            onChangeText={(t) => setForm((f) => ({ ...f, engine: t }))}
+            placeholder="2.5L 4-cyl"
+            containerClassName="flex-1"
+          />
+        </View>
 
-      <View className="gap-2">
-        <Text className="text-muted text-xs">Year *</Text>
-        <TextInput
-          value={form.modelYear}
-          onChangeText={(t) => setForm((f) => ({ ...f, modelYear: t }))}
-          placeholder="2020"
-          keyboardType="numeric"
-          className={inputClass}
-          placeholderTextColor="#888"
-        />
-      </View>
-
-      <View className="gap-2">
-        <Text className="text-muted text-xs">VIN (optional)</Text>
-        <TextInput
+        <AppTextInput
+          label="VIN"
           value={form.vin}
           onChangeText={(t) => setForm((f) => ({ ...f, vin: t.toUpperCase() }))}
           placeholder="17-character VIN"
           autoCapitalize="characters"
-          className={inputClass}
-          placeholderTextColor="#888"
         />
-      </View>
 
-      <View className="gap-2">
-        <Text className="text-muted text-xs">Mileage (optional)</Text>
-        <TextInput
+        <AppTextInput
+          label="Mileage"
           value={form.mileage}
           onChangeText={(t) => setForm((f) => ({ ...f, mileage: t }))}
           placeholder="50000"
           keyboardType="numeric"
-          className={inputClass}
-          placeholderTextColor="#888"
         />
-      </View>
 
-      <View className="gap-2">
-        <Text className="text-muted text-xs">Engine (optional)</Text>
-        <TextInput
-          value={form.engine}
-          onChangeText={(t) => setForm((f) => ({ ...f, engine: t }))}
-          placeholder="2.5L 4-cylinder"
-          className={inputClass}
-          placeholderTextColor="#888"
-        />
-      </View>
+        {error && (
+          <Text style={{ color: colors.danger, fontSize: 12 }}>{error}</Text>
+        )}
 
-      {error && <Text className="text-xs text-red-500">{error}</Text>}
-
-      <View className="flex-row gap-2">
-        <Button
-          onPress={handleSubmit}
-          isDisabled={isPending}
-          className="flex-1"
-        >
-          {isPending ? "Saving..." : vehicleId ? "Update" : "Add Vehicle"}
-        </Button>
-        <Button variant="secondary" onPress={onCancel} className="flex-1">
-          Cancel
-        </Button>
+        <View className="flex-row gap-3">
+          <Button
+            onPress={handleSubmit}
+            isDisabled={isPending}
+            isLoading={isPending}
+            style={{ flex: 1 }}
+          >
+            {vehicleId ? "Update" : "Add Vehicle"}
+          </Button>
+          <Button variant="outline" onPress={onCancel} style={{ flex: 1 }}>
+            Cancel
+          </Button>
+        </View>
       </View>
-    </View>
+    </Card>
   );
 }
 
 export default function VehiclesTab() {
-  const mutedColor = useThemeColor("muted");
+  const { colors } = useAppTheme();
   const [showForm, setShowForm] = useState(false);
   const [editTarget, setEditTarget] = useState<{
     id: number;
@@ -264,22 +242,16 @@ export default function VehiclesTab() {
     );
   }
 
-  return (
-    <Container>
-      <ScrollView contentContainerClassName="p-4 gap-4">
-        <View className="flex-row items-center justify-between">
-          <Text className="text-foreground text-xl font-semibold">My Vehicles</Text>
-          {!showForm && !editTarget && (
-            <TouchableOpacity
-              onPress={() => setShowForm(true)}
-              className="flex-row items-center gap-1 rounded-full bg-primary px-3 py-1.5"
-            >
-              <Ionicons name="add" size={14} color="white" />
-              <Text className="text-xs font-medium text-white">Add</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+  const handleRefresh = useCallback(() => {
+    vehicles.refetch();
+  }, [vehicles]);
 
+  return (
+    <Container
+      refreshing={vehicles.isFetching}
+      onRefresh={handleRefresh}
+    >
+      <View style={{ paddingHorizontal: 16, paddingTop: 8, gap: 14 }}>
         {showForm && (
           <VehicleFormSheet
             onDone={() => setShowForm(false)}
@@ -297,46 +269,73 @@ export default function VehiclesTab() {
         )}
 
         {deleteError && (
-          <Text className="text-xs text-red-500">{deleteError}</Text>
+          <Text style={{ color: colors.danger, fontSize: 12 }}>
+            {deleteError}
+          </Text>
         )}
 
         {vehicles.isLoading ? (
-          <View className="items-center py-12">
-            <Spinner size="lg" />
+          <View className="gap-3">
+            <SkeletonCard />
+            <SkeletonCard />
           </View>
         ) : (vehicles.data?.length ?? 0) === 0 ? (
-          <Card className="items-center p-6">
-            <Ionicons name="car-outline" size={40} color={mutedColor} />
-            <Text className="text-foreground mt-3 text-base font-medium">
-              No vehicles yet
-            </Text>
-            <Text className="text-muted mt-1 text-xs text-center">
-              Add your first vehicle to start scanning for issues.
-            </Text>
-          </Card>
+          <EmptyState
+            icon="car-outline"
+            title="No vehicles yet"
+            description="Add your first vehicle to start scanning for issues."
+            actionLabel="Add Vehicle"
+            onAction={() => setShowForm(true)}
+          />
         ) : (
           <View className="gap-3">
-            {vehicles.data!.map((v) => (
-              <Card key={v.id} className="p-4">
-                <View className="flex-row items-start justify-between gap-2">
-                  <View className="flex-1 gap-1">
-                    <Text className="text-foreground font-semibold">
-                      {v.make} {v.model}
-                    </Text>
-                    <Text className="text-muted text-xs">
-                      {v.modelYear}
-                      {v.mileage ? ` · ${v.mileage.toLocaleString()} mi` : ""}
-                      {v.engine ? ` · ${v.engine}` : ""}
-                    </Text>
-                    {v.vin && (
-                      <Text className="text-muted font-mono text-xs">{v.vin}</Text>
-                    )}
-                  </View>
-
-                  <View className="items-end gap-2">
+            {vehicles.data!.map((v, i) => (
+              <Animated.View
+                key={v.id}
+                entering={FadeInDown.duration(300).delay(i * 60)}
+                exiting={FadeOutUp.duration(200)}
+              >
+                <Card variant="elevated">
+                  <View className="flex-row items-center gap-4">
                     <VehicleHealthBadge vehicleId={v.id} />
+                    <View className="flex-1">
+                      <Text
+                        style={{
+                          color: colors.text,
+                          fontSize: 15,
+                          fontWeight: "700",
+                        }}
+                      >
+                        {v.make} {v.model}
+                      </Text>
+                      <Text
+                        style={{
+                          color: colors.textMuted,
+                          fontSize: 12,
+                          marginTop: 2,
+                        }}
+                      >
+                        {v.modelYear}
+                        {v.mileage
+                          ? ` · ${v.mileage.toLocaleString()} mi`
+                          : ""}
+                        {v.engine ? ` · ${v.engine}` : ""}
+                      </Text>
+                      {v.vin && (
+                        <Text
+                          style={{
+                            color: colors.textSubtle,
+                            fontSize: 11,
+                            fontWeight: "600",
+                            marginTop: 2,
+                          }}
+                        >
+                          {v.vin}
+                        </Text>
+                      )}
+                    </View>
                     <View className="flex-row gap-2">
-                      <TouchableOpacity
+                      <Pressable
                         onPress={() =>
                           setEditTarget({
                             id: v.id,
@@ -350,26 +349,76 @@ export default function VehiclesTab() {
                             },
                           })
                         }
-                        className="rounded border border-border px-2 py-1"
+                        style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: 18,
+                          backgroundColor: colors.surfaceRecessed,
+                          borderWidth: 1,
+                          borderColor: colors.border,
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
                       >
-                        <Text className="text-foreground text-xs">Edit</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
+                        <Ionicons
+                          name="pencil-outline"
+                          size={16}
+                          color={colors.textMuted}
+                        />
+                      </Pressable>
+                      <Pressable
                         onPress={() =>
-                          handleDelete(v.id, `${v.make} ${v.model} (${v.modelYear})`)
+                          handleDelete(
+                            v.id,
+                            `${v.make} ${v.model} (${v.modelYear})`,
+                          )
                         }
-                        className="rounded border border-red-200 px-2 py-1"
+                        style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: 18,
+                          backgroundColor: `${colors.danger}14`,
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
                       >
-                        <Text className="text-xs text-red-500">Delete</Text>
-                      </TouchableOpacity>
+                        <Ionicons
+                          name="trash-outline"
+                          size={16}
+                          color={colors.danger}
+                        />
+                      </Pressable>
                     </View>
                   </View>
-                </View>
-              </Card>
+                </Card>
+              </Animated.View>
             ))}
           </View>
         )}
-      </ScrollView>
+      </View>
+
+      {/* FAB */}
+      {!showForm && !editTarget && (
+        <Pressable
+          onPress={() => setShowForm(true)}
+          style={{
+            position: "absolute",
+            bottom: 24,
+            right: 20,
+            width: 56,
+            height: 56,
+            borderRadius: 28,
+            backgroundColor: colors.primary,
+            borderWidth: 1,
+            borderColor: colors.primaryPressed,
+            alignItems: "center",
+            justifyContent: "center",
+            ...ELEVATION.sm,
+          }}
+        >
+          <Ionicons name="add" size={26} color={colors.textOnPrimary} />
+        </Pressable>
+      )}
     </Container>
   );
 }

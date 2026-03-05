@@ -1,6 +1,16 @@
 "use client";
+
+import { motion } from "motion/react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
+import {
+  Car,
+  TrendingUp,
+  Wrench,
+  DollarSign,
+  ArrowRight,
+  Crown,
+} from "lucide-react";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -10,52 +20,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Badge,
+  getSeverityVariant,
+  getPriorityVariant,
+} from "@/components/ui/badge";
+import { ProgressRing } from "@/components/ui/progress-ring";
+import { PageTransition } from "@/components/page-transition";
+import { staggerContainer, fadeUp } from "@/lib/animation-variants";
 import { cn } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/utils/trpc";
-
-function getSeverityBadgeClass(severity: string) {
-  switch (severity) {
-    case "critical":
-      return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400";
-    case "high":
-      return "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400";
-    case "medium":
-      return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400";
-    case "low":
-      return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400";
-    case "cleared":
-      return "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400";
-    default:
-      return "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400";
-  }
-}
-
-function getMaintenanceStatusClass(status: string) {
-  switch (status) {
-    case "overdue":
-      return "text-red-600 dark:text-red-400";
-    case "scheduled":
-      return "text-amber-600 dark:text-amber-400";
-    default:
-      return "text-muted-foreground";
-  }
-}
-
-function gradeColor(grade: string) {
-  switch (grade) {
-    case "A":
-      return "text-green-600 dark:text-green-400";
-    case "B":
-      return "text-lime-600 dark:text-lime-400";
-    case "C":
-      return "text-yellow-600 dark:text-yellow-400";
-    case "D":
-      return "text-orange-600 dark:text-orange-400";
-    default:
-      return "text-red-600 dark:text-red-400";
-  }
-}
 
 function VehicleHealthCard({
   vehicleId,
@@ -78,48 +53,42 @@ function VehicleHealthCard({
 
   return (
     <Link href={`/diagnostics/${vehicleId}` as never}>
-      <Card className="h-full transition-shadow hover:shadow-md cursor-pointer">
+      <Card className="h-full cursor-pointer transition-colors hover:border-primary/30">
         <CardHeader className="pb-2">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <CardTitle className="text-base">
+              <CardTitle>
                 {make} {model}
               </CardTitle>
               <CardDescription>{modelYear}</CardDescription>
             </div>
             {healthScore.data && (
-              <div className="flex shrink-0 flex-col items-center">
-                <span
-                  className={`text-2xl font-bold leading-none ${gradeColor(healthScore.data.grade)}`}
-                >
-                  {healthScore.data.grade}
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  {healthScore.data.score}/100
-                </span>
-              </div>
+              <ProgressRing
+                score={healthScore.data.score}
+                grade={healthScore.data.grade}
+                size={56}
+                strokeWidth={4}
+              />
             )}
           </div>
         </CardHeader>
         <CardContent>
           {diagnostics.isLoading ? (
-            <div className="h-5 w-24 animate-pulse rounded bg-muted" />
+            <div className="h-5 w-24 animate-pulse rounded-lg bg-muted" />
           ) : latestEvent ? (
             <div className="flex items-center gap-2">
               <span className="font-mono text-sm font-semibold">
                 {latestEvent.dtcCode}
               </span>
-              <span
-                className={`rounded-full px-2 py-0.5 text-xs font-medium ${getSeverityBadgeClass(latestEvent.severity)}`}
-              >
+              <Badge variant={getSeverityVariant(latestEvent.severity)}>
                 {latestEvent.severity}
-              </span>
+              </Badge>
             </div>
           ) : (
-            <p className="text-xs text-muted-foreground">No diagnostic codes</p>
+            <p className="text-sm text-muted-foreground">No diagnostic codes</p>
           )}
-          <p className="mt-2 text-xs text-muted-foreground">
-            View diagnostics →
+          <p className="mt-2 text-xs text-muted-foreground flex items-center gap-1">
+            View diagnostics <ArrowRight className="size-3" />
           </p>
         </CardContent>
       </Card>
@@ -152,7 +121,12 @@ function MaintenanceSummary({
       {upcoming.map((item) => (
         <div
           key={item.id}
-          className="flex items-center justify-between rounded-lg border px-3 py-2"
+          className={cn(
+            "surface-subtle flex items-center justify-between px-4 py-3",
+            item.status === "overdue"
+              ? "border-l-2 border-l-red-500"
+              : "border-l-2 border-l-amber-500",
+          )}
         >
           <div>
             <p className="text-sm font-medium">{item.serviceType}</p>
@@ -166,154 +140,13 @@ function MaintenanceSummary({
                 : ""}
             </p>
           </div>
-          <span
-            className={`text-xs font-semibold ${getMaintenanceStatusClass(item.status)}`}
-          >
+          <Badge variant={item.status === "overdue" ? "critical" : "medium"}>
             {item.status === "overdue" ? "Overdue" : "Upcoming"}
-          </span>
+          </Badge>
         </div>
       ))}
     </>
   );
-}
-
-export default function Dashboard({
-  customerState,
-  session,
-}: {
-  customerState: ReturnType<typeof authClient.customer.state>;
-  session: typeof authClient.$Infer.Session;
-}) {
-  const vehicles = useQuery(trpc.vehicles.list.queryOptions());
-  const hasProSubscription =
-    (customerState?.activeSubscriptions?.length ?? 0) > 0;
-
-  return (
-    <div className="container mx-auto max-w-5xl space-y-8 p-4">
-      {/* Pro/Free Banner */}
-      <div className="flex items-center justify-between rounded-lg border bg-card px-4 py-3">
-        <div>
-          <p className="text-sm font-medium">
-            {hasProSubscription ? "Pro Plan" : "Free Plan"}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            {hasProSubscription
-              ? "Full access to AI diagnostics and likely causes."
-              : "Upgrade to unlock AI-powered likely causes and advanced diagnostics."}
-          </p>
-        </div>
-        {hasProSubscription ? (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={async () => await authClient.customer.portal()}
-          >
-            Manage Subscription
-          </Button>
-        ) : (
-          <Button size="sm" onClick={() => (window.location.href = "/pricing")}>
-            Upgrade to Pro
-          </Button>
-        )}
-      </div>
-
-      {/* Your Vehicles */}
-      <section>
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Your Vehicles</h2>
-          <Link
-            href="/vehicles"
-            className="text-sm text-muted-foreground hover:text-foreground"
-          >
-            Manage →
-          </Link>
-        </div>
-
-        {vehicles.isLoading ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {[1, 2].map((i) => (
-              <Card key={i} className="h-32 animate-pulse bg-muted" />
-            ))}
-          </div>
-        ) : (vehicles.data?.length ?? 0) === 0 ? (
-          <Card className="flex flex-col items-center justify-center py-12 text-center">
-            <CardContent>
-              <p className="font-medium">No vehicles added yet</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Add your first vehicle to start tracking diagnostics.
-              </p>
-              <Link href="/vehicles" className={cn(buttonVariants(), "mt-4")}>
-                Add a Vehicle
-              </Link>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {vehicles.data!.map((v) => (
-              <VehicleHealthCard
-                key={v.id}
-                vehicleId={v.id}
-                make={v.make}
-                model={v.model}
-                modelYear={v.modelYear}
-              />
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* Upcoming Maintenance */}
-      {(vehicles.data?.length ?? 0) > 0 && (
-        <section>
-          <h2 className="mb-3 text-lg font-semibold">Upcoming Maintenance</h2>
-          <div className="space-y-2">
-            {vehicles.data!.map((v) => (
-              <MaintenanceSummary
-                key={v.id}
-                vehicleId={v.id}
-                make={v.make}
-                model={v.model}
-              />
-            ))}
-          </div>
-          <p className="mt-2 text-xs text-muted-foreground">
-            Only overdue and scheduled items are shown.
-          </p>
-        </section>
-      )}
-
-      {/* Predicted Maintenance (FR-012) */}
-      {(vehicles.data?.length ?? 0) > 0 && (
-        <section>
-          <h2 className="mb-3 text-lg font-semibold">Predicted Maintenance</h2>
-          <div className="space-y-2">
-            {vehicles.data!.map((v) => (
-              <MaintenancePredictionsSection
-                key={v.id}
-                vehicleId={v.id}
-                make={v.make}
-                model={v.model}
-              />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Savings Summary (FR-015) */}
-      <SavingsSummaryCard />
-    </div>
-  );
-}
-
-function priorityBadgeClass(priority: string) {
-  switch (priority) {
-    case "soon":
-      return "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400";
-    case "upcoming":
-      return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400";
-    default:
-      return "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400";
-  }
 }
 
 function MaintenancePredictionsSection({
@@ -340,7 +173,7 @@ function MaintenancePredictionsSection({
       {topItems.map((item) => (
         <div
           key={`${vehicleId}-${item.serviceType}`}
-          className="flex items-center justify-between rounded-lg border px-3 py-2"
+          className="surface-subtle flex items-center justify-between px-4 py-3"
         >
           <div>
             <p className="text-sm font-medium">{item.serviceType}</p>
@@ -354,11 +187,9 @@ function MaintenancePredictionsSection({
                 : ""}
             </p>
           </div>
-          <span
-            className={`rounded-full px-2 py-0.5 text-xs font-medium ${priorityBadgeClass(item.priority)}`}
-          >
+          <Badge variant={getPriorityVariant(item.priority)}>
             {item.priority === "soon" ? "Due Soon" : "Upcoming"}
-          </span>
+          </Badge>
         </div>
       ))}
     </>
@@ -369,7 +200,7 @@ function SavingsSummaryCard() {
   const savings = useQuery(trpc.billing.getSavingsSummary.queryOptions());
 
   if (savings.isLoading) {
-    return <div className="h-20 animate-pulse rounded-lg bg-muted" />;
+    return <div className="h-20 animate-pulse rounded-2xl bg-muted" />;
   }
 
   const data = savings.data;
@@ -378,17 +209,20 @@ function SavingsSummaryCard() {
   const hasSavings = data.estimatedSavingsHighCents > 0;
 
   return (
-    <section>
-      <h2 className="mb-3 text-lg font-semibold">Savings Summary</h2>
+    <motion.section variants={fadeUp}>
+      <div className="mb-3 flex items-center gap-2">
+        <DollarSign className="size-5 text-emerald-500" />
+        <h2 className="text-lg font-semibold">Savings Summary</h2>
+      </div>
       <Card>
         <CardContent className="space-y-3 py-4">
           {hasSavings ? (
             <div>
-              <p className="text-2xl font-bold text-green-600">
+              <p className="text-3xl font-bold text-emerald-500">
                 ${(data.estimatedSavingsLowCents / 100).toFixed(0)} – $
                 {(data.estimatedSavingsHighCents / 100).toFixed(0)}
               </p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 Estimated savings based on {data.outcomeCount} recorded repair
                 outcome{data.outcomeCount !== 1 ? "s" : ""}
               </p>
@@ -403,6 +237,183 @@ function SavingsSummaryCard() {
           </p>
         </CardContent>
       </Card>
-    </section>
+    </motion.section>
+  );
+}
+
+export default function Dashboard({
+  customerState,
+  session,
+}: {
+  customerState: ReturnType<typeof authClient.customer.state>;
+  session: typeof authClient.$Infer.Session;
+}) {
+  const vehicles = useQuery(trpc.vehicles.list.queryOptions());
+  const hasProSubscription =
+    (customerState?.activeSubscriptions?.length ?? 0) > 0;
+
+  return (
+    <PageTransition>
+      <motion.div
+        variants={staggerContainer}
+        initial="hidden"
+        animate="show"
+        className="cb-page !max-w-5xl space-y-8"
+      >
+        {/* Pro/Free Banner */}
+        <motion.div variants={fadeUp}>
+          <Card
+            className={cn(
+              "flex flex-col items-start justify-between gap-3 p-5 sm:flex-row sm:items-center",
+              hasProSubscription
+                ? "border-primary/30"
+                : "border-border/90",
+            )}
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className={cn(
+                  "flex size-10 items-center justify-center rounded-xl",
+                  hasProSubscription ? "bg-primary/10" : "bg-muted/80",
+                )}
+              >
+                <Crown
+                  className={cn(
+                    "size-5",
+                    hasProSubscription ? "text-primary" : "text-muted-foreground",
+                  )}
+                />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="font-semibold">
+                    {hasProSubscription ? "Pro Plan" : "Free Plan"}
+                  </p>
+                  {hasProSubscription && <Badge variant="pro">Active</Badge>}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {hasProSubscription
+                    ? "Full access to AI diagnostics and likely causes."
+                    : "Upgrade to unlock AI-powered likely causes and advanced diagnostics."}
+                </p>
+              </div>
+            </div>
+            {hasProSubscription ? (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={async () => await authClient.customer.portal()}
+              >
+                Manage Subscription
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                onClick={() => (window.location.href = "/pricing")}
+                className="gap-1.5"
+              >
+                Upgrade to Pro
+                <ArrowRight className="size-3.5" />
+              </Button>
+            )}
+          </Card>
+        </motion.div>
+
+        {/* Your Vehicles */}
+        <motion.section variants={fadeUp}>
+          <div className="mb-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Car className="size-5 text-primary" />
+              <h2 className="text-lg font-semibold">Your Vehicles</h2>
+            </div>
+            <Link
+              href="/vehicles"
+              className="flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Manage <ArrowRight className="size-3" />
+            </Link>
+          </div>
+
+          {vehicles.isLoading ? (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {[1, 2].map((i) => (
+                <Card key={i} className="h-32 animate-pulse bg-muted/60" />
+              ))}
+            </div>
+          ) : (vehicles.data?.length ?? 0) === 0 ? (
+            <Card className="flex flex-col items-center justify-center py-12 text-center">
+              <CardContent>
+                <Car className="mx-auto mb-3 size-10 text-muted-foreground/50" />
+                <p className="font-medium">No vehicles added yet</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Add your first vehicle to start tracking diagnostics.
+                </p>
+                <Link href="/vehicles" className={cn(buttonVariants(), "mt-4")}>
+                  Add a Vehicle
+                </Link>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {vehicles.data!.map((v) => (
+                <VehicleHealthCard
+                  key={v.id}
+                  vehicleId={v.id}
+                  make={v.make}
+                  model={v.model}
+                  modelYear={v.modelYear}
+                />
+              ))}
+            </div>
+          )}
+        </motion.section>
+
+        {/* Upcoming Maintenance */}
+        {(vehicles.data?.length ?? 0) > 0 && (
+          <motion.section variants={fadeUp}>
+            <div className="mb-3 flex items-center gap-2">
+              <Wrench className="size-5 text-amber-500" />
+              <h2 className="text-lg font-semibold">Upcoming Maintenance</h2>
+            </div>
+            <div className="space-y-2">
+              {vehicles.data!.map((v) => (
+                <MaintenanceSummary
+                  key={v.id}
+                  vehicleId={v.id}
+                  make={v.make}
+                  model={v.model}
+                />
+              ))}
+            </div>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Only overdue and scheduled items are shown.
+            </p>
+          </motion.section>
+        )}
+
+        {/* Predicted Maintenance */}
+        {(vehicles.data?.length ?? 0) > 0 && (
+          <motion.section variants={fadeUp}>
+            <div className="mb-3 flex items-center gap-2">
+              <TrendingUp className="size-5 text-primary" />
+              <h2 className="text-lg font-semibold">Predicted Maintenance</h2>
+            </div>
+            <div className="space-y-2">
+              {vehicles.data!.map((v) => (
+                <MaintenancePredictionsSection
+                  key={v.id}
+                  vehicleId={v.id}
+                  make={v.make}
+                  model={v.model}
+                />
+              ))}
+            </div>
+          </motion.section>
+        )}
+
+        {/* Savings Summary */}
+        <SavingsSummaryCard />
+      </motion.div>
+    </PageTransition>
   );
 }

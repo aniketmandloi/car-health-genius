@@ -35,20 +35,20 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen">
-      <header className="border-b bg-background">
-        <div className="container mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+    <div className="min-h-screen bg-background">
+      <header className="border-b border-border/80 bg-background/90 backdrop-blur-sm">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-6">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            <span className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
               Admin
             </span>
           </div>
-          <nav className="flex items-center gap-1 overflow-x-auto">
+          <nav className="flex items-center gap-1 overflow-x-auto rounded-full border border-border/80 bg-card p-1">
             {NAV_ITEMS.map((item) => (
               <Link
                 key={item.href}
                 href={item.href as never}
-                className="whitespace-nowrap rounded px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                className="whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:bg-muted/80 hover:text-foreground"
               >
                 {item.label}
               </Link>
@@ -56,7 +56,7 @@ export default async function AdminLayout({
           </nav>
         </div>
       </header>
-      <main className="container mx-auto max-w-6xl px-4 py-6">{children}</main>
+      <main className="mx-auto max-w-7xl px-4 py-6 md:px-6">{children}</main>
     </div>
   );
 }

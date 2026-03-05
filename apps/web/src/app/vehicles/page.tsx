@@ -105,7 +105,7 @@ export default function VehiclesPage() {
   }, [mileage]);
 
   return (
-    <div className="container mx-auto max-w-5xl p-4">
+    <div className="cb-page !max-w-5xl">
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
@@ -252,7 +252,7 @@ export default function VehiclesPage() {
             {(vehicles.data ?? []).map((entry) => (
               <div
                 key={entry.id}
-                className="flex items-center justify-between border px-3 py-2 text-xs"
+                className="cb-section-soft flex items-center justify-between px-4 py-2.5 text-sm"
               >
                 <span>
                   {entry.make} {entry.model} ({entry.modelYear}) -{" "}
@@ -286,7 +286,7 @@ export default function VehiclesPage() {
           </CardHeader>
           <CardContent className="grid gap-2">
             {(adapters.data ?? []).map((entry) => (
-              <div key={entry.id} className="border px-3 py-2 text-xs">
+              <div key={entry.id} className="cb-section-soft px-4 py-2.5 text-sm">
                 {entry.vendor} {entry.model} ({entry.connectionType}) - iOS{" "}
                 {entry.iosSupported ? "yes" : "no"}, Android{" "}
                 {entry.androidSupported ? "yes" : "no"}

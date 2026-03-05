@@ -31,11 +31,11 @@ function readErrorMessage(error: unknown): string {
 function statusBadgeClass(status: string) {
   switch (status) {
     case "active":
-      return "bg-green-100 text-green-700";
+      return "border border-emerald-500/30 bg-emerald-500/12 text-emerald-700 dark:text-emerald-300";
     case "deprecated":
-      return "bg-amber-100 text-amber-700";
+      return "border border-amber-500/30 bg-amber-500/12 text-amber-700 dark:text-amber-300";
     default:
-      return "bg-gray-100 text-gray-600";
+      return "border border-slate-500/30 bg-slate-500/12 text-slate-600 dark:text-slate-300";
   }
 }
 
@@ -218,7 +218,7 @@ export default function AdaptersClient() {
                       status: e.target.value as AdapterStatus,
                     }))
                   }
-                  className="h-9 w-full rounded border bg-background px-2 text-sm"
+                  className="cb-input-like h-10 w-full text-sm"
                 >
                   <option value="active">Active</option>
                   <option value="deprecated">Deprecated</option>
@@ -261,7 +261,7 @@ export default function AdaptersClient() {
                 </label>
               </div>
               {mutationError && (
-                <p className="text-xs text-red-500 sm:col-span-2">
+                <p className="text-xs text-destructive sm:col-span-2">
                   {mutationError}
                 </p>
               )}
@@ -286,14 +286,14 @@ export default function AdaptersClient() {
       {adapters.isLoading ? (
         <div className="space-y-2">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-12 animate-pulse rounded-lg bg-muted" />
+            <div key={i} className="h-12 animate-pulse rounded-lg bg-muted/70" />
           ))}
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-lg border">
-          <table className="w-full text-xs">
+        <div className="cb-table-shell">
+          <table className="cb-table">
             <thead>
-              <tr className="border-b bg-muted/50">
+              <tr>
                 <th className="px-3 py-2 text-left font-medium">Vendor</th>
                 <th className="px-3 py-2 text-left font-medium">Model</th>
                 <th className="px-3 py-2 text-left font-medium">Slug</th>
@@ -360,11 +360,11 @@ export default function AdaptersClient() {
                                         s && { ...s, reason: e.target.value },
                                     )
                                   }
-                                  className="h-6 rounded border px-1 text-xs"
+                                  className="cb-input-like h-7 px-2 text-xs"
                                 />
                                 <button
                                   type="button"
-                                  className="text-red-500 hover:underline"
+                                  className="text-destructive hover:underline"
                                   onClick={() =>
                                     archiveMutation.mutate({
                                       adapterId: row.id,

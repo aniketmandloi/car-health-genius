@@ -1,7 +1,9 @@
 "use client";
 
+import { motion } from "motion/react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import { AlertTriangle, Wrench, Package } from "lucide-react";
 
 import {
   Card,
@@ -10,21 +12,24 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { staggerContainer, fadeUp } from "@/lib/animation-variants";
 import { trpc } from "@/utils/trpc";
 
-function difficultyColor(difficulty: string) {
+function getDifficultyVariant(difficulty: string) {
   switch (difficulty.toLowerCase()) {
     case "beginner":
     case "easy":
-      return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400";
+      return "easy" as const;
     case "intermediate":
     case "medium":
-      return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400";
+    case "moderate":
+      return "moderate" as const;
     case "advanced":
     case "hard":
-      return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400";
+      return "hard" as const;
     default:
-      return "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300";
+      return "default" as const;
   }
 }
 
@@ -39,9 +44,9 @@ export function DiyGuideClient({
 
   if (guideQuery.isLoading) {
     return (
-      <div className="container mx-auto max-w-3xl space-y-4 p-4">
-        <div className="h-8 w-48 animate-pulse rounded bg-muted" />
-        <div className="h-64 animate-pulse rounded-lg bg-muted" />
+      <div className="cb-page-narrow space-y-4">
+        <div className="h-8 w-48 animate-pulse rounded-lg bg-muted" />
+        <div className="h-64 animate-pulse rounded-2xl bg-muted" />
       </div>
     );
   }
@@ -49,7 +54,7 @@ export function DiyGuideClient({
   const guide = guideQuery.data?.guide;
 
   return (
-    <div className="container mx-auto max-w-3xl space-y-6 p-4">
+    <div className="cb-page-narrow space-y-6">
       <div className="flex items-center gap-3">
         <Link
           href={`/results/${diagnosticEventId}`}
@@ -86,23 +91,19 @@ export function DiyGuideClient({
                 {guide.dtcCode}
               </CardDescription>
               <div className="flex flex-wrap gap-2 pt-1">
-                <span
-                  className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${difficultyColor(guide.difficulty)}`}
-                >
+                <Badge variant={getDifficultyVariant(guide.difficulty)}>
                   {guide.difficulty}
-                </span>
-                <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium">
-                  ~{guide.estimatedMinutes} min
-                </span>
+                </Badge>
+                <Badge variant="default">~{guide.estimatedMinutes} min</Badge>
               </div>
             </CardHeader>
           </Card>
 
           {/* Safety Warnings */}
           {guide.safetyWarnings.length > 0 && (
-            <Card className="border-orange-300 dark:border-orange-700">
+            <Card className="border-warning/30 bg-warning/5">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base text-orange-700 dark:text-orange-400">
+                <CardTitle className="text-base text-warning">
                   Safety Warnings
                 </CardTitle>
               </CardHeader>
@@ -110,7 +111,7 @@ export function DiyGuideClient({
                 <ul className="space-y-1.5">
                   {guide.safetyWarnings.map((warning, idx) => (
                     <li key={idx} className="flex items-start gap-2 text-sm">
-                      <span className="mt-0.5 shrink-0 text-orange-500">⚠</span>
+                      <AlertTriangle className="mt-0.5 size-3.5 shrink-0 text-warning" />
                       <span>{warning}</span>
                     </li>
                   ))}
@@ -130,7 +131,7 @@ export function DiyGuideClient({
                   <ul className="space-y-1">
                     {guide.tools.map((tool, idx) => (
                       <li key={idx} className="flex items-center gap-2 text-sm">
-                        <span className="text-muted-foreground">🔧</span>
+                        <Wrench className="size-3.5 shrink-0 text-muted-foreground" />
                         {tool}
                       </li>
                     ))}
@@ -148,7 +149,7 @@ export function DiyGuideClient({
                   <ul className="space-y-1">
                     {guide.parts.map((part, idx) => (
                       <li key={idx} className="flex items-center gap-2 text-sm">
-                        <span className="text-muted-foreground">📦</span>
+                        <Package className="size-3.5 shrink-0 text-muted-foreground" />
                         {part}
                       </li>
                     ))}
@@ -167,16 +168,25 @@ export function DiyGuideClient({
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ol className="space-y-4">
+                <motion.ol
+                  variants={staggerContainer}
+                  initial="hidden"
+                  animate="show"
+                  className="space-y-4"
+                >
                   {guide.steps.map((step, idx) => (
-                    <li key={idx} className="flex items-start gap-3">
+                    <motion.li
+                      key={idx}
+                      variants={fadeUp}
+                      className="flex items-start gap-3"
+                    >
                       <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
                         {idx + 1}
                       </span>
                       <p className="pt-0.5 text-sm leading-relaxed">{step}</p>
-                    </li>
+                    </motion.li>
                   ))}
-                </ol>
+                </motion.ol>
               </CardContent>
             </Card>
           )}

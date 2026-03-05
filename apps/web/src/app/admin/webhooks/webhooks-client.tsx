@@ -11,11 +11,11 @@ type WebhookStatus = "processed" | "failed" | "received";
 function statusBadgeClass(status: string) {
   switch (status) {
     case "processed":
-      return "bg-green-100 text-green-700";
+      return "border border-emerald-500/30 bg-emerald-500/12 text-emerald-700 dark:text-emerald-300";
     case "failed":
-      return "bg-red-100 text-red-700";
+      return "border border-red-500/30 bg-red-500/12 text-red-700 dark:text-red-300";
     default:
-      return "bg-amber-100 text-amber-700";
+      return "border border-amber-500/30 bg-amber-500/12 text-amber-700 dark:text-amber-300";
   }
 }
 
@@ -47,7 +47,7 @@ export default function WebhooksClient() {
             className={`rounded-full px-3 py-1 text-xs font-medium ${
               statusFilter === s
                 ? "bg-primary text-primary-foreground"
-                : "bg-muted text-muted-foreground"
+                : "bg-muted/70 text-muted-foreground"
             }`}
           >
             {s}
@@ -58,7 +58,7 @@ export default function WebhooksClient() {
       {events.isLoading ? (
         <div className="space-y-2">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-16 animate-pulse rounded-lg bg-muted" />
+            <div key={i} className="h-16 animate-pulse rounded-lg bg-muted/70" />
           ))}
         </div>
       ) : data.length === 0 ? (
@@ -68,10 +68,10 @@ export default function WebhooksClient() {
           </CardContent>
         </Card>
       ) : (
-        <div className="overflow-x-auto rounded-lg border">
-          <table className="w-full text-xs">
+        <div className="cb-table-shell">
+          <table className="cb-table">
             <thead>
-              <tr className="border-b bg-muted/50">
+              <tr>
                 <th className="px-3 py-2 text-left font-medium">Provider</th>
                 <th className="px-3 py-2 text-left font-medium">Event Type</th>
                 <th className="px-3 py-2 text-left font-medium">Status</th>
@@ -123,11 +123,11 @@ export default function WebhooksClient() {
                     >
                       <td colSpan={6} className="px-3 py-2">
                         {event.errorMessage && (
-                          <p className="mb-2 text-xs text-red-600">
+                          <p className="mb-2 text-xs text-destructive">
                             Error: {event.errorMessage}
                           </p>
                         )}
-                        <pre className="max-h-48 overflow-auto rounded bg-muted p-2 text-xs">
+                        <pre className="max-h-48 overflow-auto rounded-lg bg-muted/60 p-2 text-xs">
                           {JSON.stringify(event.payload, null, 2)}
                         </pre>
                       </td>

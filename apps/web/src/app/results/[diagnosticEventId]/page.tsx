@@ -28,5 +28,9 @@ export default async function ResultsPage({
     redirect("/dashboard");
   }
 
-  return <ResultsDetail diagnosticEventId={eventId} />;
+  return (
+    <div className="pb-8">
+      <ResultsDetail diagnosticEventId={eventId} />
+    </div>
+  );
 }

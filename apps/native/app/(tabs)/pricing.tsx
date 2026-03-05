@@ -1,26 +1,49 @@
+import { Ionicons } from "@expo/vector-icons";
 import { env } from "@car-health-genius/env/native";
-import { useMutation } from "@tanstack/react-query";
-import { Button, Card, Spinner } from "heroui-native";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Linking, Text, View } from "react-native";
+import { ActivityIndicator, Linking, Text, View } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { Container } from "@/components/container";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Chip } from "@/components/ui/chip";
+import { useAppTheme } from "@/contexts/app-theme-context";
+import { TYPO } from "@/lib/design";
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/utils/trpc";
 
 type Plan = "monthly" | "annual";
 
+const FEATURES = [
+  "AI-powered diagnostics",
+  "Likely causes with confidence",
+  "Step-by-step DIY guides",
+  "Cost estimates & negotiation",
+  "Priority support",
+];
+
 export default function PricingTab() {
+  const { colors } = useAppTheme();
   const { data: session } = authClient.useSession();
+  const router = useRouter();
   const [status, setStatus] = useState<string>(
     "Choose a plan to unlock Pro diagnostics.",
+  );
+  const entitlements = useQuery({
+    ...trpc.billing.getEntitlements.queryOptions(),
+    enabled: !!session?.user,
+  });
+
+  const hasProAccess = (entitlements.data?.features ?? []).some((feature) =>
+    feature.featureKey.startsWith("pro."),
   );
 
   const trackPaywallView = useMutation(
     trpc.billing.trackPaywallView.mutationOptions({
-      onError: () => {
-        // Non-blocking analytics.
-      },
+      onError: () => {},
     }),
   );
 
@@ -31,6 +54,7 @@ export default function PricingTab() {
   useEffect(() => {
     if (
       !session?.user ||
+      hasProAccess ||
       trackPaywallView.isSuccess ||
       trackPaywallView.isPending
     ) {
@@ -41,7 +65,13 @@ export default function PricingTab() {
       channel: "native",
       source: "native_pricing_tab",
     });
-  }, [session?.user, trackPaywallView]);
+  }, [session?.user, hasProAccess, trackPaywallView]);
+
+  useEffect(() => {
+    if (session?.user && hasProAccess) {
+      router.replace("/profile");
+    }
+  }, [session?.user, hasProAccess, router]);
 
   async function startCheckout(plan: Plan) {
     if (!session?.user) {
@@ -73,59 +103,184 @@ export default function PricingTab() {
   }
 
   return (
-    <Container className="p-6">
-      <View className="gap-4">
-        <Card variant="secondary" className="p-5">
-          <Card.Title>Pro Upgrade</Card.Title>
-          <Card.Description>
-            Unlock likely causes, advanced diagnostics, and maintenance
-            intelligence.
-          </Card.Description>
+    <Container className="px-4 pt-2">
+      <View className="gap-5">
+        {/* Header */}
+        <Animated.View entering={FadeInDown.duration(400).delay(50)}>
+          <Text style={{ ...TYPO.h1, color: colors.text }}>
+            Go <Text style={{ color: colors.primary }}>Pro</Text>
+          </Text>
+          <Text
+            style={{
+              color: colors.textMuted,
+              fontSize: 14,
+              marginTop: 6,
+              lineHeight: 20,
+            }}
+          >
+            Unlock advanced diagnostics, richer reports, and faster support.
+          </Text>
+        </Animated.View>
 
-          <View className="mt-4 gap-3">
-            <Card className="p-4">
-              <Text className="text-foreground text-lg font-semibold">
-                Monthly Pro - $9.99/mo
-              </Text>
-              <Text className="mt-1 text-muted text-sm">
-                Best for testing full feature depth before annual commitment.
-              </Text>
-              <Button
-                className="mt-3"
-                onPress={() => startCheckout("monthly")}
-                isDisabled={createCheckoutSession.isPending}
+        {/* Feature Checklist */}
+        <Animated.View entering={FadeInDown.duration(400).delay(100)}>
+          <Card variant="default">
+            {FEATURES.map((feat, i) => (
+              <View
+                key={feat}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 10,
+                  paddingVertical: 6,
+                  borderBottomWidth: i < FEATURES.length - 1 ? 1 : 0,
+                  borderBottomColor: colors.border,
+                }}
               >
-                Choose Monthly
-              </Button>
-            </Card>
+                <Ionicons
+                  name="checkmark-circle"
+                  size={18}
+                  color={colors.primary}
+                />
+                <Text
+                  style={{
+                    color: colors.text,
+                    fontSize: 14,
+                  }}
+                >
+                  {feat}
+                </Text>
+              </View>
+            ))}
+          </Card>
+        </Animated.View>
 
-            <Card className="p-4">
-              <Text className="text-foreground text-lg font-semibold">
-                Annual Pro - $79/yr
-              </Text>
-              <Text className="mt-1 text-muted text-sm">
-                Lower annual effective cost with full Pro diagnostics unlocked.
-              </Text>
-              <Button
-                className="mt-3"
-                onPress={() => startCheckout("annual")}
-                isDisabled={createCheckoutSession.isPending}
+        {/* Annual Plan — promoted */}
+        <Animated.View entering={FadeInDown.duration(400).delay(200)}>
+          <Card variant="accent">
+            <View className="flex-row items-center justify-between mb-2">
+              <Text
+                style={{
+                  color: colors.text,
+                  fontSize: 18,
+                  fontWeight: "700",
+                }}
               >
-                Choose Annual
-              </Button>
-            </Card>
-          </View>
-
-          {createCheckoutSession.isPending ? (
-            <View className="mt-4 flex-row items-center gap-2">
-              <Spinner size="sm" />
-              <Text className="text-muted text-sm">Starting checkout...</Text>
+                Annual Pro
+              </Text>
+              <Chip color="success" dot>
+                MOST POPULAR
+              </Chip>
             </View>
-          ) : null}
+            <View className="flex-row items-end gap-1 mb-1">
+              <Text
+                style={{
+                  color: colors.text,
+                  fontSize: 32,
+                  fontWeight: "800",
+                }}
+              >
+                $79
+              </Text>
+              <Text
+                style={{
+                  color: colors.textMuted,
+                  fontSize: 14,
+                  marginBottom: 6,
+                }}
+              >
+                / year
+              </Text>
+            </View>
+            <Text style={{ color: colors.success, fontSize: 13, fontWeight: "600" }}>
+              Save 34% vs monthly pricing
+            </Text>
+            <Text
+              style={{
+                color: colors.textMuted,
+                fontSize: 13,
+                marginTop: 2,
+              }}
+            >
+              Priority access to new features.
+            </Text>
+            <Button
+              style={{ marginTop: 14 }}
+              onPress={() => startCheckout("annual")}
+              isDisabled={createCheckoutSession.isPending}
+              isLoading={createCheckoutSession.isPending}
+            >
+              Start Annual
+            </Button>
+          </Card>
+        </Animated.View>
 
-          <Text className="mt-4 text-sm text-muted">{status}</Text>
+        {/* Monthly Plan — subdued */}
+        <Animated.View entering={FadeInDown.duration(400).delay(300)}>
+          <Card variant="outlined">
+            <View className="flex-row items-center justify-between mb-2">
+              <Text
+                style={{
+                  color: colors.text,
+                  fontSize: 16,
+                  fontWeight: "600",
+                }}
+              >
+                Monthly Pro
+              </Text>
+            </View>
+            <View className="flex-row items-end gap-1 mb-1">
+              <Text
+                style={{
+                  color: colors.text,
+                  fontSize: 26,
+                  fontWeight: "700",
+                }}
+              >
+                $9.99
+              </Text>
+              <Text
+                style={{
+                  color: colors.textMuted,
+                  fontSize: 14,
+                  marginBottom: 4,
+                }}
+              >
+                / month
+              </Text>
+            </View>
+            <Text style={{ color: colors.textMuted, fontSize: 13 }}>
+              Full diagnostic intelligence. Cancel anytime.
+            </Text>
+            <Button
+              variant="outline"
+              style={{ marginTop: 14 }}
+              onPress={() => startCheckout("monthly")}
+              isDisabled={createCheckoutSession.isPending}
+            >
+              Start Monthly
+            </Button>
+          </Card>
+        </Animated.View>
+
+        {/* Status */}
+        {createCheckoutSession.isPending ? (
+          <View className="flex-row items-center gap-2">
+            <ActivityIndicator size="small" color={colors.primary} />
+            <Text style={{ color: colors.textMuted, fontSize: 13 }}>
+              Starting checkout...
+            </Text>
+          </View>
+        ) : null}
+
+        <Card variant="recessed">
+          <Text style={{ color: colors.textMuted, fontSize: 13 }}>
+            {status}
+          </Text>
           {!session?.user ? (
-            <Text className="mt-1 text-xs text-muted">
+            <Text
+              style={{ color: colors.textSubtle, fontSize: 12, marginTop: 4 }}
+            >
               Sign in from Home tab before starting checkout.
             </Text>
           ) : null}

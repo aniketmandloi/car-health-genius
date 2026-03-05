@@ -1,17 +1,16 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
-import { Button, Card, Chip, Spinner, useThemeColor } from "heroui-native";
 import { useRouter } from "expo-router";
-import { useMemo, useState } from "react";
-import {
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { useCallback, useMemo, useState } from "react";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { Container } from "@/components/container";
+import { Card } from "@/components/ui/card";
+import { Chip } from "@/components/ui/chip";
+import { EmptyState } from "@/components/ui/empty-state";
+import { SkeletonCard } from "@/components/ui/skeleton";
+import { useAppTheme } from "@/contexts/app-theme-context";
 import { trpc } from "@/utils/trpc";
 
 function getSeverityColor(
@@ -30,6 +29,21 @@ function getSeverityColor(
   }
 }
 
+function getSeverityDotColor(severity: string, colors: any): string {
+  switch (severity) {
+    case "critical":
+      return colors.danger;
+    case "high":
+      return colors.danger;
+    case "medium":
+      return colors.warning;
+    case "low":
+      return colors.info;
+    default:
+      return colors.textSubtle;
+  }
+}
+
 function getEventTypeLabel(eventType: string): string {
   switch (eventType) {
     case "scan.ingested":
@@ -44,22 +58,21 @@ function getEventTypeLabel(eventType: string): string {
 }
 
 const EVENT_TYPE_OPTIONS = [
-  { value: "", label: "All Types" },
-  { value: "scan.ingested", label: "Scan" },
+  { value: "", label: "All" },
+  { value: "scan.ingested", label: "Scans" },
   { value: "dtc.cleared", label: "Cleared" },
-  { value: "scan.event.created", label: "DTC Detected" },
+  { value: "scan.event.created", label: "DTCs" },
 ];
 
 export default function HistoryTab() {
   const router = useRouter();
-  const mutedColor = useThemeColor("muted");
+  const { colors } = useAppTheme();
 
   const vehicles = useQuery(trpc.vehicles.list.queryOptions());
   const [selectedVehicleId, setSelectedVehicleId] = useState<number | null>(
     null,
   );
   const [eventTypeFilter, setEventTypeFilter] = useState("");
-  const [showFilters, setShowFilters] = useState(false);
 
   const activeVehicleId = selectedVehicleId ?? vehicles.data?.[0]?.id ?? null;
 
@@ -82,11 +95,9 @@ export default function HistoryTab() {
     vehicles.isLoading ||
     (activeVehicleId !== null && (events.isLoading || timeline.isLoading));
 
-  // Build a combined list: diagnostic events with timeline context
   const allDiagnosticEvents = events.data ?? [];
   const timelineEvents = timeline.data?.events ?? [];
 
-  // When eventType filter is active, only show events that have a matching timeline entry
   const diagnosticEvents = useMemo(() => {
     if (!eventTypeFilter) return allDiagnosticEvents;
     const refIds = new Set(
@@ -95,186 +106,221 @@ export default function HistoryTab() {
     return allDiagnosticEvents.filter((e) => refIds.has(e.id));
   }, [allDiagnosticEvents, timelineEvents, eventTypeFilter]);
 
-  // Merge timeline events as annotations on top of diagnostic events
-  function getTimelineEventForDiagnostic(eventId: number) {
-    return timelineEvents.find((t) => t.eventRefId === eventId);
-  }
+  const getTimelineEventForDiagnostic = useCallback(
+    (eventId: number) => {
+      return timelineEvents.find((t) => t.eventRefId === eventId);
+    },
+    [timelineEvents],
+  );
+
+  const handleRefresh = useCallback(() => {
+    events.refetch();
+    timeline.refetch();
+  }, [events, timeline]);
 
   return (
-    <Container>
-      <ScrollView contentContainerClassName="p-4 gap-4">
+    <Container
+      refreshing={events.isFetching}
+      onRefresh={activeVehicleId ? handleRefresh : undefined}
+    >
+      <View style={{ paddingHorizontal: 16, paddingTop: 8, gap: 14 }}>
         {/* Vehicle Selector */}
-        <View className="gap-2">
-          <Text className="text-foreground text-base font-semibold">
-            Select Vehicle
-          </Text>
-          {vehicles.isLoading ? (
-            <View className="items-center py-4">
-              <Spinner size="sm" />
-            </View>
-          ) : (vehicles.data?.length ?? 0) === 0 ? (
-            <Card className="p-4">
-              <Text className="text-muted text-sm">
-                No vehicles found. Add a vehicle in the Scan tab.
-              </Text>
-            </Card>
-          ) : (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerClassName="gap-2"
-            >
-              {vehicles.data!.map((v) => (
-                <TouchableOpacity
-                  key={v.id}
-                  onPress={() => setSelectedVehicleId(v.id)}
-                  className={`rounded-full border px-3 py-1.5 ${
-                    activeVehicleId === v.id
-                      ? "border-primary bg-primary"
-                      : "border-border bg-card"
-                  }`}
-                >
-                  <Text
-                    className={`text-xs font-medium ${
-                      activeVehicleId === v.id
-                        ? "text-primary-foreground"
-                        : "text-foreground"
-                    }`}
-                  >
-                    {v.make} {v.model} ({v.modelYear})
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          )}
-        </View>
-
-        {/* Filters */}
-        {activeVehicleId !== null && (
-          <View className="gap-2">
-            <TouchableOpacity
-              onPress={() => setShowFilters(!showFilters)}
-              className="flex-row items-center gap-1"
-            >
-              <Ionicons name="filter-outline" size={14} color={mutedColor} />
-              <Text className="text-muted text-xs">
-                {showFilters ? "Hide Filters" : "Filters"}
-              </Text>
-            </TouchableOpacity>
-
-            {showFilters && (
-              <View className="gap-2 rounded-lg border border-border p-3">
-                <Text className="text-foreground text-xs font-medium">
-                  Event Type
-                </Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerClassName="gap-2"
-                >
-                  {EVENT_TYPE_OPTIONS.map((opt) => (
-                    <TouchableOpacity
-                      key={opt.value}
-                      onPress={() => setEventTypeFilter(opt.value)}
-                      className={`rounded-full border px-3 py-1 ${
-                        eventTypeFilter === opt.value
-                          ? "border-primary bg-primary"
-                          : "border-border bg-card"
-                      }`}
-                    >
-                      <Text
-                        className={`text-xs ${
-                          eventTypeFilter === opt.value
-                            ? "text-primary-foreground"
-                            : "text-foreground"
-                        }`}
-                      >
-                        {opt.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
-            )}
-          </View>
-        )}
-
-        {/* History */}
-        {activeVehicleId === null ? null : isLoading ? (
-          <View className="items-center py-12">
-            <Spinner size="lg" />
-            <Text className="text-muted mt-3 text-sm">Loading history...</Text>
-          </View>
-        ) : diagnosticEvents.length === 0 ? (
-          <Card className="items-center py-10 p-4">
-            <Ionicons name="time-outline" size={40} color={mutedColor} />
-            <Text className="text-foreground mt-3 font-medium">
-              No scan history
-            </Text>
-            <Text className="text-muted mt-1 text-xs text-center">
-              Connect your OBD adapter in the Scan tab to record your first
-              diagnostic.
+        {vehicles.isLoading ? null : (vehicles.data?.length ?? 0) === 0 ? (
+          <Card variant="default">
+            <Text style={{ color: colors.textMuted, fontSize: 13 }}>
+              No vehicles found. Add a vehicle in the Vehicles tab.
             </Text>
           </Card>
         ) : (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 8 }}
+          >
+            {vehicles.data!.map((v) => {
+              const isActive = activeVehicleId === v.id;
+              return (
+                <TouchableOpacity
+                  key={v.id}
+                  onPress={() => setSelectedVehicleId(v.id)}
+                  style={{
+                    backgroundColor: isActive ? colors.primary : colors.surfaceRecessed,
+                    borderColor: isActive ? colors.primary : colors.border,
+                    borderWidth: 1,
+                    borderRadius: 999,
+                    paddingHorizontal: 14,
+                    paddingVertical: 8,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontWeight: "600",
+                      color: isActive ? colors.textOnPrimary : colors.text,
+                    }}
+                  >
+                    {v.make} {v.model}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        )}
+
+        {/* Filter Chips — always visible */}
+        {activeVehicleId !== null && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 8 }}
+          >
+            {EVENT_TYPE_OPTIONS.map((opt) => {
+              const isActive = eventTypeFilter === opt.value;
+              return (
+                <TouchableOpacity
+                  key={opt.value}
+                  onPress={() => setEventTypeFilter(opt.value)}
+                  style={{
+                    backgroundColor: isActive
+                      ? colors.primarySoft
+                      : colors.surfaceRecessed,
+                    borderColor: isActive ? colors.primary : colors.border,
+                    borderWidth: 1,
+                    borderRadius: 999,
+                    paddingHorizontal: 12,
+                    paddingVertical: 6,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontWeight: "500",
+                      color: isActive ? colors.primary : colors.textMuted,
+                    }}
+                  >
+                    {opt.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        )}
+
+        {/* History List */}
+        {activeVehicleId === null ? null : isLoading ? (
+          <View className="gap-3">
+            <SkeletonCard />
+            <SkeletonCard />
+          </View>
+        ) : diagnosticEvents.length === 0 ? (
+          <EmptyState
+            icon="time-outline"
+            title="No scan history"
+            description="Connect your OBD adapter in the Scan tab to record your first diagnostic."
+          />
+        ) : (
           <View className="gap-2">
-            <Text className="text-foreground text-base font-semibold">
-              Diagnostic Events ({diagnosticEvents.length})
+            <Text
+              style={{
+                color: colors.textMuted,
+                fontSize: 12,
+                fontWeight: "500",
+              }}
+            >
+              {diagnosticEvents.length} event
+              {diagnosticEvents.length !== 1 ? "s" : ""}
             </Text>
 
-            {diagnosticEvents.map((event) => {
+            {diagnosticEvents.map((event, i) => {
               const timelineRef = getTimelineEventForDiagnostic(event.id);
               return (
-                <Card key={event.id} className="p-3">
-                  <View className="flex-row items-start justify-between gap-2">
-                    <View className="flex-1 gap-1">
-                      <View className="flex-row items-center gap-2">
-                        <Text className="text-foreground font-mono text-sm font-bold">
-                          {event.dtcCode}
-                        </Text>
-                        <Chip
-                          variant="secondary"
-                          color={getSeverityColor(event.severity)}
-                          size="sm"
-                        >
-                          <Chip.Label>{event.severity}</Chip.Label>
-                        </Chip>
+                <Animated.View
+                  key={event.id}
+                  entering={FadeInDown.duration(300).delay(i * 40)}
+                >
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() =>
+                      router.push(`/results/${event.id}` as never)
+                    }
+                  >
+                    <Card variant="default" noPadding>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          paddingHorizontal: 14,
+                          paddingVertical: 12,
+                          gap: 12,
+                        }}
+                      >
+                        {/* Severity dot */}
+                        <View
+                          style={{
+                            width: 10,
+                            height: 10,
+                            borderRadius: 5,
+                            backgroundColor: getSeverityDotColor(
+                              event.severity,
+                              colors,
+                            ),
+                          }}
+                        />
+                        {/* Content */}
+                        <View className="flex-1">
+                          <View className="flex-row items-center gap-2">
+                            <Text
+                              style={{
+                                fontSize: 14,
+                                fontWeight: "700",
+                                color: colors.text,
+                              }}
+                            >
+                              {event.dtcCode}
+                            </Text>
+                            <Chip
+                              color={getSeverityColor(event.severity)}
+                              size="sm"
+                            >
+                              {event.severity}
+                            </Chip>
+                          </View>
+                          <Text
+                            style={{
+                              color: colors.textMuted,
+                              fontSize: 11,
+                              marginTop: 2,
+                            }}
+                          >
+                            {timelineRef
+                              ? getEventTypeLabel(timelineRef.eventType)
+                              : event.source}{" "}
+                            ·{" "}
+                            {new Date(event.occurredAt).toLocaleDateString(
+                              undefined,
+                              {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              },
+                            )}
+                          </Text>
+                        </View>
+                        {/* Chevron */}
+                        <Ionicons
+                          name="chevron-forward"
+                          size={16}
+                          color={colors.textMuted}
+                        />
                       </View>
-
-                      <Text className="text-muted text-xs">
-                        {timelineRef
-                          ? getTimelineEventForDiagnostic(event.id)
-                            ? getEventTypeLabel(timelineRef.eventType)
-                            : event.source
-                          : event.source}{" "}
-                        ·{" "}
-                        {new Date(event.occurredAt).toLocaleDateString(
-                          undefined,
-                          {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          },
-                        )}
-                      </Text>
-                    </View>
-
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onPress={() =>
-                        router.push(`/results/${event.id}` as never)
-                      }
-                    >
-                      View
-                    </Button>
-                  </View>
-                </Card>
+                    </Card>
+                  </TouchableOpacity>
+                </Animated.View>
               );
             })}
           </View>
         )}
-      </ScrollView>
+      </View>
     </Container>
   );
 }

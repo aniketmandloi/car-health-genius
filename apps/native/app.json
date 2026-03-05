@@ -3,10 +3,23 @@
     "scheme": "car-health-genius",
     "userInterfaceStyle": "automatic",
     "orientation": "default",
-    "web": {
-      "bundler": "metro"
+    "icon": "./assets/images/icon.png",
+    "splash": {
+      "image": "./assets/images/icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0052FF"
     },
-    "name": "car-health-genius",
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/icon.png",
+        "backgroundColor": "#0052FF"
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/images/icon.png"
+    },
+    "name": "Car Health Genius",
     "slug": "car-health-genius",
     "plugins": [
       "expo-font",

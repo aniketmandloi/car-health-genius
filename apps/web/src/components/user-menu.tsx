@@ -44,20 +44,20 @@ export default function UserMenu() {
         <span className="flex items-center gap-1.5">
           {session.user.name}
           {hasProSubscription && (
-            <span className="rounded bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground leading-none">
+            <span className="rounded-full bg-primary/12 px-2 py-0.5 text-[10px] font-bold leading-none text-primary">
               PRO
             </span>
           )}
         </span>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="bg-card">
+      <DropdownMenuContent>
         <DropdownMenuGroup>
           <DropdownMenuLabel>My Account</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem>{session.user.email}</DropdownMenuItem>
           {hasProSubscription && (
-            <DropdownMenuItem className="text-xs text-primary font-semibold pointer-events-none">
-              ★ Pro Priority Support Active
+            <DropdownMenuItem className="pointer-events-none text-xs font-semibold text-primary">
+              Pro Priority Support Active
             </DropdownMenuItem>
           )}
           <DropdownMenuSeparator />

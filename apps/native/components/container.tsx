@@ -1,45 +1,71 @@
-import { cn } from "heroui-native";
+import { cn } from "@/lib/cn";
 import { type PropsWithChildren } from "react";
-import { ScrollView, View, type ScrollViewProps, type ViewProps } from "react-native";
+import {
+  RefreshControl,
+  ScrollView,
+  View,
+  type ScrollViewProps,
+  type ViewProps,
+} from "react-native";
 import Animated, { type AnimatedProps } from "react-native-reanimated";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAppTheme } from "@/contexts/app-theme-context";
 
 const AnimatedView = Animated.createAnimatedComponent(View);
 
 type Props = AnimatedProps<ViewProps> & {
   className?: string;
   isScrollable?: boolean;
+  variant?: "default" | "plain";
+  header?: React.ReactNode;
   scrollViewProps?: Omit<ScrollViewProps, "contentContainerStyle">;
+  refreshing?: boolean;
+  onRefresh?: () => void;
 };
 
 export function Container({
   children,
   className,
   isScrollable = true,
+  variant = "default",
+  header,
   scrollViewProps,
+  refreshing,
+  onRefresh,
+  style,
   ...props
 }: PropsWithChildren<Props>) {
-  const insets = useSafeAreaInsets();
+  const { colors } = useAppTheme();
 
   return (
     <AnimatedView
-      className={cn("flex-1 bg-background", className)}
-      style={{
-        paddingBottom: insets.bottom,
-      }}
+      className={cn("flex-1", className)}
+      style={[
+        {
+          backgroundColor: variant === "plain" ? colors.panel : colors.background,
+        },
+        style,
+      ]}
       {...props}
     >
+      {header}
       {isScrollable ? (
         <ScrollView
           contentContainerStyle={{ flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
-          contentInsetAdjustmentBehavior="automatic"
+          contentInsetAdjustmentBehavior="never"
+          automaticallyAdjustContentInsets={false}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            onRefresh ? (
+              <RefreshControl refreshing={refreshing ?? false} onRefresh={onRefresh} />
+            ) : undefined
+          }
           {...scrollViewProps}
         >
-          {children}
+          <View className="relative z-10 flex-1">{children}</View>
         </ScrollView>
       ) : (
-        <View className="flex-1">{children}</View>
+        <View className="relative z-10 flex-1">{children}</View>
       )}
     </AnimatedView>
   );

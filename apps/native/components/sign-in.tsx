@@ -1,24 +1,25 @@
 import { useForm } from "@tanstack/react-form";
-import {
-  Button,
-  FieldError,
-  Input,
-  Label,
-  Spinner,
-  Surface,
-  TextField,
-  useToast,
-} from "heroui-native";
 import { useRef } from "react";
+import Toast from "react-native-toast-message";
 import { Text, TextInput, View } from "react-native";
 import z from "zod";
 
+import { useAppTheme } from "@/contexts/app-theme-context";
 import { authClient } from "@/lib/auth-client";
 import { queryClient } from "@/utils/trpc";
+import { AppTextInput } from "@/components/ui/text-input";
+import { Button } from "@/components/ui/button";
 
 const signInSchema = z.object({
-  email: z.string().trim().min(1, "Email is required").email("Enter a valid email address"),
-  password: z.string().min(1, "Password is required").min(8, "Use at least 8 characters"),
+  email: z
+    .string()
+    .trim()
+    .min(1, "Email is required")
+    .email("Enter a valid email address"),
+  password: z
+    .string()
+    .min(1, "Password is required")
+    .min(8, "Use at least 8 characters"),
 });
 
 function getErrorMessage(error: unknown): string | null {
@@ -50,7 +51,7 @@ function getErrorMessage(error: unknown): string | null {
 
 function SignIn() {
   const passwordInputRef = useRef<TextInput>(null);
-  const { toast } = useToast();
+  const { colors } = useAppTheme();
 
   const form = useForm({
     defaultValues: {
@@ -68,16 +69,16 @@ function SignIn() {
         },
         {
           onError(error) {
-            toast.show({
-              variant: "danger",
-              label: error.error?.message || "Failed to sign in",
+            Toast.show({
+              type: "error",
+              text1: error.error?.message || "Failed to sign in",
             });
           },
           onSuccess() {
             formApi.reset();
-            toast.show({
-              variant: "success",
-              label: "Signed in successfully",
+            Toast.show({
+              type: "success",
+              text1: "Signed in successfully",
             });
             queryClient.refetchQueries();
           },
@@ -87,9 +88,7 @@ function SignIn() {
   });
 
   return (
-    <Surface variant="secondary" className="p-4 rounded-lg">
-      <Text className="text-foreground font-medium mb-4">Sign In</Text>
-
+    <View className="gap-4">
       <form.Subscribe
         selector={(state) => ({
           isSubmitting: state.isSubmitting,
@@ -101,67 +100,83 @@ function SignIn() {
 
           return (
             <>
-              <FieldError isInvalid={!!formError} className="mb-3">
-                {formError}
-              </FieldError>
+              {formError ? (
+                <View
+                  style={{
+                    borderWidth: 1,
+                    borderColor: `${colors.danger}44`,
+                    backgroundColor: `${colors.danger}10`,
+                    borderRadius: 14,
+                    paddingHorizontal: 12,
+                    paddingVertical: 10,
+                  }}
+                >
+                  <Text style={{ color: colors.danger, fontSize: 12 }}>
+                    {formError}
+                  </Text>
+                </View>
+              ) : null}
 
               <View className="gap-3">
                 <form.Field name="email">
                   {(field) => (
-                    <TextField>
-                      <Label>Email</Label>
-                      <Input
-                        value={field.state.value}
-                        onBlur={field.handleBlur}
-                        onChangeText={field.handleChange}
-                        placeholder="email@example.com"
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                        autoComplete="email"
-                        textContentType="emailAddress"
-                        returnKeyType="next"
-                        blurOnSubmit={false}
-                        onSubmitEditing={() => {
-                          passwordInputRef.current?.focus();
-                        }}
-                      />
-                    </TextField>
+                    <AppTextInput
+                      label="Email"
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChangeText={field.handleChange}
+                      placeholder="email@example.com"
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      autoComplete="email"
+                      textContentType="emailAddress"
+                      returnKeyType="next"
+                      blurOnSubmit={false}
+                      onSubmitEditing={() => {
+                        passwordInputRef.current?.focus();
+                      }}
+                      leftIcon="mail-outline"
+                    />
                   )}
                 </form.Field>
 
                 <form.Field name="password">
                   {(field) => (
-                    <TextField>
-                      <Label>Password</Label>
-                      <Input
-                        ref={passwordInputRef}
-                        value={field.state.value}
-                        onBlur={field.handleBlur}
-                        onChangeText={field.handleChange}
-                        placeholder="••••••••"
-                        secureTextEntry
-                        autoComplete="password"
-                        textContentType="password"
-                        returnKeyType="go"
-                        onSubmitEditing={form.handleSubmit}
-                      />
-                    </TextField>
+                    <AppTextInput
+                      ref={passwordInputRef}
+                      label="Password"
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChangeText={field.handleChange}
+                      placeholder="••••••••"
+                      secureTextEntry
+                      autoComplete="password"
+                      textContentType="password"
+                      returnKeyType="go"
+                      onSubmitEditing={form.handleSubmit}
+                      leftIcon="lock-closed-outline"
+                    />
                   )}
                 </form.Field>
 
-                <Button onPress={form.handleSubmit} isDisabled={isSubmitting} className="mt-1">
-                  {isSubmitting ? (
-                    <Spinner size="sm" color="default" />
-                  ) : (
-                    <Button.Label>Sign In</Button.Label>
-                  )}
+                <Button
+                  onPress={form.handleSubmit}
+                  isDisabled={isSubmitting}
+                  isLoading={isSubmitting}
+                  style={{ marginTop: 8 }}
+                >
+                  Sign In
                 </Button>
+
+                <Text style={{ color: colors.textSubtle, fontSize: 12, marginTop: 3 }}>
+                  Secure sign-in powers synced diagnostics across all your devices.
+                </Text>
               </View>
             </>
           );
         }}
       </form.Subscribe>
-    </Surface>
+    </View>
   );
 }
 

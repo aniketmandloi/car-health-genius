@@ -23,9 +23,9 @@ export default async function AccountPage() {
   const { user } = session;
 
   return (
-    <div className="container mx-auto max-w-2xl space-y-6 p-4">
+    <div className="cb-page-compact space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Account Settings</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Account Settings</h1>
         <p className="text-sm text-muted-foreground">
           Manage your profile and subscription.
         </p>
@@ -47,7 +47,7 @@ export default async function AccountPage() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="anim-delay-1">
         <CardHeader>
           <CardTitle className="text-base">Subscription</CardTitle>
         </CardHeader>
@@ -65,7 +65,7 @@ export default async function AccountPage() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="anim-delay-2">
         <CardHeader>
           <CardTitle className="text-base">Navigation</CardTitle>
         </CardHeader>
@@ -86,7 +86,9 @@ export default async function AccountPage() {
       </Card>
 
       {/* Data Management — SEC-005 */}
-      <DataManagementSection />
+      <div className="animate-soft-enter anim-delay-2">
+        <DataManagementSection />
+      </div>
     </div>
   );
 }

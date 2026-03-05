@@ -1,34 +1,66 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { Button, Surface, useThemeColor } from "heroui-native";
 import { Text, View } from "react-native";
+import Animated, { FadeIn, ZoomIn } from "react-native-reanimated";
 
 import { Container } from "@/components/container";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { useAppTheme } from "@/contexts/app-theme-context";
 
 function Modal() {
-  const accentForegroundColor = useThemeColor("accent-foreground");
+  const { colors } = useAppTheme();
 
   function handleClose() {
     router.back();
   }
 
   return (
-    <Container>
-      <View className="flex-1 justify-center items-center p-4">
-        <Surface variant="secondary" className="p-5 w-full max-w-sm rounded-lg">
-          <View className="items-center">
-            <View className="w-12 h-12 bg-accent rounded-lg items-center justify-center mb-3">
-              <Ionicons name="checkmark" size={24} color={accentForegroundColor} />
+    <Container variant="plain">
+      <View className="flex-1 items-center justify-center p-5">
+        <Animated.View entering={ZoomIn.duration(300).springify()}>
+          <Card variant="elevated" className="w-full max-w-sm rounded-3xl">
+            <View className="items-center gap-3">
+              <View
+                style={{
+                  backgroundColor: colors.primarySoft,
+                  borderRadius: 16,
+                  padding: 14,
+                }}
+              >
+                <Ionicons name="checkmark" size={24} color={colors.primary} />
+              </View>
+
+              <Text
+                style={{
+                  color: colors.text,
+                  fontSize: 20,
+                  fontWeight: "700",
+                }}
+              >
+                Action Completed
+              </Text>
+              <Text
+                style={{
+                  color: colors.textMuted,
+                  fontSize: 14,
+                  textAlign: "center",
+                  lineHeight: 20,
+                }}
+              >
+                Everything is synced and up to date. You can close this panel
+                and continue where you left off.
+              </Text>
             </View>
-            <Text className="text-foreground font-medium text-lg mb-1">Modal Screen</Text>
-            <Text className="text-muted text-sm text-center mb-4">
-              This is an example modal screen for dialogs and confirmations.
-            </Text>
-          </View>
-          <Button onPress={handleClose} className="w-full" size="sm">
-            <Button.Label>Close</Button.Label>
-          </Button>
-        </Surface>
+            <Button
+              onPress={handleClose}
+              size="sm"
+              style={{ marginTop: 16 }}
+            >
+              Close
+            </Button>
+          </Card>
+        </Animated.View>
       </View>
     </Container>
   );

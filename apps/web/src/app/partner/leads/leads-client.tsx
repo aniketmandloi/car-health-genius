@@ -131,7 +131,7 @@ function LeadCard({
             id={`lead-${lead.id}-status`}
             value={status}
             onChange={(event) => setStatus(event.target.value as LeadStatus)}
-            className="h-8 w-full rounded border bg-background px-2 text-xs"
+            className="cb-input-like h-9 w-full text-xs"
             disabled={isPending}
           >
             <option value="accepted">Accept</option>
@@ -173,12 +173,12 @@ function LeadCard({
             onChange={(event) => setMessage(event.target.value)}
             disabled={isPending}
             rows={3}
-            className="w-full rounded border bg-background px-2 py-1.5 text-xs"
+            className="cb-textarea text-xs"
             placeholder="Share context, availability notes, or next steps."
           />
         </div>
 
-        {localError && <p className="text-xs text-red-500">{localError}</p>}
+        {localError && <p className="text-xs text-destructive">{localError}</p>}
 
         <Button type="button" size="sm" onClick={submitResponse} disabled={isPending}>
           {isPending ? "Submitting..." : "Submit Response"}
@@ -215,9 +215,9 @@ export default function LeadsClient() {
   return (
     <div className="space-y-4">
       {mutationError && (
-        <Card className="border-red-300">
+        <Card className="border-destructive/25">
           <CardContent className="py-3">
-            <p className="text-xs text-red-500">{mutationError}</p>
+            <p className="text-xs text-destructive">{mutationError}</p>
           </CardContent>
         </Card>
       )}
@@ -225,7 +225,7 @@ export default function LeadsClient() {
       {leads.isLoading ? (
         <div className="grid gap-3">
           {[1, 2, 3].map((item) => (
-            <div key={item} className="h-40 animate-pulse rounded-lg bg-muted" />
+            <div key={item} className="h-40 animate-pulse rounded-lg bg-muted/70" />
           ))}
         </div>
       ) : leads.isError ? (
